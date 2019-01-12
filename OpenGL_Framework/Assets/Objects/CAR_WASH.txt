@@ -1,0 +1,6 @@
+car-wash
+car-wash
+2.36
+PHYS
+CARWASH_HITBOX
+false

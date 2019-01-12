@@ -1,0 +1,6 @@
+Tree Verison 2
+Texture Tree Model 2
+0.75
+PHYS
+TREE 2 HITBOX
+false

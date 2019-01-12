@@ -1,0 +1,5 @@
+TILE
+68
+34
+FIELD_GRASS
+0

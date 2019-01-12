@@ -1,0 +1,6 @@
+House Verison 1
+Texture House v1-2
+1.7
+PHYS
+HOUSE_HITBOX
+false

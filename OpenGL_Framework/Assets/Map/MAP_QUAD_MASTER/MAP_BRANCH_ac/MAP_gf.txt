@@ -1,0 +1,5 @@
+TILE
+25
+6
+FIELD_SAND
+16

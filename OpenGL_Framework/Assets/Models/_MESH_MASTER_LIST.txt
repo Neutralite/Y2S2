@@ -1,0 +1,28 @@
+TESTING_BASE_PLATE
+UIBAR
+tree_ded
+BUTTON_BASE
+PLACEHOLDER_PLAYER_OBJ
+Apartment Verison 1
+Building Verison 1
+Character
+House Verison 1
+PickupTruck
+Tree Verison 1
+Tree Verison 2
+bench
+TRUCK_MORPH_LEFT
+TRUCK_MORPH_FORWARD
+Grass_Model
+MINE
+STREETLIGHT
+STREETLIGHT_FLIP
+HEALTH_BAR
+POINTS_BAR
+TIME_BAR
+SPED_BACK
+car-wash
+gas-station-store
+trailer
+street_light
+EXPLOSION

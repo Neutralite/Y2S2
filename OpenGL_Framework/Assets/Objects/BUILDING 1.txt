@@ -1,0 +1,6 @@
+Building Verison 1
+Texture Building v1
+2
+PHYS
+BUILDING_HITBOX
+false
