@@ -1,0 +1,12 @@
+# Blender v2.79 (sub 0) OBJ File: ''
+# www.blender.org
+mtllib DEAD_TREE_HITBOX.mtl
+o Plane
+v -0.449854 0.000000 0.388893
+v 0.399502 0.000000 0.388893
+v -0.449854 0.000000 -0.447159
+v 0.399502 0.000000 -0.447159
+vn 0.0000 1.0000 0.0000
+usemtl None
+s off
+f 1//1 2//1 4//1 3//1

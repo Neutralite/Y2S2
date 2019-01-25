@@ -1,0 +1,12 @@
+# Blender v2.79 (sub 0) OBJ File: ''
+# www.blender.org
+mtllib STORE_HITBOX.mtl
+o Plane_Plane.002
+v -1.843539 0.000000 0.946653
+v 1.843539 0.000000 0.946653
+v -1.843539 0.000000 -0.946653
+v 1.843539 0.000000 -0.946653
+vn 0.0000 1.0000 0.0000
+usemtl None
+s off
+f 1//1 2//1 4//1 3//1
