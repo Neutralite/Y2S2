@@ -110,21 +110,28 @@ void Game::initializeGame()
 	//Object* testObj = new Object();
 	//Object* testObj2 = new Object();
 	//Object* testObj3 = new Object();
+	//std::cout << "l00p!" << std::endl;
 	std::string nameOfFile = "_MESH_MASTER_LIST";
 	loadAllMeshes(nameOfFile);
+	//std::cout << "You?" << std::endl;
 	nameOfFile = "_MORPH_MASTER_LIST";
 	loadAllMorphTargs(nameOfFile);
+	//std::cout << "You?" << std::endl;
 	nameOfFile = "_TEXTURE_MASTER_LIST";
 	loadAllTextures(nameOfFile);
+	//std::cout << "You?" << std::endl;
 	nameOfFile = "_LIGHTS_MASTER_LIST";
 	loadAllLights(nameOfFile);
+	//std::cout << "You?" << std::endl;
 	nameOfFile = "_HITBOX_MASTER_LIST";
 	loadAllHitboxes(nameOfFile);
+	//std::cout << "You?" << std::endl;
 	nameOfFile = "_OBJECT_MASTER_LIST";
 	loadAllObjects(nameOfFile);
+	//std::cout << "You?" << std::endl;
 	nameOfFile = "_UI_MASTER_LIST";
 	loadAllUIElements(nameOfFile);
-
+	//std::cout << "l00p!" << std::endl;
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i]->getIdentity() == "MINE")
@@ -397,7 +404,9 @@ void Game::initializeGame()
 	for (int i = 0; i < UIELEM.size(); i++)
 		UIELEM[i]->updateTransforms(DT);
 
-	theMap = new Field(std::string("TEST_MAP.txt"), &objects, 100, 100, tileSize, tileSize, &shipToField, &players);
+	std::string DISBOI = "TEST_MAP.txt";
+	theMap = new Field(DISBOI, &objects, 100, 100, tileSize, tileSize, &shipToField, &players);
+	//std::cout << "l00p!" << std::endl;
 	for (int i = 0; i < 100; i++)
 		for (int j = 0; j < 100; j++)
 		{
@@ -421,7 +430,7 @@ void Game::initializeGame()
 				OOO->setBasePosition(OOO->getOrientation()->getPosition());
 			}
 		}
-
+	std::cout << "l00p!" << std::endl;
 	players[0]->setBezTimeToHalf();
 
 	//players[0]->updateTransforms(DT);
@@ -1745,6 +1754,7 @@ void Game::loadAllLights(std::string & filename)
 
 void Game::loadAllHitboxes(std::string & fileName)
 {
+	//std::cout << "MAYDE IT!" << std::endl;
 	std::ifstream masterFile;
 	masterFile.open("Assets/Hitboxes/" + fileName + ".txt");
 	std::string temp;
@@ -1752,9 +1762,9 @@ void Game::loadAllHitboxes(std::string & fileName)
 	{
 		Hitbox2D* HB = new Hitbox2D;
 		HB->name = temp;
-		HB->loadFromFile("Assets/Hitboxes/" + temp + ".obj");
+		std::string DATBOI = "Assets/Hitboxes/" + temp + ".obj";
+		HB->loadFromFile(DATBOI);
 		allHitboxes.push_back(HB);
-		//std::cout << temp << std::endl;
 	}
 	masterFile.close();
 }
