@@ -22,6 +22,7 @@ public:
 	~Transform();
 
 	void setPosition(vec3 newPosition);
+	void rotateAroundAxis(vec3 axis, float degrees);
 	void setRotationAngle(vec3 newAngle);
 	void setRotationAngleX(float newAngle);
 	void setRotationAngleY(float newAngle);

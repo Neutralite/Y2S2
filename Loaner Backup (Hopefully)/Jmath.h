@@ -353,10 +353,10 @@ vec3 operator/(float divisor, const vec3&);
 vec4 operator*(float scalar, const vec4&);
 vec4 operator/(float divisor, const vec4&);
 
-//struct quat
-//{
-//	quat() = default;
-//	quat(float X, float Y, float Z, float W);
+struct quat
+{
+	quat() = default;
+	quat(float X, float Y, float Z, float W);
 //	quat(const vec3& right, const vec3& up, const vec3& forward);
 //	quat(const mat3& rotation);
 //
@@ -386,13 +386,13 @@ vec4 operator/(float divisor, const vec4&);
 //	void RotateY(float degrees);
 //	void RotateZ(float degrees);
 //
-//	static const quat Identity;
+	static const quat Identity;
 //
-//	float x = 0.0f;
-//	float y = 0.0f;
-//	float z = 0.0f;
-//	float w = 1.0f;
-//};
+	float x = 0.0f;
+	float y = 0.0f;
+	float z = 0.0f;
+	float w = 1.0f;
+};
 //
 //float Dot(const quat& p0, const quat& p1);
 //quat Slerp(const quat& p0, const quat& p1, float percent);

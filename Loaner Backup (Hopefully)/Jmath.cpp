@@ -4,7 +4,7 @@
 
 const mat4 mat4::Identity(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 const mat3 mat3::Identity(1, 0, 0, 0, 1, 0, 0, 0, 1);
-//const quat quat::Identity(0, 0, 0, 1);
+const quat quat::Identity(0, 0, 0, 1);
 
 mat3::mat3()
 {
@@ -247,14 +247,10 @@ float mat3::GetDeterminant() const
 
 void mat3::Scale(const vec3 & scale)
 {
-	mat3 temp = mat3(scale.x, 0, 0, 0, scale.y, 0, 0, 0, scale.z);
-	*this = temp * *this;
 }
 
 void mat3::Scale(float scale)
 {
-	mat3 temp = mat3(scale, 0, 0, 0, scale, 0, 0, 0, scale);
-	*this = temp * *this;
 }
 
 void mat3::Rotate(const vec3 & axis, float degrees)
@@ -746,6 +742,13 @@ void mat4::Translate(const vec3 & translation)
 	*this = temp * *this;
 }
 
+void mat4::SetRight(const vec3 & v)
+{
+	data[0] = v.x;
+	data[4] = v.y;
+	data[8] = v.z;
+}
+
 void mat4::SetUp(const vec3 & v)
 {
 	data[1] = v.x;
@@ -1022,9 +1025,9 @@ vec3 & vec3::operator*=(float scalar)
 
 vec3 & vec3::operator/=(float divisor)
 {
-	this->x *= divisor;
-	this->y *= divisor;
-	this->z *= divisor;
+	this->x /= divisor;
+	this->y /= divisor;
+	this->z /= divisor;
 	return *this;
 }
 
@@ -1392,4 +1395,12 @@ float Dot(const vec4 & v1, const vec4 & v2)
 vec3 Cross(const vec3 & v1, const vec3 & v2)
 {
 	return vec3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+}
+
+quat::quat(float X, float Y, float Z, float W)
+{
+	x = X;
+	y = Y;
+	z = Z;
+	w = W;
 }

@@ -13,6 +13,14 @@ void Transform::setPosition(vec3 newPosition)
 	m_pLocalPosition = newPosition;
 }
 
+void Transform::rotateAroundAxis(vec3 axis, float degrees)
+{
+	vec3 oPos = getPosition();
+	m_pLocalToWorldMatrix.SetTranslation(vec3(0, 0, 0));
+	m_pLocalToWorldMatrix.Rotate(axis, degrees);
+	m_pLocalToWorldMatrix.SetTranslation(oPos);
+}
+
 void Transform::setRotationAngle(vec3 newAngle)
 {
 	m_pRotX = newAngle.x;

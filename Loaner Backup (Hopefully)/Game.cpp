@@ -539,11 +539,11 @@ void Game::update()
 	}
 	float Ysub = LP::LERP(camera.getRotationAngleY(), players[0]->getOrientation()->getRotationAngleY(), 1.f - pow(0.9f, 60.f * DT));
 
-	camera.setRotationAngleY(LP::LERP(camera.getRotationAngleY(), players[0]->getOrientation()->getRotationAngleY(), 1.f - pow(0.9f, 60.f * DT)));
+	camera.setRotationAngleY(/*LP::LERP(camera.getRotationAngleY(), players[0]->getOrientation()->getRotationAngleY(), 1.f - pow(0.9f, 60.f * DT))*/Ysub);
 	camera.setPosition(players[0]->getOrientation()->getPosition() + vec3(
-		cameraHeight / sqrt(3) * sin(/*ToRadians(players[0]->getOrientation()->getRotationAngleY())*/ ToRadians(Ysub)), 
+		cameraHeight / sqrt(3) * sin(ToRadians(Ysub)),
 		cameraHeight, 
-		cameraHeight / sqrt(3) * cos(/*ToRadians(players[0]->getOrientation()->getRotationAngleY())*/ ToRadians(Ysub))));
+		cameraHeight / sqrt(3) * cos(ToRadians(Ysub))));
 
 	//vec4 column1 = camera.getLocalToWorldMatrix().GetInverse() * vec4(1, 0, 0, 0);
 	//vec4 column2 = camera.getLocalToWorldMatrix().GetInverse() * vec4(0, 1, 0, 0);
@@ -615,6 +615,8 @@ void Game::update()
 		pcX = plX;
 		pcY = plY;
 	}
+
+	//theMap->getSection(plX, plY)->getPlane()->getOrientation()->rotateAroundAxis(vec3(0.1, 0.1, 0.1), 45.f * DT);
 	//else
 	//{
 	//	std::cout << plX << ", " << plY << std::endl;
