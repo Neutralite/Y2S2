@@ -212,6 +212,7 @@ private:
 	//bool normalRenderActive = true;
 	//bool rippleActive = false;
 	//bool paused = false;
+	bool swapGraphics = false;
 
 	int windowWidth = WINDOW_WIDTH, windowHeight = WINDOW_HEIGHT;
 };

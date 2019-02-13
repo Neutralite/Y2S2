@@ -621,6 +621,10 @@ void Game::update()
 	{
 		players[0]->setPosition(spawnPoint);
 	}
+	if ((backCheckKeysDown['c' - 1] && !keysDown['c' - 1]) || (backCheckKeysDown['C' - 1] && !keysDown['C' - 1]))
+	{
+		swapGraphics = !swapGraphics;
+	}
 	if ((backCheckKeysDown['z' - 1] && !keysDown['z' - 1]) || (backCheckKeysDown['Z' - 1] && !keysDown['Z' - 1]))
 	{
 		resetMap();
@@ -862,23 +866,43 @@ void Game::draw()
 	//PassThrough.SendUniform("uTex", 0);
 	//PassThrough.SendUniform("DT", TotalGameTime);
 
-	COMIC_SETUP.Bind();
+	if (swapGraphics)
+	{
+		COMIC_SETUP.Bind();
 
-	COMIC_SETUP.SendUniform("uTex", 0);
-	COMIC_SETUP.SendUniform("DT", TotalGameTime);
-
+		COMIC_SETUP.SendUniform("uTex", 0);
+		COMIC_SETUP.SendUniform("DT", TotalGameTime);
+	}
+	else
+	{
+		PassThrough.Bind();
+		
+		PassThrough.SendUniform("uTex", 0);
+		PassThrough.SendUniform("DT", TotalGameTime);
+	}
 	vec2 camPosUnit = vec2(camera.getPosition().x, camera.getPosition().z) / tileSize;
 
 	vec2 CPOSU = vec2(players[0]->getOrientation()->getPosition().x, players[0]->getOrientation()->getPosition().z) / tileSize;
 	//FB.Bind();
-	CaptureScene.Bind();
+	if (swapGraphics)
+	{
+		CaptureScene.Bind();
+	}
 
 	//texture->bind();
 	//PassThrough.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
 	//PassThrough.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
 
-	COMIC_SETUP.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
-	COMIC_SETUP.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+	if (swapGraphics)
+	{
+		COMIC_SETUP.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+		COMIC_SETUP.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+	}
+	else
+	{
+		PassThrough.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+		PassThrough.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+	}
 
 	for (int i = -4 + CPOSU.y; i < 5 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
 	{
@@ -889,21 +913,42 @@ void Game::draw()
 				//PassThrough.SendUniform("YEET", 0.f);
 				//drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
 
-				COMIC_SETUP.SendUniform("YEET", 0.f);
-				drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+				if (swapGraphics)
+				{
+					COMIC_SETUP.SendUniform("YEET", 0.f);
+					drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+				}
+				else
+				{
+					PassThrough.SendUniform("YEET", 0.f);
+					drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+				}
+				//drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
 				for (int k = 0; k < theMap->getSection(j, i)->getNumObjOnFace(); k++)
 				{
 					//PassThrough.SendUniform("YEET", theMap->getSection(j, i)->getObjectOnFace(k)->YEET);
 					//drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
 
-					COMIC_SETUP.SendUniform("YEET", theMap->getSection(j, i)->getObjectOnFace(k)->YEET);
-					drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+					if (swapGraphics)
+					{
+						COMIC_SETUP.SendUniform("YEET", theMap->getSection(j, i)->getObjectOnFace(k)->YEET);
+						drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+					}
+					else
+					{
+						PassThrough.SendUniform("YEET", theMap->getSection(j, i)->getObjectOnFace(k)->YEET);
+						drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+					}
+					//drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
 				}
 			}
 		}
 	}
 
-	CaptureScene.Unbind();
+	if (swapGraphics)
+	{
+		CaptureScene.Unbind();
+	}
 
 	//for (int i = 0; i < players[0]->getChild(0)->getNumberOfChildren(); i++)
 	//{
@@ -923,12 +968,24 @@ void Game::draw()
 		//PassThrough.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
 		//PassThrough.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
 
-		COMIC_SETUP.SendUniform("position[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getPosition());
-		COMIC_SETUP.SendUniform("direction[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getDirection());
-		COMIC_SETUP.SendUniform("DSE[" + std::to_string(i) + "]", lightsToDraw[i]->getDiffSpecExp());
-		COMIC_SETUP.SendUniform("CLQ[" + std::to_string(i) + "]", lightsToDraw[i]->getCLQ());
-		COMIC_SETUP.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
-		COMIC_SETUP.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
+		if (swapGraphics)
+		{
+			COMIC_SETUP.SendUniform("position[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getPosition());
+			COMIC_SETUP.SendUniform("direction[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getDirection());
+			COMIC_SETUP.SendUniform("DSE[" + std::to_string(i) + "]", lightsToDraw[i]->getDiffSpecExp());
+			COMIC_SETUP.SendUniform("CLQ[" + std::to_string(i) + "]", lightsToDraw[i]->getCLQ());
+			COMIC_SETUP.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
+			COMIC_SETUP.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
+		}
+		else
+		{
+			PassThrough.SendUniform("position[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getPosition());
+			PassThrough.SendUniform("direction[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getDirection());
+			PassThrough.SendUniform("DSE[" + std::to_string(i) + "]", lightsToDraw[i]->getDiffSpecExp());
+			PassThrough.SendUniform("CLQ[" + std::to_string(i) + "]", lightsToDraw[i]->getCLQ());
+			PassThrough.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
+			PassThrough.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
+		}
 		//std::cout << lightsToDraw.size() << std::endl;
 		//vec4 lPos = lightsToDraw[i]->getToWorld() * lightsToDraw[i]->getPosition();
 		//std::cout << lPos.x << ", " << lPos.y << " , " << lPos.z << std::endl;
@@ -942,20 +999,39 @@ void Game::draw()
 	//PassThrough.SendUniform("ambient", ambientLevel);
 	//PassThrough.SendUniform("Lsize", num);
 
-	COMIC_SETUP.SendUniform("ambient", ambientLevel);
-	COMIC_SETUP.SendUniform("Lsize", num);
+	if (swapGraphics)
+	{
+		COMIC_SETUP.SendUniform("ambient", ambientLevel);
+		COMIC_SETUP.SendUniform("Lsize", num);
+	}
+	else
+	{
+		PassThrough.SendUniform("ambient", ambientLevel);
+		PassThrough.SendUniform("Lsize", num);
+	}
 
 	lightsToDraw.clear();
 	lightMats.clear();
-
-	COMIC_EXECUTION.Bind();
-	COMIC_EXECUTION.SendUniform("uSceneAmbient", vec3(ambientLevel));
-	COMIC_EXECUTION.SendUniform("ASPECT", vec3(windowWidth, windowHeight, 0));
-	overlay->bind(20);
-	addPostProcessLink(nullptr, &CaptureScene, true);
-	overlay->unbind(20);
-	Texture::resetActiveTexture();
 	
+	if (swapGraphics)
+	{
+		COMIC_EXECUTION.Bind();
+		COMIC_EXECUTION.SendUniform("pixelSize", vec2(1.f / (float)windowWidth, 1.f / (float)windowHeight));
+		COMIC_EXECUTION.SendUniform("depthRange", camera.zFAR - camera.zNEAR);
+		COMIC_EXECUTION.SendUniform("uSceneAmbient", vec3(ambientLevel));
+		COMIC_EXECUTION.SendUniform("ASPECT", vec3(windowWidth, windowHeight, 0));
+		overlay->bind(20);
+
+		glActiveTexture(GL_TEXTURE0 + 4);
+		glBindTexture(GL_TEXTURE_2D, CaptureScene.GetDepthHandle());
+		addPostProcessLink(nullptr, &CaptureScene, true);
+		glActiveTexture(GL_TEXTURE0 + 4);
+		glBindTexture(GL_TEXTURE_2D, GL_NONE);
+
+		overlay->unbind(20);
+	}
+
+	Texture::resetActiveTexture();
 
 	MINESHADER.Bind();
 	MINESHADER.SendUniform("uTex", 0);
