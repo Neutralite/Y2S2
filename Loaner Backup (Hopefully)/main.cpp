@@ -80,7 +80,8 @@ void MousePassiveCallbackFunction(int x, int y)
 void NewWindowShape(int W, int H)
 {
 	//theGame->resizeCameras((float)W / (float)H);
-	glViewport(0, 0, W, H);
+	theGame->reshapeWindow(W, H);
+	//glViewport(0, 0, W, H);
 }
 
 void CALLBACK OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *msg, const void *data)

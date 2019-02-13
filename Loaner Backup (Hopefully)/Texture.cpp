@@ -81,3 +81,8 @@ void Texture::unbind(int texSlot) const
 	glActiveTexture(GL_TEXTURE0 + texSlot);
 	this->unbind();
 }
+
+void Texture::resetActiveTexture()
+{
+	glActiveTexture(GL_TEXTURE0);
+}

@@ -38,7 +38,7 @@ public:
 		chasePos = _POS;
 	}
 
-	float FOVy, ASPECT;
+	float FOVy, ASPECT, zNEAR, zFAR, LEFT, RIGHT, BOTTOM, TOP;
 
 private:
 	ProjectionType projectionType = ProjectionType::Perspective;

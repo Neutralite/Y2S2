@@ -7,6 +7,9 @@ FrameBuffer::FrameBuffer(unsigned numColorAttachments)
 	glGenFramebuffers(1, &_FBO);
 
 	_ColorAttachments = new GLuint[_NumColorAttachments];
+	_WrapType = new GLint[_NumColorAttachments];
+	_FilterType = new GLint[_NumColorAttachments];
+	_InternalFormat = new GLint[_NumColorAttachments];
 
 	//_Bufs is required as a parameter for glDrawBuffers
 
@@ -15,6 +18,8 @@ FrameBuffer::FrameBuffer(unsigned numColorAttachments)
 	{
 		_Bufs[i] = GL_COLOR_ATTACHMENT0 + i;
 	}
+
+	_IsInit = true;
 }
 
 FrameBuffer::~FrameBuffer()
@@ -40,6 +45,7 @@ void FrameBuffer::InitDepthTexture(unsigned width, unsigned height)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 
+	_DepthInit = true;
 }
 
 void FrameBuffer::InitColorTexture(unsigned index, unsigned width, unsigned height, GLint internalFormat, GLint filter, GLint wrap)
@@ -59,6 +65,10 @@ void FrameBuffer::InitColorTexture(unsigned index, unsigned width, unsigned heig
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, _ColorAttachments[index], 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+
+	_WrapType[index] = wrap;
+	_FilterType[index] = filter;
+	_InternalFormat[index] = internalFormat;
 }
 
 bool FrameBuffer::CheckFBO()
@@ -88,6 +98,15 @@ void FrameBuffer::Unload()
 			glDeleteTextures(1, &_ColorAttachments[i]);
 		}
 
+		delete[] _WrapType;
+		_WrapType = nullptr;
+
+		delete[] _FilterType;
+		_FilterType = nullptr;
+
+		delete[] _InternalFormat;
+		_InternalFormat = nullptr;
+
 		delete[] _ColorAttachments;
 		_ColorAttachments = nullptr;
 	}
@@ -98,7 +117,9 @@ void FrameBuffer::Unload()
 		_DepthAttachment = GL_NONE;
 	}
 
-	_NumColorAttachments = 0;
+	glDeleteFramebuffers(1, &_FBO);
+	_IsInit = false;
+	//_NumColorAttachments = 0;
 }
 
 void FrameBuffer::Clear()
@@ -141,6 +162,11 @@ void FrameBuffer::MovetoBackBuffer(int windowWidth, int windowHeight)
 	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 }
 
+unsigned int FrameBuffer::getNumColorAttachments()
+{
+	return _NumColorAttachments;
+}
+
 GLuint FrameBuffer::GetDepthHandle() const
 {
 	return _DepthAttachment;
@@ -149,4 +175,46 @@ GLuint FrameBuffer::GetDepthHandle() const
 GLuint FrameBuffer::GetColorHandle(unsigned int index) const
 {
 	return _ColorAttachments[index];
+}
+
+void FrameBuffer::resize(unsigned int width, unsigned int height)
+{
+	if (_IsInit)
+	{
+		GLint* _DOUBLE = new GLint[_NumColorAttachments];
+		GLint* _DOUBLE2 = new GLint[_NumColorAttachments];
+		GLint* _DOUBLE3 = new GLint[_NumColorAttachments];
+
+		for (int i = 0; i < _NumColorAttachments; i++)
+		{
+			_DOUBLE[i] = _WrapType[i];
+			_DOUBLE2[i] = _FilterType[i];
+			_DOUBLE3[i] = _InternalFormat[i];
+		}
+
+		Unload();
+		glGenFramebuffers(1, &_FBO);
+
+		_ColorAttachments = new GLuint[_NumColorAttachments];
+		_WrapType = new GLint[_NumColorAttachments];
+		_FilterType = new GLint[_NumColorAttachments];
+		_InternalFormat = new GLint[_NumColorAttachments];
+
+		//_Bufs is required as a parameter for glDrawBuffers
+
+		_Bufs = new GLenum[_NumColorAttachments];
+		for (int i = 0; i < _NumColorAttachments; i++)
+		{
+			_Bufs[i] = GL_COLOR_ATTACHMENT0 + i;
+		}
+		InitDepthTexture(width, height);
+		for (int i = 0; i < _NumColorAttachments; i++)
+			InitColorTexture(i, width, height, _DOUBLE3[i], _DOUBLE2[i], _DOUBLE[i]);
+
+		delete[] _DOUBLE;
+		delete[] _DOUBLE2;
+		delete[] _DOUBLE3;
+
+		_IsInit = true;
+	}
 }

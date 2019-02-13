@@ -58,6 +58,9 @@ public:
 	void addPostProcessLink(FrameBuffer* FB, std::vector<FrameBuffer*> PrevTexArray, std::vector<bool> allowEffect);
 	void addPostProcessLink(FrameBuffer* FB, FrameBuffer* PrevTexArray, bool allowEffect);
 
+	//void addAllPostProcessLink(FrameBuffer* FB, std::vector<FrameBuffer*> PrevTexArray, std::vector<bool> allowEffect);
+	//void addAllPostProcessLink(FrameBuffer* FB, FrameBuffer* PrevTexArray, bool allowEffect);
+
 	bool dealWithCol(Object* O1, Object* O2);
 
 	bool dealWithExplosions(Object* EXP, Object* DESTR);
@@ -83,6 +86,8 @@ public:
 	void createChild(std::string &fileName, Object* parent, Transform TF);
 
 	void resetMap();
+
+	void reshapeWindow(int w, int h);
 
 	//void print(int x, int y, int z, char *string);
 	/* Data Members */
@@ -179,14 +184,21 @@ private:
 	ShaderProgram EXPLOSIONSHADER;
 	ShaderProgram MINESHADER;
 
+	ShaderProgram COMIC_SETUP;
+	ShaderProgram COMIC_EXECUTION;
+	Texture* overlay;
+
 	Camera camera;
 	Camera UIcam;
 
-	FrameBuffer FB;
-	FrameBuffer testBuff;
-	FrameBuffer WorkBuffer1;
-	FrameBuffer WorkBuffer2;
-	FrameBuffer UISCREEN;
+	//FrameBuffer FB;
+	//FrameBuffer testBuff;
+	//FrameBuffer WorkBuffer1;
+	//FrameBuffer WorkBuffer2;
+	//FrameBuffer UISCREEN;
+
+	FrameBuffer CaptureScene;
+	//FrameBuffer ComicScene;
 
 	Field *theMap;
 	Object* TOP_WALL;
@@ -196,8 +208,10 @@ private:
 
 	//clickBox SAVE_BUTTON;
 
-	bool bloomActive = false;
-	bool normalRenderActive = true;
-	bool rippleActive = false;
-	bool paused = false;
+	//bool bloomActive = false;
+	//bool normalRenderActive = true;
+	//bool rippleActive = false;
+	//bool paused = false;
+
+	int windowWidth = WINDOW_WIDTH, windowHeight = WINDOW_HEIGHT;
 };

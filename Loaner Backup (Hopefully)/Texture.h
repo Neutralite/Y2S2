@@ -17,6 +17,8 @@ public:
 	void unbind()const;
 	void unbind(int texSlot)const;
 
+	static void resetActiveTexture();
+
 private:
 	GLenum _InternalFormat;
 	std::string filename;

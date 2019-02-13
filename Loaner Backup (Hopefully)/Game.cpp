@@ -23,7 +23,7 @@ const char* fragmentShaderSource =
 #define DEG_TO_RAD 3.14159f / 180.f;
 #define RAD_TO_DEG 180.f / 3.14159f;
 
-Game::Game() : FB(1), WorkBuffer1(1), WorkBuffer2(1), testBuff(1), UISCREEN(1)
+Game::Game() : CaptureScene(4) // : FB(1), WorkBuffer1(1), WorkBuffer2(1), testBuff(1), UISCREEN(1)
 {
 }
 //, theMap(std::string("Assets/Map/TEST_MAP.txt"), &objects, 100, 100, 6.f, 6.f, BASE_PLATE)
@@ -143,35 +143,46 @@ void Game::initializeGame()
 			EXP_OBJ = objects[i];
 		}
 	}
-	//for (int i = 0; i < objects.size(); i++)
-	//{
-	//	if (objects[i]->getIdentity() == "TOP_WALL")
-	//	{
-	//		TOP_WALL = objects[i];
-	//		TOP_WALL->setPosition(vec3(297.f, 0, -9.f));
-	//		TOP_WALL->setRotation(vec3(0, 0, 0));
-	//	}
-	//	else if (objects[i]->getIdentity() == "BOTTOM_WALL")
-	//	{
-	//		BOTTOM_WALL = objects[i];
-	//		BOTTOM_WALL->setPosition(vec3(297.f, 0, 603.f));
-	//		BOTTOM_WALL->setRotation(vec3(0, 0, 0));
-	//	}
-	//	else if (objects[i]->getIdentity() == "LEFT_WALL")
-	//	{
-	//		LEFT_WALL = objects[i];
-	//		LEFT_WALL->setPosition(vec3(-9.f, 0, 297.f));
-	//		LEFT_WALL->setRotation(vec3(0, 0, 0));
-	//	}
-	//	else if (objects[i]->getIdentity() == "RIGHT_WALL")
-	//	{
-	//		RIGHT_WALL = objects[i];
-	//		RIGHT_WALL->setPosition(vec3(603.f, 0, 297.f));
-	//		RIGHT_WALL->setRotation(vec3(0, 0, 0));
-	//	}
-	//}
+	for (int i = 0; i < objects.size(); i++)
+	{
+		if (objects[i]->getIdentity() == "TOP_WALL")
+		{
+			TOP_WALL = objects[i];
+			TOP_WALL->setPosition(vec3(297.f, 0, -9.f));
+			TOP_WALL->setRotation(vec3(0, 0, 0));
+			TOP_WALL->updateTransforms(0.f);
+		}
+		else if (objects[i]->getIdentity() == "BOTTOM_WALL")
+		{
+			BOTTOM_WALL = objects[i];
+			BOTTOM_WALL->setPosition(vec3(297.f, 0, 603.f));
+			BOTTOM_WALL->setRotation(vec3(0, 0, 0));
+			BOTTOM_WALL->updateTransforms(0.f);
+		}
+		else if (objects[i]->getIdentity() == "LEFT_WALL")
+		{
+			LEFT_WALL = objects[i];
+			LEFT_WALL->setPosition(vec3(-9.f, 0, 297.f));
+			LEFT_WALL->setRotation(vec3(0, 0, 0));
+			LEFT_WALL->updateTransforms(0.f);
+		}
+		else if (objects[i]->getIdentity() == "RIGHT_WALL")
+		{
+			RIGHT_WALL = objects[i];
+			RIGHT_WALL->setPosition(vec3(603.f, 0, 297.f));
+			RIGHT_WALL->setRotation(vec3(0, 0, 0));
+			RIGHT_WALL->updateTransforms(0.f);
+		}
+	}
 
 	SUN = allLight[0];
+	overlay = new Texture();
+	if (!overlay->load("Medium Shading.png"))
+	{
+		std::cout << "overlay failed" << std::endl;
+	}
+
+	baseTextures.push_back(overlay);
 
 	//BASE_PLATE = new Object();
 	//texture = new Texture();
@@ -239,6 +250,16 @@ void Game::initializeGame()
 		std::cout << "Shaders failed to initialize\n";
 	}
 
+	if (!COMIC_SETUP.Load("Assets/Shaders/StaticGeo.vert", "Assets/Shaders/INITIAL_RENDER.frag"))
+	{
+		std::cout << "Shaders failed to initialize\n";
+	}
+
+	if (!COMIC_EXECUTION.Load("Assets/Shaders/GenericPost.vert", "Assets/Shaders/FINAL_RENDER.frag"))
+	{
+		std::cout << "Shaders failed to initialize\n";
+	}
+
 	//if (!PLAYA.Load("Assets/Shaders/Player.vert", "Assets/Shaders/DynamicLights.frag"))
 	//{
 	//	std::cout << "Shaders failed to initialize\n";
@@ -292,48 +313,60 @@ void Game::initializeGame()
 	//	//exit(0);
 	//}
 
-	FB.InitDepthTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
-	FB.InitColorTexture(0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
-	if (!FB.CheckFBO())
+	CaptureScene.InitDepthTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
+	CaptureScene.InitColorTexture(0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	CaptureScene.InitColorTexture(1, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	CaptureScene.InitColorTexture(2, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	CaptureScene.InitColorTexture(3, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	if (!CaptureScene.CheckFBO())
 	{
 		std::cout << "All your FBO is belong to us\n";
 		system("pause");
 		exit(0);
 	}
 
-	UISCREEN.InitDepthTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
-	UISCREEN.InitColorTexture(0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
-	if (!UISCREEN.CheckFBO())
-	{
-		std::cout << "All your FBO is belong to us\n";
-		system("pause");
-		exit(0);
-	}
-
-	testBuff.InitDepthTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
-	testBuff.InitColorTexture(0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
-	if (!testBuff.CheckFBO())
-	{
-		std::cout << "All your FBO is belong to us\n";
-		system("pause");
-		exit(0);
-	}
-
-	WorkBuffer1.InitColorTexture(0, WINDOW_WIDTH / BLOOM_DOWNSCALE, WINDOW_HEIGHT / BLOOM_DOWNSCALE, GL_RGB8, GL_LINEAR, GL_CLAMP_TO_EDGE);
-	if (!WorkBuffer1.CheckFBO())
-	{
-		std::cout << "All your FBO is belong to us\n";
-		system("pause");
-		exit(0);
-	}
-
-	WorkBuffer2.InitColorTexture(0, WINDOW_WIDTH / BLOOM_DOWNSCALE, WINDOW_HEIGHT / BLOOM_DOWNSCALE, GL_RGB8, GL_LINEAR, GL_CLAMP_TO_EDGE);
-	if (!WorkBuffer2.CheckFBO())
-	{
-		std::cout << "All your FBO is belong to us\n";
-		system("pause");
-		exit(0);
-	}
+	//FB.InitDepthTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
+	//FB.InitColorTexture(0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	//if (!FB.CheckFBO())
+	//{
+	//	std::cout << "All your FBO is belong to us\n";
+	//	system("pause");
+	//	exit(0);
+	//}
+	//
+	//UISCREEN.InitDepthTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
+	//UISCREEN.InitColorTexture(0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	//if (!UISCREEN.CheckFBO())
+	//{
+	//	std::cout << "All your FBO is belong to us\n";
+	//	system("pause");
+	//	exit(0);
+	//}
+	//
+	//testBuff.InitDepthTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
+	//testBuff.InitColorTexture(0, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	//if (!testBuff.CheckFBO())
+	//{
+	//	std::cout << "All your FBO is belong to us\n";
+	//	system("pause");
+	//	exit(0);
+	//}
+	//
+	//WorkBuffer1.InitColorTexture(0, WINDOW_WIDTH / BLOOM_DOWNSCALE, WINDOW_HEIGHT / BLOOM_DOWNSCALE, GL_RGB8, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	//if (!WorkBuffer1.CheckFBO())
+	//{
+	//	std::cout << "All your FBO is belong to us\n";
+	//	system("pause");
+	//	exit(0);
+	//}
+	//
+	//WorkBuffer2.InitColorTexture(0, WINDOW_WIDTH / BLOOM_DOWNSCALE, WINDOW_HEIGHT / BLOOM_DOWNSCALE, GL_RGB8, GL_LINEAR, GL_CLAMP_TO_EDGE);
+	//if (!WorkBuffer2.CheckFBO())
+	//{
+	//	std::cout << "All your FBO is belong to us\n";
+	//	system("pause");
+	//	exit(0);
+	//}
 
 	//Aspect ratio
 	float aspect = 800.f / 432.f;
@@ -372,7 +405,7 @@ void Game::initializeGame()
 	players[0]->getPhysicsBody()->friction = 40.f;
 
 	//placeAndTime.push_back(vec4(1, 1, 1, 1));
-	mousePosition = 0.5f * vec2(WINDOW_WIDTH, WINDOW_HEIGHT);
+	mousePosition = 0.5f * vec2(windowWidth, windowHeight);
 	prevMousePosition = mousePosition;
 	setCursorVisible(true);
 
@@ -430,7 +463,7 @@ void Game::initializeGame()
 				OOO->setBasePosition(OOO->getOrientation()->getPosition());
 			}
 		}
-	std::cout << "l00p!" << std::endl;
+	//std::cout << "l00p!" << std::endl;
 	players[0]->setBezTimeToHalf();
 
 	//players[0]->updateTransforms(DT);
@@ -456,8 +489,8 @@ void Game::update()
 	//rot2.update(deltaTime);
 	//players[0]->getOrientation()->setRotationAngleX(TotalGameTime * 90.f);
 
-	if (!paused)
-	{
+	//if (!paused)
+	//{
 		TotalGameTime += deltaTime;
 
 		//objects[0]->setRotation(objects[0]->getOrientation()->getRotationAngle() + vec3(0.0f, 10.0f, 0.0f) * deltaTime);
@@ -468,7 +501,7 @@ void Game::update()
 		{
 			objects[i]->updateTransforms(deltaTime);
 		}
-	}
+	//}
 
 	//vec3 cameraGoal = vec3(0, 0, 0);
 	float cy = camera.getRotationAngleY() * DEG_TO_RAD;
@@ -574,7 +607,7 @@ void Game::update()
 	//camera.setChasePosition(currentGoal);
 	//camera.camChase(DT);
 
-	DeltaMousePos = 0.5f * vec2(WINDOW_WIDTH, WINDOW_HEIGHT) - mousePosition;
+	DeltaMousePos = 0.5f * vec2(windowWidth, windowHeight) - mousePosition;
 
 	prevMousePosition = mousePosition;
 
@@ -651,22 +684,22 @@ void Game::update()
 
 	camera.update(DT);
 
-	if (backCheckKeysDown['1' - 1] && !keysDown['1' - 1])
-	{
-		normalRenderActive = !normalRenderActive;
-	}
-	if (backCheckKeysDown['2' - 1] && !keysDown['2' - 1])
-	{
-		bloomActive = !bloomActive;
-	}
-	if (backCheckKeysDown['3' - 1] && !keysDown['3' - 1])
-	{
-		rippleActive = !rippleActive;
-	}
-	if ((backCheckKeysDown['p' - 1] && !keysDown['p' - 1]) || (backCheckKeysDown['P' - 1] && !keysDown['P' - 1]))
-	{
-		//paused = !paused;
-	}
+	//if (backCheckKeysDown['1' - 1] && !keysDown['1' - 1])
+	//{
+	//	normalRenderActive = !normalRenderActive;
+	//}
+	//if (backCheckKeysDown['2' - 1] && !keysDown['2' - 1])
+	//{
+	//	bloomActive = !bloomActive;
+	//}
+	//if (backCheckKeysDown['3' - 1] && !keysDown['3' - 1])
+	//{
+	//	rippleActive = !rippleActive;
+	//}
+	//if ((backCheckKeysDown['p' - 1] && !keysDown['p' - 1]) || (backCheckKeysDown['P' - 1] && !keysDown['P' - 1]))
+	//{
+	//	//paused = !paused;
+	//}
 	if ((backCheckKeysDown[' ' - 1] && !keysDown[' ' - 1]) && currentCoolDown <= 0.f)
 	{
 		Object* MINEobj = new Object;
@@ -758,27 +791,27 @@ void Game::update()
 				}
 			}
 		}
-		//if (dynamicCollisions[i]->getOrientation()->getPosition().x < 12.f)
-		//{
-		//	//std::cout << LEFT_WALL->getOrientation()->getPosition().x << std::endl;
-		//	if (dealWithCol(dynamicCollisions[i], LEFT_WALL))
-		//		areYa = true;
-		//}
-		//if (dynamicCollisions[i]->getOrientation()->getPosition().z < 12.f)
-		//{
-		//	if (dealWithCol(dynamicCollisions[i], TOP_WALL))
-		//		areYa = true;
-		//}
-		//if (dynamicCollisions[i]->getOrientation()->getPosition().x > 582.f)
-		//{
-		//	if (dealWithCol(dynamicCollisions[i], RIGHT_WALL))
-		//		areYa = true;
-		//}
-		//if (dynamicCollisions[i]->getOrientation()->getPosition().z > 582.f)
-		//{
-		//	if (dealWithCol(dynamicCollisions[i], BOTTOM_WALL))
-		//		areYa = true;
-		//}
+		if (dynamicCollisions[i]->getOrientation()->getPosition().x < 12.f)
+		{
+			//std::cout << LEFT_WALL->getOrientation()->getPosition().x << std::endl;
+			if (dealWithCol(dynamicCollisions[i], LEFT_WALL))
+				areYa = true;
+		}
+		if (dynamicCollisions[i]->getOrientation()->getPosition().z < 12.f)
+		{
+			if (dealWithCol(dynamicCollisions[i], TOP_WALL))
+				areYa = true;
+		}
+		if (dynamicCollisions[i]->getOrientation()->getPosition().x > 582.f)
+		{
+			if (dealWithCol(dynamicCollisions[i], RIGHT_WALL))
+				areYa = true;
+		}
+		if (dynamicCollisions[i]->getOrientation()->getPosition().z > 582.f)
+		{
+			if (dealWithCol(dynamicCollisions[i], BOTTOM_WALL))
+				areYa = true;
+		}
 		//std::cout << dynamicCollisions[i]->getPhysicsBody()->velocity.Length() << std::endl;
 		//if (numOf > 1)
 		//	dynamicCollisions[i]->getPhysicsBody()->position = dynamicCollisions[i]->getPhysicsBody()->prePos;
@@ -802,11 +835,12 @@ void Game::draw()
 	///clear buffers///
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	FB.Clear();
-	WorkBuffer1.Clear();
-	WorkBuffer2.Clear();
-	testBuff.Clear();
-	UISCREEN.Clear();
+	CaptureScene.Clear();
+	//FB.Clear();
+	//WorkBuffer1.Clear();
+	//WorkBuffer2.Clear();
+	//testBuff.Clear();
+	//UISCREEN.Clear();
 
 	///Viewport///
 	//glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -823,19 +857,28 @@ void Game::draw()
 	lightsToDraw.push_back(SUN);
 	lightMats.push_back(mat4::Identity);
 
-	PassThrough.Bind();
+	//PassThrough.Bind();
+	//
+	//PassThrough.SendUniform("uTex", 0);
+	//PassThrough.SendUniform("DT", TotalGameTime);
 
-	PassThrough.SendUniform("uTex", 0);
-	PassThrough.SendUniform("DT", TotalGameTime);
+	COMIC_SETUP.Bind();
+
+	COMIC_SETUP.SendUniform("uTex", 0);
+	COMIC_SETUP.SendUniform("DT", TotalGameTime);
 
 	vec2 camPosUnit = vec2(camera.getPosition().x, camera.getPosition().z) / tileSize;
 
 	vec2 CPOSU = vec2(players[0]->getOrientation()->getPosition().x, players[0]->getOrientation()->getPosition().z) / tileSize;
 	//FB.Bind();
+	CaptureScene.Bind();
 
 	//texture->bind();
-	PassThrough.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
-	PassThrough.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+	//PassThrough.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+	//PassThrough.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+
+	COMIC_SETUP.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+	COMIC_SETUP.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
 
 	for (int i = -4 + CPOSU.y; i < 5 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
 	{
@@ -843,16 +886,24 @@ void Game::draw()
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				PassThrough.SendUniform("YEET", 0.f);
-				drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+				//PassThrough.SendUniform("YEET", 0.f);
+				//drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+
+				COMIC_SETUP.SendUniform("YEET", 0.f);
+				drawObjectMesh(theMap->getSection(j, i)->getPlane(), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
 				for (int k = 0; k < theMap->getSection(j, i)->getNumObjOnFace(); k++)
 				{
-					PassThrough.SendUniform("YEET", theMap->getSection(j, i)->getObjectOnFace(k)->YEET);
-					drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+					//PassThrough.SendUniform("YEET", theMap->getSection(j, i)->getObjectOnFace(k)->YEET);
+					//drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &PassThrough, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
+
+					COMIC_SETUP.SendUniform("YEET", theMap->getSection(j, i)->getObjectOnFace(k)->YEET);
+					drawObjectMesh(theMap->getSection(j, i)->getObjectOnFace(k), mat4::Identity, &COMIC_SETUP, vec3(0, 0, 0), vec3(0, 0, 0), 0.f);
 				}
 			}
 		}
 	}
+
+	CaptureScene.Unbind();
 
 	//for (int i = 0; i < players[0]->getChild(0)->getNumberOfChildren(); i++)
 	//{
@@ -865,12 +916,19 @@ void Game::draw()
 
 	for (int i = 0; i < 24 && i < lightsToDraw.size(); i++)
 	{
-		PassThrough.SendUniform("position[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getPosition());
-		PassThrough.SendUniform("direction[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getDirection());
-		PassThrough.SendUniform("DSE[" + std::to_string(i) + "]", lightsToDraw[i]->getDiffSpecExp());
-		PassThrough.SendUniform("CLQ[" + std::to_string(i) + "]", lightsToDraw[i]->getCLQ());
-		PassThrough.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
-		PassThrough.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
+		//PassThrough.SendUniform("position[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getPosition());
+		//PassThrough.SendUniform("direction[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getDirection());
+		//PassThrough.SendUniform("DSE[" + std::to_string(i) + "]", lightsToDraw[i]->getDiffSpecExp());
+		//PassThrough.SendUniform("CLQ[" + std::to_string(i) + "]", lightsToDraw[i]->getCLQ());
+		//PassThrough.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
+		//PassThrough.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
+
+		COMIC_SETUP.SendUniform("position[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getPosition());
+		COMIC_SETUP.SendUniform("direction[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getDirection());
+		COMIC_SETUP.SendUniform("DSE[" + std::to_string(i) + "]", lightsToDraw[i]->getDiffSpecExp());
+		COMIC_SETUP.SendUniform("CLQ[" + std::to_string(i) + "]", lightsToDraw[i]->getCLQ());
+		COMIC_SETUP.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
+		COMIC_SETUP.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
 		//std::cout << lightsToDraw.size() << std::endl;
 		//vec4 lPos = lightsToDraw[i]->getToWorld() * lightsToDraw[i]->getPosition();
 		//std::cout << lPos.x << ", " << lPos.y << " , " << lPos.z << std::endl;
@@ -881,11 +939,23 @@ void Game::draw()
 	if (num > 24)
 		num = 24;
 
-	PassThrough.SendUniform("ambient", ambientLevel);
-	PassThrough.SendUniform("Lsize", num);
+	//PassThrough.SendUniform("ambient", ambientLevel);
+	//PassThrough.SendUniform("Lsize", num);
+
+	COMIC_SETUP.SendUniform("ambient", ambientLevel);
+	COMIC_SETUP.SendUniform("Lsize", num);
 
 	lightsToDraw.clear();
 	lightMats.clear();
+
+	COMIC_EXECUTION.Bind();
+	COMIC_EXECUTION.SendUniform("uSceneAmbient", vec3(ambientLevel));
+	COMIC_EXECUTION.SendUniform("ASPECT", vec3(windowWidth, windowHeight, 0));
+	overlay->bind(20);
+	addPostProcessLink(nullptr, &CaptureScene, true);
+	overlay->unbind(20);
+	Texture::resetActiveTexture();
+	
 
 	MINESHADER.Bind();
 	MINESHADER.SendUniform("uTex", 0);
@@ -1163,10 +1233,18 @@ void Game::addPostProcessLink(FrameBuffer * FB, FrameBuffer * PrevTexArray, bool
 {
 	if (FB != nullptr)
 		FB->Bind();
-	glBindTexture(GL_TEXTURE_2D, PrevTexArray->GetColorHandle(0));
+	for (int i = 0; i < PrevTexArray->getNumColorAttachments(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, PrevTexArray->GetColorHandle(i));
+	}
 	if (allowEffect)
 		drawFullscreenQuad();
-	glBindTexture(GL_TEXTURE_2D, GL_NONE);
+	for (int i = 0; i < PrevTexArray->getNumColorAttachments(); i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, GL_NONE);
+	}
 	if (FB != nullptr)
 		FB->Unbind();
 }
@@ -1425,6 +1503,7 @@ void Game::loadAllTextures(std::string & fileName)
 			texLayer->setTexture(tex);
 			//std::cout << temp << std::endl;
 			texLayer->setTextureName(temp);
+			baseTextures.push_back(tex);
 			textures.push_back(texLayer);
 		}
 	}
@@ -2117,6 +2196,18 @@ void Game::resetMap()
 			}
 		}
 	}
+}
+
+void Game::reshapeWindow(int w, int h)
+{
+	windowWidth = w;
+	windowHeight = h;
+
+	aspectRatio = (float)windowWidth / (float)windowHeight;
+	camera.perspective(camera.FOVy, aspectRatio, camera.zNEAR, camera.zFAR);
+
+	glViewport(0, 0, w, h);
+	CaptureScene.resize(w, h);
 }
 
 //void Game::resizeCameras(float ASPect)
