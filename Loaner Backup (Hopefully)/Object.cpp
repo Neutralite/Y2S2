@@ -382,9 +382,19 @@ bool Object::isDestroyed()
 	return destroyed;
 }
 
+bool Object::isBeingDestroyed()
+{
+	return beingDestroyed;
+}
+
 void Object::setDestroyed(bool isDest)
 {
 	destroyed = isDest;
+}
+
+void Object::setBeingDestroyed(bool isDest)
+{
+	beingDestroyed = isDest;
 }
 
 void Object::setHP(float HP)

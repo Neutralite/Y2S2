@@ -4,6 +4,7 @@ layout(location = 2) out vec3 outTexAlbedo;
 layout(location = 3) out vec3 outTexSpecular;
 layout(location = 0) out vec3 outLightDiffuse;
 layout(location = 1) out vec3 outLightSpecular;
+layout(location = 4) out vec3 unaffected;
 
 uniform sampler2D uTex;
 
@@ -104,5 +105,14 @@ void main()
 	//outColor.rgb += vec3(ambient, ambient, ambient);
 	vec4 texCol = texture(uTex, texcoord);
 	outTexAlbedo.rgb = texCol.rgb;
+
+	//if(dot(N, normalize(-pos)) < 0.1)
+	//{
+	//	outTexAlbedo.rgb = vec3(0);
+	//	outTexSpecular.rgb = vec3(0);
+	//	outLightDiffuse.rgb = vec3(0);
+	//	outLightSpecular.rgb = vec3(0);
+	//}
 	//outTexAlbedo.a = texCol.a;
+	unaffected = vec3(0);
 }

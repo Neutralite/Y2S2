@@ -23,7 +23,7 @@ const char* fragmentShaderSource =
 #define DEG_TO_RAD 3.14159f / 180.f;
 #define RAD_TO_DEG 180.f / 3.14159f;
 
-Game::Game() : CaptureScene(4) // : FB(1), WorkBuffer1(1), WorkBuffer2(1), testBuff(1), UISCREEN(1)
+Game::Game() : CaptureScene(5) // : FB(1), WorkBuffer1(1), WorkBuffer2(1), testBuff(1), UISCREEN(1)
 {
 }
 //, theMap(std::string("Assets/Map/TEST_MAP.txt"), &objects, 100, 100, 6.f, 6.f, BASE_PLATE)
@@ -106,6 +106,9 @@ void Game::initializeGame()
 		Object *p = new Player;
 		players.push_back(p);
 	}
+
+	//LIGHTS.allocateMemory(sizeof(vec4) * 6 * 24);
+	//LIGHTS.bind(10);
 
 	//Object* testObj = new Object();
 	//Object* testObj2 = new Object();
@@ -245,7 +248,17 @@ void Game::initializeGame()
 		std::cout << "Shaders failed to initialize\n";
 	}
 
+	if (!COMIC_EXPLOSION.Load("Assets/Shaders/EXPLODE.vert", "Assets/Shaders/EXPLODE_COMIC.frag"))
+	{
+		std::cout << "Shaders failed to initialize\n";
+	}
+
 	if (!MINESHADER.Load("Assets/Shaders/EXPLODE.vert", "Assets/Shaders/MINE.frag"))
+	{
+		std::cout << "Shaders failed to initialize\n";
+	}
+
+	if (!COMIC_MINE.Load("Assets/Shaders/EXPLODE.vert", "Assets/Shaders/MINE_COMIC.frag"))
 	{
 		std::cout << "Shaders failed to initialize\n";
 	}
@@ -318,6 +331,7 @@ void Game::initializeGame()
 	CaptureScene.InitColorTexture(1, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	CaptureScene.InitColorTexture(2, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	CaptureScene.InitColorTexture(3, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	CaptureScene.InitColorTexture(4, WINDOW_WIDTH, WINDOW_HEIGHT, GL_RGBA8, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	if (!CaptureScene.CheckFBO())
 	{
 		std::cout << "All your FBO is belong to us\n";
@@ -625,6 +639,10 @@ void Game::update()
 	{
 		swapGraphics = !swapGraphics;
 	}
+	if ((backCheckKeysDown['x' - 1] && !keysDown['x' - 1]) || (backCheckKeysDown['X' - 1] && !keysDown['X' - 1]))
+	{
+		Momentum = !Momentum;
+	}
 	if ((backCheckKeysDown['z' - 1] && !keysDown['z' - 1]) || (backCheckKeysDown['Z' - 1] && !keysDown['Z' - 1]))
 	{
 		resetMap();
@@ -726,6 +744,7 @@ void Game::update()
 		{
 			MINETIMER.erase(MINETIMER.begin() + i);
 			EXPLOSIONS.push_back(MINEZ[i]);
+			INSTABOOM.push_back(MINEZ[i]);
 			MINEZ[i]->RemoveObject(0);
 			MINEZ[i]->AttachObject(EXP_OBJ);
 			MINEZ[i]->updateTransforms(DT);
@@ -765,6 +784,51 @@ void Game::update()
 		SHAKEYOBJ[i]->updateBezShake(DT);
 		if (SHAKEYOBJ[i]->getTimeOnBez() <= 0.0001f)
 			SHAKEYOBJ.erase(SHAKEYOBJ.begin() + i);
+	}
+
+	for (int i = GONE.size() - 1; i >= 0; i--)
+	{
+		float TV = GONETIMER[i].w / MAX_GONE_TIMER;
+		GONE[i]->getOrientation()->setScale(sin(TV * PI * 0.75f)/sin(PI * 0.75f));
+		//if (vec3(GONETIMER[i]).Length() > 0.f)
+			//GONE[i]->getOrientation()->rotateAroundAxis(vec3(GONETIMER[i].z, 0, -GONETIMER[i].x), 1.f);
+		GONE[i]->setPosition(GONE[i]->getOrientation()->getPosition() + vec3(GONETIMER[i]) * vec3(1.f - pow(1.f - TV, 4)) * DT * 60.f);
+		if (GONE[i]->getOrientation()->getPosition().y < 0.f)
+			GONE[i]->setPosition(GONE[i]->getOrientation()->getPosition() * vec3(1, 0, 1));
+		GONE[i]->updateTransforms(DT);
+		GONETIMER[i].y -= DT * 2.f;
+		//GONETIMER[i].x *= pow(0.99f, DT * 60.f);
+		//GONETIMER[i].z *= pow(0.99f, DT * 60.f);
+		GONETIMER[i].w -= DT;
+		if (GONETIMER[i].w <= 0.f)
+		{
+			GONE[i]->setDestroyed(true);
+			GONE[i]->hide(true);
+			GONE.erase(GONE.begin() + i);
+			GONETIMER.erase(GONETIMER.begin() + i);
+		}
+	}
+
+	for (int i = INSTABOOM.size() - 1; i >= 0; i--)
+	{
+		//std::cout << "BOOM!" << std::endl;
+		vec2 MU = vec2(INSTABOOM[i]->getOrientation()->getPosition().x, INSTABOOM[i]->getOrientation()->getPosition().z) / tileSize;
+		int muX = (int)(MU.x + 0.5f);
+		int muY = (int)(MU.y + 0.5f);
+		for (int j = -2; j <= 2; j++)
+		{
+			for (int k = -2; k <= 2; k++)
+			{
+				for (int I = theMap->getSection(muX + j, muY + k)->getNumObjOnFace() - 1; I >= 0; I--)
+				{
+					Object* OOO = theMap->getSection(muX + j, muY + k)->getObjectOnFace(I);
+					if (OOO != players[0])
+						dealWithExplosions(INSTABOOM[i], OOO);
+				}
+			}
+		}
+
+		INSTABOOM.erase(INSTABOOM.begin() + i);
 	}
 
 	for (int i = 0; i < dynamicCollisions.size(); i++)
@@ -945,11 +1009,6 @@ void Game::draw()
 		}
 	}
 
-	if (swapGraphics)
-	{
-		CaptureScene.Unbind();
-	}
-
 	//for (int i = 0; i < players[0]->getChild(0)->getNumberOfChildren(); i++)
 	//{
 	//	std::cout << players[0]->getChild(0)->getChild(i)->getOrientation()->getPosition().x << ", "
@@ -967,7 +1026,7 @@ void Game::draw()
 		//PassThrough.SendUniform("CLQ[" + std::to_string(i) + "]", lightsToDraw[i]->getCLQ());
 		//PassThrough.SendUniform("color[" + std::to_string(i) + "]", lightsToDraw[i]->getColor());
 		//PassThrough.SendUniform("lightType[" + std::to_string(i) + "]", lightsToDraw[i]->getLightType());
-
+		//LIGHTS.sendVector(lightMats[i] * lightsToDraw[i]->getPosition(), 0 + i * sizeof(vec4) * 6);
 		if (swapGraphics)
 		{
 			COMIC_SETUP.SendUniform("position[" + std::to_string(i) + "]", lightMats[i] * lightsToDraw[i]->getPosition());
@@ -1012,7 +1071,72 @@ void Game::draw()
 
 	lightsToDraw.clear();
 	lightMats.clear();
-	
+
+	if (swapGraphics)
+	{
+		COMIC_MINE.Bind();
+		COMIC_MINE.SendUniform("uTex", 0);
+
+		COMIC_MINE.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+		COMIC_MINE.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+
+		for (int i = 0; i < MINEZ.size(); i++)
+		{
+			drawMines(MINEZ[i], mat4::Identity, &COMIC_MINE);
+		}
+	}
+	else
+	{
+		MINESHADER.Bind();
+		MINESHADER.SendUniform("uTex", 0);
+
+		MINESHADER.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+		MINESHADER.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+
+		for (int i = 0; i < MINEZ.size(); i++)
+		{
+			drawMines(MINEZ[i], mat4::Identity, &MINESHADER);
+		}
+	}
+
+	if (swapGraphics)
+	{
+		COMIC_EXPLOSION.Bind();
+		COMIC_EXPLOSION.SendUniform("uTex", 0);
+		COMIC_EXPLOSION.SendUniform("uR", 1);
+		COMIC_EXPLOSION.SendUniform("uG", 2);
+
+		COMIC_EXPLOSION.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+		COMIC_EXPLOSION.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+
+		for (int i = 0; i < EXPLOSIONS.size(); i++)
+		{
+			COMIC_EXPLOSION.SendUniform("TimeRem", SPLODETIMER[i] / MAX_EXP_TIMER);
+			drawExplosions(EXPLOSIONS[i], mat4::Identity, &COMIC_EXPLOSION);
+		}
+	}
+	else
+	{
+		EXPLOSIONSHADER.Bind();
+		EXPLOSIONSHADER.SendUniform("uTex", 0);
+		EXPLOSIONSHADER.SendUniform("uR", 1);
+		EXPLOSIONSHADER.SendUniform("uG", 2);
+
+		EXPLOSIONSHADER.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
+		EXPLOSIONSHADER.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
+
+		for (int i = 0; i < EXPLOSIONS.size(); i++)
+		{
+			EXPLOSIONSHADER.SendUniform("TimeRem", SPLODETIMER[i] / MAX_EXP_TIMER);
+			drawExplosions(EXPLOSIONS[i], mat4::Identity, &EXPLOSIONSHADER);
+		}
+	}
+
+	if (swapGraphics)
+	{
+		CaptureScene.Unbind();
+	}
+
 	if (swapGraphics)
 	{
 		COMIC_EXECUTION.Bind();
@@ -1022,41 +1146,16 @@ void Game::draw()
 		COMIC_EXECUTION.SendUniform("ASPECT", vec3(windowWidth, windowHeight, 0));
 		overlay->bind(20);
 
-		glActiveTexture(GL_TEXTURE0 + 4);
+		glActiveTexture(GL_TEXTURE0 + 5);
 		glBindTexture(GL_TEXTURE_2D, CaptureScene.GetDepthHandle());
 		addPostProcessLink(nullptr, &CaptureScene, true);
-		glActiveTexture(GL_TEXTURE0 + 4);
+		glActiveTexture(GL_TEXTURE0 + 5);
 		glBindTexture(GL_TEXTURE_2D, GL_NONE);
 
 		overlay->unbind(20);
 	}
 
 	Texture::resetActiveTexture();
-
-	MINESHADER.Bind();
-	MINESHADER.SendUniform("uTex", 0);
-
-	MINESHADER.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
-	MINESHADER.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
-
-	for (int i = 0; i < MINEZ.size(); i++)
-	{
-		drawMines(MINEZ[i], mat4::Identity, &MINESHADER);
-	}
-
-	EXPLOSIONSHADER.Bind();
-	EXPLOSIONSHADER.SendUniform("uTex", 0);
-	EXPLOSIONSHADER.SendUniform("uR", 1);
-	EXPLOSIONSHADER.SendUniform("uG", 2);
-
-	EXPLOSIONSHADER.SendUniformMat4("uView", camera.getLocalToWorldMatrix().GetInverse().GetTranspose().data, false);
-	EXPLOSIONSHADER.SendUniformMat4("uProj", camera.getProjection().GetTranspose().data, false);
-
-	for (int i = 0; i < EXPLOSIONS.size(); i++)
-	{
-		EXPLOSIONSHADER.SendUniform("TimeRem", SPLODETIMER[i] / MAX_EXP_TIMER);
-		drawExplosions(EXPLOSIONS[i], mat4::Identity, &EXPLOSIONSHADER);
-	}
 
 	//FB.Unbind();
 	glBindVertexArray(GL_NONE);
@@ -1327,7 +1426,7 @@ void Game::addPostProcessLink(FrameBuffer * FB, FrameBuffer * PrevTexArray, bool
 
 bool Game::dealWithCol(Object * O1, Object * O2)
 {
-	if (O1 != O2 && O1->getChild(0)->getPhysicsBody()->collider != nullptr && O2->getChild(0)->getPhysicsBody()->collider != nullptr && !O2->isDestroyed() && !O1->isDestroyed())
+	if (O1 != O2 && O1->getChild(0)->getPhysicsBody()->collider != nullptr && O2->getChild(0)->getPhysicsBody()->collider != nullptr && !O2->isDestroyed() && !O1->isDestroyed() && !O2->isBeingDestroyed() && !O1->isBeingDestroyed())
 	{
 		if (O1->getChild(0)->getPhysicsBody()->collider->collidesWith(
 			O2->getChild(0)->getPhysicsBody()->collider,
@@ -1345,6 +1444,13 @@ bool Game::dealWithCol(Object * O1, Object * O2)
 				SHAKEYBUFFER.push_back(O2);
 				return false;
 			}
+
+			if (!O2->getChild(0)->getPhysicsBody()->collider->unbreakable && velRat > 0.8f && Momentum)
+			{
+				dealWithDestruction(O2, O1);
+				return false;
+			}
+
 			float contAng = Dot(O1->getPhysicsBody()->velocity.GetNormalized(), O1->getChild(0)->getPhysicsBody()->collider->outDir);
 			if (contAng < 0)
 			{
@@ -1387,22 +1493,33 @@ bool Game::dealWithCol(Object * O1, Object * O2)
 
 bool Game::dealWithExplosions(Object * EXP, Object * DESTR)
 {
-	if (EXP->getChild(0)->getPhysicsBody()->collider != nullptr && DESTR->getChild(0)->getPhysicsBody()->collider != nullptr && !DESTR->isDestroyed())
+	//std::cout << EXP->getChild(0)->getPhysicsBody()->collider << std::endl;
+	if (EXP->getChild(0)->getPhysicsBody()->collider != nullptr && DESTR->getChild(0)->getPhysicsBody()->collider != nullptr && !DESTR->isDestroyed() && !DESTR->isBeingDestroyed())
 	{
 		if (EXP->getChild(0)->getPhysicsBody()->collider->collidesWith(
 			DESTR->getChild(0)->getPhysicsBody()->collider,
 			&EXP->getOrientation()->getLocalToWorldMatrix(),
 			&DESTR->getOrientation()->getLocalToWorldMatrix()))
 		{
-			bool doubleCheck = true;
-			for (int i = 0; i < GONE.size(); i++)
-				if (GONE[i] == DESTR)
-				{
-					doubleCheck = false;
-					i = GONE.size();
-				}
-			if (doubleCheck)
-				GONE.push_back(DESTR);
+			//bool doubleCheck = true;
+			//for (int i = 0; i < GONE.size(); i++)
+			//	if (GONE[i] == DESTR)
+			//	{
+			//		doubleCheck = false;
+			//		i = GONE.size();
+			//	}
+			//if (doubleCheck)
+			//GONE.push_back(DESTR);
+			//DESTR->setBeingDestroyed(true);
+			//vec3 bottomPiece = EXP->getChild(0)->getPhysicsBody()->collider->outDir;
+			//float topPiece = (EXP->getOrientation()->getPosition() - DESTR->getOrientation()->getPosition()).Length() /
+			//	(EXP->getChild(0)->getPhysicsBody()->collider->maxRad + DESTR->getChild(0)->getPhysicsBody()->collider->maxRad);
+			//vec3 totalPiece = vec3(-bottomPiece.x, topPiece, -bottomPiece.z).GetNormalized() + vec3(0, 1, 0);
+			//
+			//totalPiece /= 2.5f;
+			//
+			//GONETIMER.push_back(vec4(totalPiece, MAX_GONE_TIMER));
+			dealWithDestruction(DESTR, EXP);
 			return true;
 		}
 	}
@@ -1411,7 +1528,17 @@ bool Game::dealWithExplosions(Object * EXP, Object * DESTR)
 
 bool Game::dealWithDestruction(Object * defender, Object * offender)
 {
-	return false;
+	GONE.push_back(defender);
+	defender->setBeingDestroyed(true);
+	vec3 bottomPiece = offender->getChild(0)->getPhysicsBody()->collider->outDir;
+	float topPiece = (offender->getOrientation()->getPosition() - defender->getOrientation()->getPosition()).Length() /
+		(offender->getChild(0)->getPhysicsBody()->collider->maxRad + defender->getChild(0)->getPhysicsBody()->collider->maxRad);
+	vec3 totalPiece = vec3(-bottomPiece.x, topPiece, -bottomPiece.z).GetNormalized() + vec3(0, 1, 0);
+
+	totalPiece /= 2.5f;
+
+	GONETIMER.push_back(vec4(totalPiece, MAX_GONE_TIMER));
+	return true;
 }
 
 void Game::drawMines(Object * _OBJ, mat4 previous, ShaderProgram * SP)
@@ -1746,6 +1873,8 @@ void Game::loadAllObjects(std::string & fileName)
 						obj->getPhysicsBody()->collider->dynamic = false;
 					if (dataparse == "grass")
 						obj->getPhysicsBody()->collider->grass = true;
+					if (dataparse == "INF")
+						obj->getPhysicsBody()->collider->unbreakable = true;
 				}
 				else if (dataparse == "TARGET")
 				{
@@ -1934,6 +2063,7 @@ void Game::loadAllPlayerObjects(std::string & fileName)
 	std::string temp;
 	while (std::getline(masterFile, temp))
 	{
+		//std::cout << temp << std::endl;
 		Object* obj = new Object;
 		objectFiles.open("Assets/Objects/" + temp + ".txt");
 		std::string meshName, textureName, BRSTR;
@@ -2059,6 +2189,9 @@ void Game::loadAllPlayerObjects(std::string & fileName)
 						obj->getPhysicsBody()->collider->dynamic = true;
 					else
 						obj->getPhysicsBody()->collider->dynamic = false;
+					if (dataparse == "INF")
+						obj->getPhysicsBody()->collider->unbreakable = true;
+					//std::cout << dataparse << std::endl;
 				}
 				else if (dataparse == "TARGET")
 				{
@@ -2229,6 +2362,8 @@ void Game::createChild(std::string & fileName, Object * parent, Transform TF)
 					obj->getPhysicsBody()->collider->dynamic = true;
 				else
 					obj->getPhysicsBody()->collider->dynamic = false;
+				if (dataparse == "INF")
+					obj->getPhysicsBody()->collider->unbreakable = true;
 			}
 			else if (dataparse == "TARGET")
 			{
@@ -2268,7 +2403,16 @@ void Game::resetMap()
 			{
 				theMap->getSection(i, j)->getObjectOnFace(k)->setPosition(theMap->getSection(i, j)->getObjectOnFace(k)->getBasePosition());
 				theMap->getSection(i, j)->getObjectOnFace(k)->setRotation(theMap->getSection(i, j)->getObjectOnFace(k)->getBaseRotation());
+				theMap->getSection(i, j)->getObjectOnFace(k)->getOrientation()->setScale(1.f);
 				theMap->getSection(i, j)->getObjectOnFace(k)->getPhysicsBody()->resetForMap();
+				theMap->getSection(i, j)->getObjectOnFace(k)->setBeingDestroyed(false);
+				theMap->getSection(i, j)->getObjectOnFace(k)->setDestroyed(false);
+				theMap->getSection(i, j)->getObjectOnFace(k)->hide(false);
+
+				theMap->getSection(i, j)->getObjectOnFace(k)->updateTransforms(DT);
+
+				GONE.clear();
+				GONETIMER.clear();
 			}
 		}
 	}

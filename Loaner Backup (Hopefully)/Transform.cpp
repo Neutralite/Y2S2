@@ -19,6 +19,8 @@ void Transform::rotateAroundAxis(vec3 axis, float degrees)
 	m_pLocalToWorldMatrix.SetTranslation(vec3(0, 0, 0));
 	m_pLocalToWorldMatrix.Rotate(axis, degrees);
 	m_pLocalToWorldMatrix.SetTranslation(oPos);
+
+	setRotationAngle(m_pLocalToWorldMatrix);
 }
 
 void Transform::setRotationAngle(vec3 newAngle)

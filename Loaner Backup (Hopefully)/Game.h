@@ -25,6 +25,7 @@
 #include "LIGHT_SOURCE.h"
 #include "Player.h"
 #include "Destructable.h"
+#include "UniformBuffer.h"
 
 #define WINDOW_WIDTH			800 //glutGet(GLUT_WINDOW_WIDTH)
 #define WINDOW_HEIGHT			432 //glutGet(GLUT_WINDOW_HEIGHT)
@@ -116,15 +117,20 @@ private:
 	std::vector<Object*> SHAKEYOBJ;
 	std::vector<Object*> SHAKEYBUFFER;
 
+
 	std::vector<Object*> MINEZ;
 	float MAX_MINE_TIMER = 1.f;
 	std::vector<float> MINETIMER;
+
 	std::vector<Object*> EXPLOSIONS;
+	std::vector<Object*> INSTABOOM;
 	float MAX_EXP_TIMER = 1.f;
 	std::vector<float> SPLODETIMER;
+
 	std::vector<Object*> GONE;
 	float MAX_GONE_TIMER = 1.f;
-	std::vector<float> GONETIMER;
+	std::vector<vec4> GONETIMER;
+
 
 	Object* BASE_PLATE_SAND;
 	Object* BASE_PLATE_DIRT;
@@ -184,12 +190,17 @@ private:
 	ShaderProgram EXPLOSIONSHADER;
 	ShaderProgram MINESHADER;
 
+	ShaderProgram COMIC_MINE;
+	ShaderProgram COMIC_EXPLOSION;
+
 	ShaderProgram COMIC_SETUP;
 	ShaderProgram COMIC_EXECUTION;
 	Texture* overlay;
 
 	Camera camera;
 	Camera UIcam;
+
+	//UniformBuffer LIGHTS;
 
 	//FrameBuffer FB;
 	//FrameBuffer testBuff;
@@ -213,6 +224,7 @@ private:
 	//bool rippleActive = false;
 	//bool paused = false;
 	bool swapGraphics = false;
+	bool Momentum = false;
 
 	int windowWidth = WINDOW_WIDTH, windowHeight = WINDOW_HEIGHT;
 };

@@ -93,6 +93,9 @@
     <ClCompile Include="Button.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UniformBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clickBox.h">
@@ -176,6 +179,9 @@
     <ClInclude Include="Button.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UniformBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\BASIC.frag">
@@ -224,6 +230,12 @@
       <Filter>Resource Files\SHADERS</Filter>
     </None>
     <None Include="Assets\Shaders\FINAL_RENDER.frag">
+      <Filter>Resource Files\SHADERS</Filter>
+    </None>
+    <None Include="Assets\Shaders\MINE_COMIC.frag">
+      <Filter>Resource Files\SHADERS</Filter>
+    </None>
+    <None Include="Assets\Shaders\EXPLODE_COMIC.frag">
       <Filter>Resource Files\SHADERS</Filter>
     </None>
   </ItemGroup>

@@ -94,7 +94,9 @@ public:
 	virtual vec3* getTilt();
 
 	bool isDestroyed();
+	bool isBeingDestroyed();
 	void setDestroyed(bool isDest);
+	void setBeingDestroyed(bool isDest);
 	void setHP(float HP);
 	float getHP();
 	void setMaxHP(float MH);
@@ -133,6 +135,7 @@ private:
 	float maxHealth = 0.f;
 
 	bool destroyed = false;
+	bool beingDestroyed = false;
 
 	Object* parent;
 	Mesh* mesh;

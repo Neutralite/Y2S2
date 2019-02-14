@@ -18,6 +18,7 @@ public:
 	bool dynamic;
 	bool enabled;
 	bool grass = false;
+	bool unbreakable = false;
 	std::vector<vec3> points;
 	std::vector<vec3> normals;
 	std::string name;
