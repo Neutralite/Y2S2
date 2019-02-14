@@ -819,11 +819,14 @@ void Game::update()
 		{
 			for (int k = -2; k <= 2; k++)
 			{
-				for (int I = theMap->getSection(muX + j, muY + k)->getNumObjOnFace() - 1; I >= 0; I--)
+				if (muX + j >= 0 && muX + j < 100 && muY + k >= 0 && muY + k < 100)
 				{
-					Object* OOO = theMap->getSection(muX + j, muY + k)->getObjectOnFace(I);
-					if (OOO != players[0])
-						dealWithExplosions(INSTABOOM[i], OOO);
+					for (int I = theMap->getSection(muX + j, muY + k)->getNumObjOnFace() - 1; I >= 0; I--)
+					{
+						Object* OOO = theMap->getSection(muX + j, muY + k)->getObjectOnFace(I);
+						if (OOO != players[0])
+							dealWithExplosions(INSTABOOM[i], OOO);
+					}
 				}
 			}
 		}
