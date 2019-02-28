@@ -10,11 +10,14 @@ std::vector<GameObject*> ResourceManager::allGameObjects;
 std::vector<Light*> ResourceManager::AllLight; //PLUS ULTRA
 std::vector<Hitbox2D*> ResourceManager::allHitboxes;
 std::vector<Framebuffer*> ResourceManager::allFramebuffers;
+std::vector<Weapon*> ResourceManager::allWeapons;
+
 
 std::vector<Transform*> ResourceManager::TransformsINGAME;
 std::vector<Camera*> ResourceManager::CamerasINGAME;
 std::vector<GameObject*> ResourceManager::allGameObjectsINGAME;
 std::vector<Light*> ResourceManager::AllLightINGAME; //PLUS ULTRA
+std::vector<Weapon*> ResourceManager::allWeaponsINGAME;
 
 void ResourceManager::addEntity(Transform * entity)
 {

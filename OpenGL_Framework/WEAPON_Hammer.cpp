@@ -1,5 +1,8 @@
 #include "WEAPON_Hammer.h"
+
 std::vector<wFrame> Hammer::FRAMES;
+
+#define fileDir "../assets/Weapons/"
 
 Hammer::Hammer()
 {
@@ -12,7 +15,14 @@ Hammer::~Hammer()
 
 bool Hammer::weaponInit(std::string file)
 {
+	std::ifstream theWeapon;
+	theWeapon.open(fileDir + file + ".txt");
 	
+	std::string parse;
+	std::getline(theWeapon, parse);
+
+	
+
 	return false;
 }
 
