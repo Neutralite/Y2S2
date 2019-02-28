@@ -1,0 +1,7 @@
+Tree Verison 1
+Texture Tree Model 1
+DESTRUCTABLE
+0.7
+PHYS
+TREE 1 HITBOX
+false

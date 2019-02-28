@@ -1,0 +1,25 @@
+PickupTruck
+Texture PickupTruck
+PLAYER
+0
+OBJECT
+LIGHTHOLDER
+0.6
+0.8
+-1.9
+0
+0
+0
+1
+OBJECT
+LIGHTHOLDER2
+-0.6
+0.8
+-1.9
+0
+0
+0
+1
+PHYS
+TRUCK_HITBOX
+true

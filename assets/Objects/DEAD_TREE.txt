@@ -1,0 +1,7 @@
+tree_ded
+tree_ded_texture
+DESTRUCTABLE
+1
+PHYS
+DEAD_TREE_HITBOX
+false

@@ -1,0 +1,7 @@
+Grass_Model
+Texture Grass Model
+DESTRUCTABLE
+0.4
+PHYS
+GRASS_HITBOX
+grass

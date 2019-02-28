@@ -1,0 +1,40 @@
+SAND
+BASE_UI_COLOR
+Grass
+dirt
+Road
+concrete
+T road
+4 - way
+Corner
+tree_ded_texture
+SAVE_TEXTURE
+RAND_ROT_TEXTURE
+Hide UI
+RAND_SCALE_TEXTURE
+PLACEHOLDER_PLAYER_TEXTURE
+Texture Building v1
+Texture Building v1-2
+Texture House v1
+Texture House v1-2
+Texture Apartment v1
+Texture Tree Model 1
+Texture Tree Model 2
+bench_texture
+Texture PickupTruck
+Texture Grass Model
+MINE_TEXTURE
+STREETLIGHT_TEXTURE
+HEALTH_TEXTURE
+TIME_TEXTURE
+SPED_TEXTURE
+POINTS_TEXTURE
+gas-station-store
+car-wash
+trailer
+street_light_texture
+EXPLOSION
+EXPLOSION_R
+EXPLOSION_G
+Medium shading
+Game Toon Ramp

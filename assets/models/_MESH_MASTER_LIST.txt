@@ -1,0 +1,60 @@
+TESTING_BASE_PLATE
+0
+UIBAR
+0
+tree_ded
+0
+BUTTON_BASE
+0
+PLACEHOLDER_PLAYER_OBJ
+0
+Apartment Verison 1
+0
+Building Verison 1
+0
+Character
+0
+House Verison 1
+0
+PickupTruck
+0
+Tree Verison 1
+0
+Tree Verison 2
+0
+bench
+0
+TRUCK_MORPH_LEFT
+0
+TRUCK_MORPH_FORWARD
+0
+Grass_Model
+0
+MINE
+0
+STREETLIGHT
+0
+STREETLIGHT_FLIP
+0
+HEALTH_BAR
+0
+POINTS_BAR
+0
+TIME_BAR
+0
+SPED_BACK
+0
+car-wash
+0
+gas-station-store
+0
+trailer
+0
+street_light
+0
+EXPLOSION
+0
+STREETLIGHT_AREA
+0
+HEADLIGHT_AREA
+0

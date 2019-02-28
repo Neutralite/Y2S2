@@ -1,0 +1,7 @@
+trailer
+trailer
+DESTRUCTABLE
+1.9
+PHYS
+TRAILER_HITBOX
+false
