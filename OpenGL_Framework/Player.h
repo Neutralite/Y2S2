@@ -40,10 +40,14 @@ public:
 	vec3 getAngularVelocity();
 	vec3 getAngularPosition();
 
+	void initiateDestruction(int destrType, vec3 directionOutwards);
+
 	void resetToInitials();
 
 	float Yangle = 0.f;
 	bool sendATTACK = false;
+	float steeringMultiplier = 1.f;
+
 private:
 	Weapon* attack = nullptr;
 	float attackTimer = 0.f;

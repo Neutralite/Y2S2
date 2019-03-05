@@ -27,6 +27,7 @@
 #include "PhysicsBody.h"
 
 #include "Field.h"
+#include "XinputManager.h"
 
 #define WINDOW_SCREEN_WIDTH		640
 #define WINDOW_SCREEN_HEIGHT	432
@@ -104,6 +105,9 @@ public:
 	void setFramebuffers();
 	void setCamerasAndPlayers();
 	void generateMap();
+
+	void performUpdates(float dt);
+	void updateSingle(float dt, GameObject* _T);
 	
 	Boundary* getBoundary(std::string _NAME);
 	Destructable* getDestructable(std::string _NAME);
@@ -211,6 +215,11 @@ private:
 
 	UniformBuffer uniformBufferTime;
 	UniformBuffer uRes;
+
+	XinputManager _INPUT;
+	std::vector<XinputController*> controllers;
+	std::vector<Stick> playerInput;
+	std::vector<Triggers> playerTriggers;
 
 	bool useFirst = false;
 

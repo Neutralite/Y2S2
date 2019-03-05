@@ -223,6 +223,8 @@ void GameObject::initiateDestruction(int destrType, vec3 directionOutwards)
 {
 	TypeOfDestr = destrType;
 	DirOfDestr = directionOutwards;
+	destroying = true;
+	getPhysicsBody()->getHB()->enabled = false;
 }
 
 void GameObject::setInitials(vec3 iPos, vec3 iRot, vec3 iScale)
@@ -230,6 +232,8 @@ void GameObject::setInitials(vec3 iPos, vec3 iRot, vec3 iScale)
 	initialPosition = iPos;
 	initialRotation = iRot;
 	initialScale = iScale;
+
+	getPhysicsBody()->getHB()->enabled = true;
 }
 
 void GameObject::resetToInitials()
@@ -237,9 +241,6 @@ void GameObject::resetToInitials()
 	setLocalPos(initialPosition);
 	setLocalRot(initialRotation);
 	setScale(initialScale);
-
-	needsUpdate = false;
-	hasBeenUpdated = false;
 
 	destroying = false;
 	destroyed = false;

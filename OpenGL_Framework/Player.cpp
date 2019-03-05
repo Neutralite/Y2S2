@@ -131,7 +131,7 @@ void Player::updatePhysics(float dt)
 
 	float velRat = pow(length(Engine->getVelocity()) / Engine->getVelocityLimit(), 2);
 
-	Engine->setAngularVelocity(vec3(0, steer * velRat, 0));
+	Engine->setAngularVelocity(vec3(0, steer * min(velRat, Engine->getAngularVelocityLimit()) * steeringMultiplier, 0));
 	Engine->setVelocity(mat3::rotatey(degrees(Engine->getRotationAngles().y)) * Engine->getVelocity());
 	
 	bool putBack = false;
@@ -220,18 +220,12 @@ vec3 Player::getAngularPosition()
 	return getPhysicsBody()->getAngularAcceleration() + Engine->getAngularAcceleration();
 }
 
+void Player::initiateDestruction(int destrType, vec3 directionOutwards)
+{
+}
+
 void Player::resetToInitials()
 {
-	setLocalPos(initialPosition);
-	setLocalRot(initialRotation);
-	setScale(initialScale);
-
-	needsUpdate = false;
-	hasBeenUpdated = false;
-
-	destroying = false;
-	destroyed = false;
-
-	getPhysicsBody()->reset();
+	GameObject::resetToInitials();
 	Engine->reset();
 }

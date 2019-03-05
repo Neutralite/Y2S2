@@ -146,6 +146,7 @@
     <ClCompile Include="Weapon.cpp" />
     <ClCompile Include="WEAPON_Hammer.cpp" />
     <ClCompile Include="WEAPON_Mine.cpp" />
+    <ClCompile Include="XinputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BasePlate.h" />
@@ -199,6 +200,7 @@
     <ClInclude Include="Weapon.h" />
     <ClInclude Include="WEAPON_Hammer.h" />
     <ClInclude Include="WEAPON_Mine.h" />
+    <ClInclude Include="XinputManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shaders\BASIC.frag" />

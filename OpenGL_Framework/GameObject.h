@@ -56,7 +56,7 @@ public:
 
 	virtual void applySwing(vec3 P1, vec3 P2, float ratio);
 
-	void initiateDestruction(int destrType, vec3 directionOutwards);
+	virtual void initiateDestruction(int destrType, vec3 directionOutwards);
 	void setInitials(vec3 iPos, vec3 iRot, vec3 iScale);
 	virtual void resetToInitials();
 

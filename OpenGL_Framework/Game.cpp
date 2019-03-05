@@ -282,6 +282,20 @@ void Game::initializeGame()
 	//testBuffer = new UniformBuffer(32);
 	//testBuffer->bind(6);
 	//testBuffer->sendVector(vec4(0.0f, 0.25f, 0.5f, 0.75f), 1);
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (_INPUT.controllerConnected(i))
+			controllers.push_back(_INPUT.getController(i));
+		else
+			controllers.push_back(nullptr);
+	}
+	Stick s;
+	for (int i = 0; i < 8; i++)
+		playerInput.push_back(s);
+	Triggers t;
+	for (int i = 0; i < 4; i++)
+		playerTriggers.push_back(t);
 }
 
 void Game::update()
@@ -292,6 +306,10 @@ void Game::update()
 		getTime = false;
 	}
 	
+	_INPUT.update();
+
+	
+
 	gameFrame++;
 
 	std::cout << std::endl;
@@ -333,13 +351,38 @@ void Game::update()
 	//Light* lit = dynamic_cast<Light*>(players[0]->getChildren().at(0)->getChildren().at(0));
 	//std::cout << lit->position << std::endl;
 
-	for (Player* P : players)
+	for (unsigned int i = 0; i < players.size(); i++)
 	{
-		bool pUP = (keysDown['w'] || keysDown['W']);
-		bool pLEFT = (keysDown['a'] || keysDown['A']);
-		bool pDOWN = (keysDown['s'] || keysDown['S']);
-		bool pRIGHT = (keysDown['d'] || keysDown['D']);
-		bool pATTACK = (keysDown[' ']);
+		Player* P = players[i];
+
+		bool pUP;
+		bool pLEFT;
+		bool pDOWN;
+		bool pRIGHT;
+		bool pATTACK;
+
+		if (controllers[i])
+		{
+			controllers[i]->getSticks(&playerInput[2 * i], &playerInput[2 * i + 1]);
+			controllers[i]->getTriggers(&playerTriggers[i]);
+
+			pUP = (playerTriggers[i].RT > 0.5f);
+			pLEFT = (playerInput[2 * i].x < -0.1f);
+			pDOWN = (playerTriggers[i].LT > 0.5f);
+			pRIGHT = (playerInput[2 * i].x > 0.1f);
+			pATTACK = (controllers[i]->isButtonPressed(A));
+
+			P->steeringMultiplier = abs(playerInput[2 * i].x);
+		}
+		else
+		{
+			pUP = (keysDown['w'] || keysDown['W']);
+			pLEFT = (keysDown['a'] || keysDown['A']);
+			pDOWN = (keysDown['s'] || keysDown['S']);
+			pRIGHT = (keysDown['d'] || keysDown['D']);
+			pATTACK = (keysDown[' ']);
+		}
+		//bool pATTACK = (keysDown[' ']);
 
 		P->sendInput(pUP, Player::PLAYER_IN::UP);
 		//std::cout << "--1" << std::endl;
@@ -352,11 +395,16 @@ void Game::update()
 		P->sendInput(pATTACK, Player::PLAYER_IN::ATTACK);
 		//std::cout << "--5" << std::endl;
 
-		//updateShip.push_back(P);
-		if (P->sendATTACK || true)
+		if (P->sendATTACK)
 		{
 			generateATTACK(P);
 		}
+
+		//std::cout << players[i]->getLocalPos() << std::endl;
+		//std::cout << players[i]->getPhysicsBody()->getVelocity() << std::endl;
+		//std::cout << players[i]->getPhysicsBody()->getAcceleration() << std::endl;
+		//
+		//std::cout << PlayerCam->getLocalPos() << std::endl;
 	}
 
 	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
@@ -369,60 +417,18 @@ void Game::update()
 			{
 				drawChildren(theMap->grid[j][i]);
 				int sectObj = theMap->fieldObjects[j][i].size();
-				//if (sectObj > 0)
-				//	updateShip.push_back(theMap->fieldObjects[j][i][0]);
-				//std::cout << "MAYDE IT " << std::endl;
 				for (int k = 0; k < sectObj; k++)
 				{
 					drawChildren(theMap->fieldObjects[j][i][k]);
 					protectedUpdateShip(theMap->fieldObjects[j][i][k]);
+					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
+					//	std::cout << "HERE HE BE SENT!" << std::endl;
 				}
 			}
 		}
 	}
 	
-	vec2 pCur, pNew;
-	int PX = 0;
-	int PY = 0;
-	int NX = 0;
-	int NY = 0;
-	for (GameObject* object : updateShip)
-	{
-		bool setNew = false;
-		switch (object->TT)
-		{
-		case Transform::TransformType::TYPE_Player:
-			//std::cout << "PLAYER_UPDATE!" << std::endl;
-		case Transform::TransformType::TYPE_Destructable:
-			pCur = object->getLocalPos().xz / tileSize + vec2(0.5);
-			setNew = true;
-		default:
-			object->update(deltaTime);
-			break;
-		}
-
-		if (setNew)
-		{
-			pNew = object->getLocalPos().xz / tileSize + vec2(0.5);
-
-			PX = (int)pCur.x;
-			PY = (int)pCur.y;
-			NX = (int)pNew.x;
-			NY = (int)pNew.y;
-
-			//if (object->TT == Transform::TransformType::TYPE_Player)
-			//	std::cout << PX << ", " << PY << std::endl;
-			if (PX != NX || PY != NY)
-				if (NX >= 0 && NX < 100 && NY >= 0 && NY < 100)
-				{
-					//std::cout << NX << ", " << NY << std::endl;
-					theMap->removeObj(object->mapX, object->mapY, object);
-					theMap->fieldObjects[NX][NY].push_back(object);
-					object->mapX = NX;
-					object->mapY = NY;
-				}
-		}
-	}
+	performUpdates(deltaTime);
 
 	staticCollisionShip.push_back(LEFT_WALL);
 	staticCollisionShip.push_back(RIGHT_WALL);
@@ -2372,6 +2378,97 @@ void Game::generateMap()
 	}
 }
 
+void Game::performUpdates(float dt)
+{
+	vec2 pCur, pNew;
+	int PX = 0;
+	int PY = 0;
+	int NX = 0;
+	int NY = 0;
+	for (GameObject* object : updateShip)
+	{
+		bool setNew = false;
+		switch (object->TT)
+		{
+		case Transform::TransformType::TYPE_Player:
+			//std::cout << "PLAYER_UPDATE!" << std::endl;
+		case Transform::TransformType::TYPE_Destructable:
+			pCur = object->getLocalPos().xz / tileSize + vec2(0.5);
+			setNew = true;
+		default:
+			object->update(dt);
+			break;
+		}
+
+		if (setNew)
+		{
+			pNew = object->getLocalPos().xz / tileSize + vec2(0.5);
+
+			PX = (int)pCur.x;
+			PY = (int)pCur.y;
+			NX = (int)pNew.x;
+			NY = (int)pNew.y;
+
+			//if (object->TT == Transform::TransformType::TYPE_Player)
+			//	std::cout << PX << ", " << PY << std::endl;
+			if (PX != NX || PY != NY)
+				if (NX >= 0 && NX < 100 && NY >= 0 && NY < 100)
+				{
+					//std::cout << NX << ", " << NY << std::endl;
+					theMap->removeObj(object->mapX, object->mapY, object);
+					theMap->fieldObjects[NX][NY].push_back(object);
+					object->mapX = NX;
+					object->mapY = NY;
+				}
+		}
+	}
+}
+
+void Game::updateSingle(float dt, GameObject* _T)
+{
+	vec2 pCur, pNew;
+
+	int PX = 0;
+	int PY = 0;
+	int NX = 0;
+	int NY = 0;
+
+	bool setNew = false;
+	switch (_T->TT)
+	{
+	case Transform::TransformType::TYPE_Player:
+		//std::cout << "PLAYER_UPDATE!" << std::endl;
+	case Transform::TransformType::TYPE_Destructable:
+		pCur = _T->getLocalPos().xz / tileSize + vec2(0.5);
+		setNew = true;
+	default:
+		_T->update(dt);
+		break;
+	}
+
+	if (setNew)
+	{
+		pNew = _T->getLocalPos().xz / tileSize + vec2(0.5);
+
+		PX = (int)pCur.x;
+		PY = (int)pCur.y;
+		NX = (int)pNew.x;
+		NY = (int)pNew.y;
+
+		//if (_T->TT == Transform::TransformType::TYPE_Player)
+		//	std::cout << PX << ", " << PY << std::endl;
+		if (PX != NX || PY != NY)
+			if (NX >= 0 && NX < 100 && NY >= 0 && NY < 100)
+			{
+				//std::cout << NX << ", " << NY << std::endl;
+				theMap->removeObj(_T->mapX, _T->mapY, _T);
+				theMap->fieldObjects[NX][NY].push_back(_T);
+				_T->mapX = NX;
+				_T->mapY = NY;
+			}
+	}
+}
+
 Boundary * Game::getBoundary(std::string _NAME)
 {
 	GameObject* passing = ResourceManager::searchForGameObject(_NAME);
@@ -2722,8 +2819,13 @@ void Game::resetMap()
 			for (unsigned int k = 0; k < OBS; ++k)
 			{
 				if (theMap->fieldObjects[i][j][k]->hasInitial)
+				{
 					theMap->fieldObjects[i][j][k]->resetToInitials();
+					updateSingle(0, theMap->fieldObjects[i][j][k]);
+				}
 			}
 		}
 	}
+
+	std::cout << "RESET: " << players[0]->getLocalPos() << std::endl;
 }
