@@ -32,6 +32,13 @@ public:
 
 	unsigned int amntOfSpace;
 	unsigned int usedSpace = 0;
+
+	float totalRadialDistance = 0.f;
+	vec3 trueCenter;
+	vec3 testPoint1;
+	vec3 testPoint2;
+	vec3 testPoint3;
+	vec3 testPoint4;
 private:
 
 	std::string ID;

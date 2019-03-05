@@ -8,7 +8,8 @@
 #include "Destructable.h"
 #include "Player.h"
 #include "Weapon.h"
-#include "WEAPON_Hammer.h"
+//#include "WEAPON_Hammer.h"
+#include "WEAPON_Mine.h"
 
 class ResourceManager
 {
@@ -86,6 +87,7 @@ public:
 	static Weapon* searchForWeapon(std::string _NAME);
 
 	static void destroyObjectINGAME(Transform* _OBJ);
+	static void destroyChildrenINGAME(Transform* OBJ);
 
 	static Boundary* getBoundary(std::string _NAME);
 	static Destructable* getDestructable(std::string _NAME);

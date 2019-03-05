@@ -1,4 +1,5 @@
 #include "ResourceManager.h"
+#include <iostream>
 
 std::vector<Transform*> ResourceManager::Transforms;
 std::vector<ShaderProgram*> ResourceManager::Shaders;
@@ -128,6 +129,13 @@ void ResourceManager::addEntityINGAME(Transform * entity)
 			AllLightINGAME.push_back(light);
 		else
 			sortAddLightINGAME(0, AllLightINGAME.size() - 1, light);
+	}
+	else if (Weapon* W = dynamic_cast<Weapon*>(entity))
+	{
+		if (allWeaponsINGAME.size() == 0)
+			allWeaponsINGAME.push_back(W);
+		else
+			sortAddWeaponINGAME(0, allWeaponsINGAME.size() - 1, W);
 	}
 	else if (GameObject* _GO = dynamic_cast<GameObject*>(entity))
 	{
@@ -795,20 +803,20 @@ Weapon * ResourceManager::findWeapon(unsigned int front, unsigned int back, std:
 int ResourceManager::findGameObjectINGAME(unsigned int front, unsigned int back, GameObject * _ADR)
 {
 	unsigned int mid = (front + back) / 2;
-	if (allGameObjects[mid] == _ADR)
+	if (allGameObjectsINGAME[mid] == _ADR)
 	{
 		return mid;
 	}
 	else if (back - front <= 1)
 	{
-		if (allGameObjects[front] == _ADR)
+		if (allGameObjectsINGAME[front] == _ADR)
 			return front;
-		else if (allGameObjects[back] == _ADR)
+		else if (allGameObjectsINGAME[back] == _ADR)
 			return back;
 		else
 			return -1;
 	}
-	else if (allGameObjects[mid] > _ADR)
+	else if (allGameObjectsINGAME[mid] > _ADR)
 	{
 		return findGameObjectINGAME(front, mid, _ADR);
 	}
@@ -821,20 +829,20 @@ int ResourceManager::findGameObjectINGAME(unsigned int front, unsigned int back,
 int ResourceManager::findLightINGAME(unsigned int front, unsigned int back, Light * _ADR)
 {
 	unsigned int mid = (front + back) / 2;
-	if (AllLight[mid] == _ADR)
+	if (AllLightINGAME[mid] == _ADR)
 	{
 		return mid;
 	}
 	else if (back - front <= 1)
 	{
-		if (AllLight[front] == _ADR)
+		if (AllLightINGAME[front] == _ADR)
 			return front;
-		else if (AllLight[back] == _ADR)
+		else if (AllLightINGAME[back] == _ADR)
 			return back;
 		else
 			return -1;
 	}
-	else if (AllLight[mid] > _ADR)
+	else if (AllLightINGAME[mid] > _ADR)
 	{
 		return findLightINGAME(front, mid, _ADR);
 	}
@@ -847,20 +855,20 @@ int ResourceManager::findLightINGAME(unsigned int front, unsigned int back, Ligh
 int ResourceManager::findEntityINGAME(unsigned int front, unsigned int back, Transform * _ADR)
 {
 	unsigned int mid = (front + back) / 2;
-	if (Transforms[mid] == _ADR)
+	if (TransformsINGAME[mid] == _ADR)
 	{
 		return mid;
 	}
 	else if (back - front <= 1)
 	{
-		if (Transforms[front] == _ADR)
+		if (TransformsINGAME[front] == _ADR)
 			return front;
-		else if (Transforms[back] == _ADR)
+		else if (TransformsINGAME[back] == _ADR)
 			return back;
 		else
 			return -1;
 	}
-	else if (Transforms[mid] > _ADR)
+	else if (TransformsINGAME[mid] > _ADR)
 	{
 		return findEntityINGAME(front, mid, _ADR);
 	}
@@ -873,20 +881,20 @@ int ResourceManager::findEntityINGAME(unsigned int front, unsigned int back, Tra
 int ResourceManager::findCameraINGAME(unsigned int front, unsigned int back, Camera * _ADR)
 {
 	unsigned int mid = (front + back) / 2;
-	if (Cameras[mid] == _ADR)
+	if (CamerasINGAME[mid] == _ADR)
 	{
 		return mid;
 	}
 	else if (back - front <= 1)
 	{
-		if (Cameras[front] == _ADR)
+		if (CamerasINGAME[front] == _ADR)
 			return front;
-		else if (Cameras[back] == _ADR)
+		else if (CamerasINGAME[back] == _ADR)
 			return back;
 		else
 			return -1;
 	}
-	else if (Cameras[mid] > _ADR)
+	else if (CamerasINGAME[mid] > _ADR)
 	{
 		return findCameraINGAME(front, mid, _ADR);
 	}
@@ -1004,6 +1012,8 @@ Weapon * ResourceManager::searchForWeapon(std::string _NAME)
 
 void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 {
+	destroyChildrenINGAME(_OBJ);
+
 	int iter = findEntityINGAME(0, TransformsINGAME.size() - 1, _OBJ);
 	if (iter >= 0)
 	{
@@ -1028,6 +1038,15 @@ void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 		}
 	}
 
+	if (Weapon* _W = dynamic_cast<Weapon*>(_OBJ))
+	{
+		iter = findWeaponINGAME(0, allWeaponsINGAME.size() - 1, _W);
+		if (iter >= 0)
+		{
+			allWeaponsINGAME.erase(allWeaponsINGAME.begin() + iter);
+		}
+	}
+
 	if (GameObject* _GO = dynamic_cast<GameObject*>(_OBJ))
 	{
 		iter = findGameObjectINGAME(0, allGameObjectsINGAME.size() - 1, _GO);
@@ -1037,16 +1056,16 @@ void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 		}
 	}
 
-	if (Weapon* _W = dynamic_cast<Weapon*>(_OBJ))
-	{
-		iter = findGameObjectINGAME(0, allWeaponsINGAME.size() - 1, _W);
-		if (iter >= 0)
-		{
-			allWeaponsINGAME.erase(allWeaponsINGAME.begin() + iter);
-		}
-	}
-
 	delete _OBJ;
+}
+
+void ResourceManager::destroyChildrenINGAME(Transform * OBJ)
+{
+	int CHILDREN = OBJ->getChildren().size();
+	for (int i = 0; i < CHILDREN; i++)
+	{
+		destroyObjectINGAME(OBJ->getChildren().at(i));
+	}
 }
 
 Boundary * ResourceManager::getBoundary(std::string _NAME)
@@ -1335,8 +1354,8 @@ Weapon * ResourceManager::getCloneOfWeapon(std::string _NAME)
 	if (SUB)
 	{
 		Weapon* SUB2 = nullptr;
-		if (SUB->TT == Transform::TransformType::TYPE_Hammer)
-			SUB2 = new Hammer;
+		if (SUB->TT == Transform::TransformType::TYPE_Mine)
+			SUB2 = new Mine;
 		*SUB2 = *SUB;
 
 		if (SUB2)

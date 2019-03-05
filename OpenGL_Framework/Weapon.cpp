@@ -1,4 +1,5 @@
 #include "Weapon.h"
+#include <iostream>
 
 Weapon::Weapon()
 {
@@ -9,58 +10,191 @@ Weapon::~Weapon()
 {
 }
 
+bool Weapon::tailoredCollision(GameObject * _GO)
+{
+	if (_GO->getPhysicsBody()->getHB() && getFrameAfter(timeActive)->HB)
+	{
+		if (_GO->getPhysicsBody()->getHB()->enabled && getFrameAfter(timeActive)->BLOWUP)
+		{
+			if (_GO->getPhysicsBody()->getHB()->dynamic)
+			{
+
+			}
+			else
+			{
+				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				{
+					vec3 centerToCollision = normalize(getPhysicsBody()->getHB()->closestPoint);
+					vec3 outward = normalize(getPhysicsBody()->getHB()->outDir);
+
+					centerToCollision.y = 0.f;
+					outward.y = 0.f;
+
+					//if (dot(outward, getVelocity()) < 0)
+					//{
+					//	pushAgainst += outward;
+					//}
+					//
+					//if (dot(outward, getVelocity()) < 0.f)
+					//{
+					//	vec3 BP2 = getVelocity() * getPhysicsBody()->getMass() * 0.05f;
+					//	vec3 BP1 = (-getVelocity() + outward * 2 * dot(outward, getVelocity())) * getPhysicsBody()->getMass() * 0.05f;
+					//	if (length(BP1) > length(_GO->swingPoint1) || _GO->swingTime <= 0.f)
+					//	{
+					//		_GO->applySwing(BP1, BP2, 1.f);
+					//		//std::cout << "HELLO" << std::endl;
+					//	}
+					//
+					//	_GO->needsUpdate = true;
+					//	needsUpdate = true;
+					//}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 void Weapon::update(float dt)
 {
 	if (dt > 0)
 	{
 		timeActive += dt;
-		wFrame* _W0 = getFrameBefore(timeActive);
-		wFrame* _W1 = getFrameAt(timeActive);
-		wFrame* _W2 = getFrameAfter(timeActive);
-		wFrame* _W3 = getFrame2After(timeActive);
-		if (_W1 && _W2)
+		otherUpdates(dt);
+
+		if (!timeToDie)
 		{
-			float tT = _W1->tFunc((timeActive - _W1->timeOf) / _W1->duration);
-			if (_W1->MT == wFrame::MutationType::LINEAR)
+			wFrame* _W0 = getFrameBefore(timeActive);
+			wFrame* _W1 = getFrameAt(timeActive);
+			wFrame* _W2 = getFrameAfter(timeActive);
+			wFrame* _W3 = getFrame2After(timeActive);
+
+			vec3 POS_0;
+			vec3 POS_1;
+			vec3 POS_2 = _W2->position;
+			vec3 POS_3;
+
+			vec3 ROT_0;
+			vec3 ROT_1;
+			vec3 ROT_2 = _W2->rotationAngles;
+			vec3 ROT_3;
+
+			vec3 SCALE_0;
+			vec3 SCALE_1;
+			vec3 SCALE_2 = _W2->scale;
+			vec3 SCALE_3;
+
+			//std::cout << _W2->weapMesh;
+			setMesh(_W2->weapMesh);
+			setTextures(_W2->weapTex);
+			setShaderProgram(_W2->SP);
+
+			if (_W1)
 			{
-				vec3 newPos = lerp(_W1->position, _W2->position, tT);
-				vec3 newRot = lerp(_W1->rotationAngles, _W2->rotationAngles, tT);
-				vec3 newScale = lerp(_W1->scale, _W2->scale, tT);
+				POS_1 = _W1->position;
+				ROT_1 = _W1->rotationAngles;
+				SCALE_1 = _W1->scale;
+			}
+			else
+			{
+				POS_1 = vec3(0, 0, 0);
+				ROT_1 = vec3(0, 0, 0);
+				SCALE_1 = vec3(1, 1, 1);
+			}
+
+			if (_W0)
+			{
+				POS_0 = _W0->position;
+				ROT_0 = _W0->rotationAngles;
+				SCALE_0 = _W0->scale;
+			}
+			else
+			{
+				POS_0 = POS_1;
+				ROT_0 = ROT_1;
+				SCALE_0 = SCALE_1;
+			}
+
+			if (_W3)
+			{
+				POS_3 = _W3->position;
+				ROT_3 = _W3->rotationAngles;
+				SCALE_3 = _W3->scale;
+			}
+			else
+			{
+				POS_3 = _W2->position;
+				ROT_3 = _W2->rotationAngles;
+				SCALE_3 = _W2->scale;
+			}
+
+			float tT = _W2->tFunc((timeActive - _W2->timeOf) / _W2->duration);
+			if (_W2->MT == wFrame::MutationType::LINEAR)
+			{
+				vec3 newPos = lerp(POS_1, POS_2, tT);
+				vec3 newRot = lerp(ROT_1, ROT_2, tT);
+				vec3 newScale = lerp(SCALE_1, SCALE_2, tT);
 
 				setLocalPos(newPos);
 				setLocalRot(newRot);
 				setScale(newScale);
 			}
-			else if (_W1->MT == wFrame::MutationType::CATMULL)
+			else if (_W2->MT == wFrame::MutationType::CATMULL)
 			{
 				vec3 newPos, newRot, newScale;
-				newPos.x = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->position.x, _W1->position.x, _W2->position.x, _W3->position.x));
-				newPos.y = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->position.y, _W1->position.y, _W2->position.y, _W3->position.y));
-				newPos.z = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->position.z, _W1->position.z, _W2->position.z, _W3->position.z));
+				newPos.x = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(POS_0.x, POS_1.x, POS_2.x, POS_3.x));
+				newPos.y = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(POS_0.y, POS_1.y, POS_2.y, POS_3.y));
+				newPos.z = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(POS_0.z, POS_1.z, POS_2.z, POS_3.z));
 
-				newRot.x = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->rotationAngles.x, _W1->rotationAngles.x, _W2->rotationAngles.x, _W3->rotationAngles.x));
-				newRot.y = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->rotationAngles.y, _W1->rotationAngles.y, _W2->rotationAngles.y, _W3->rotationAngles.y));
-				newRot.z = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->rotationAngles.z, _W1->rotationAngles.z, _W2->rotationAngles.z, _W3->rotationAngles.z));
+				newRot.x = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(ROT_0.x, ROT_1.x, ROT_2.x, ROT_3.x));
+				newRot.y = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(ROT_0.y, ROT_1.y, ROT_2.y, ROT_3.y));
+				newRot.z = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(ROT_0.z, ROT_1.z, ROT_2.z, ROT_3.z));
 
-				newScale.x = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->scale.x, _W1->scale.x, _W2->scale.x, _W3->scale.x));
-				newScale.y = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->scale.y, _W1->scale.y, _W2->scale.y, _W3->scale.y));
-				newScale.z = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(_W0->scale.z, _W1->scale.z, _W2->scale.z, _W3->scale.z));
+				newScale.x = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(SCALE_0.x, SCALE_1.x, SCALE_2.x, SCALE_3.x));
+				newScale.y = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(SCALE_0.y, SCALE_1.y, SCALE_2.y, SCALE_3.y));
+				newScale.z = dot(vec4(pow(tT, 3), pow(tT, 2), tT, 1.f), mat4::catmull() * vec4(SCALE_0.z, SCALE_1.z, SCALE_2.z, SCALE_3.z));
 
 				setLocalPos(newPos);
 				setLocalRot(newRot);
 				setScale(newScale);
 			}
-			otherUpdates(dt);
+			//otherUpdates(dt);
 		}
 		else
 		{
-			timeToDie = true;
+			
 		}
 	}
 	Transform::update(dt);
 }
 
+void Weapon::draw()
+{
+	if (getMesh())
+	{
+		getShader()->bind();
+		getShader()->sendUniform("uModel", getLocalToWorld());
+		int i = 0;
+		for (Texture* texture : *getTextures())
+		{
+			texture->bind(i++);
+		}
+		//if (mesh->amntOfSpace > 0)
+		getMesh()->draw();
+		for (Texture* texture : *getTextures())
+		{
+			texture->unbind(--i);
+		}
+	}
+}
+
+mat4 Weapon::getLocalToWorld() const
+{
+	return worldLocation * Transform::getLocalToWorld();
+}
+
 float wFrame::tFunc(float t)
 {
-	return 0.0f;
+	return Attached->frameWarp(t);
 }

@@ -220,7 +220,8 @@ bool Mesh::LoadFromObj(const std::string & file, unsigned int makeInstances)
 			{
 			case ' ':
 				std::sscanf(line, "v %f %f %f", &x, &y, &z);
-				vertexDataLoad.push_back(vec3(x, y, z));				
+				vertexDataLoad.push_back(vec3(x, y, z));
+				trueCenter += vertexDataLoad[vertexDataLoad.size() - 1];
 				break;
 			case 't':
 				std::sscanf(line, "vt %f %f", &x, &y);
@@ -247,6 +248,8 @@ bool Mesh::LoadFromObj(const std::string & file, unsigned int makeInstances)
 		}
 	}
 	input.close();
+
+	trueCenter /= (float)(vertexDataLoad.size());
 
 	//Unpack the data
 	for (unsigned i = 0; i < faceData.size(); i++)
@@ -278,8 +281,19 @@ bool Mesh::LoadFromObj(const std::string & file, unsigned int makeInstances)
 		}
 
 
-
+		
 	}
+
+	for (int i = (int)vertexDataLoad.size() - 1; i > 0; --i)
+	{
+		if (length(vertexDataLoad[i]
+			- trueCenter)
+		> totalRadialDistance)
+			totalRadialDistance = length(vertexDataLoad[i] - trueCenter);
+	}
+	testPoint1 = vec3(totalRadialDistance, totalRadialDistance, -totalRadialDistance);
+	testPoint2 = vec3(-totalRadialDistance, -totalRadialDistance, -totalRadialDistance);
+
 	amntOfSpace = makeInstances;
 
 	uploadMatsToGPU();
@@ -289,6 +303,7 @@ bool Mesh::LoadFromObj(const std::string & file, unsigned int makeInstances)
 	textureDataLoad.clear();
 	normalDataLoad.clear();
 	faceData.clear();
+
 	return true;
 }
 

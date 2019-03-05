@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include <fstream>
 
+class Weapon;
 
 class wFrame
 {
@@ -11,6 +12,12 @@ public:
 	vec3 scale;
 	float duration; //How long it happens for
 	float timeOf; //When it happens
+	Mesh* weapMesh;
+	std::vector<Texture*> weapTex;
+	ShaderProgram *SP;
+	Hitbox2D* HB = nullptr;
+
+	Weapon* Attached = nullptr;
 
 	enum MutationType
 	{
@@ -19,6 +26,8 @@ public:
 	};
 
 	MutationType MT;
+
+	bool BLOWUP = false;
 
 	float tFunc(float t);
 };
@@ -29,13 +38,14 @@ public:
 	Weapon();
 	~Weapon();
 
-	virtual bool weaponInit(std::string file) = 0;
 	float timeActive = 0.f; //Running Time of Weapon
 	
 	Hitbox2D* Impact;
+	mat4 worldLocation;
+
 	std::vector<float> impactTimes;
 	
-	virtual bool tailoredCollision(GameObject* _GO) = 0;
+	virtual bool tailoredCollision(GameObject* _GO);
 	virtual wFrame* getFrameBefore(float t) = 0;
 	virtual wFrame* getFrameAt(float t) = 0;
 	virtual wFrame* getFrameAfter(float t) = 0;
@@ -44,8 +54,19 @@ public:
 	bool timeToDie = false;
 
 	virtual unsigned int getDest() = 0;
+
 	void update(float dt);
+	void draw();
+
 	virtual void otherUpdates(float dt) = 0;
+
+	virtual float frameWarp(float t) = 0;
+
+	unsigned int currentFrame = 0;
+
+	virtual float coolDownTime() = 0;
+
+	mat4 getLocalToWorld() const;
 private:
 
 };

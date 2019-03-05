@@ -2,6 +2,7 @@
 #include "ResourceManager.h"
 #include "IO.h"
 #include <algorithm>
+#include <iostream>
 
 Camera* activeCamera;
 vec3 activeCameraPosition;
@@ -172,28 +173,55 @@ void Camera::cull()
 	cullList.clear();
 	if (cullingActive)
 	{
-		if (m_pProjectionType == Perspective)
+		//if (m_pProjectionType == Perspective)
+		//{
+		//	// assuming aspect ratio is bigger on X than Y
+		//	for (Transform* object : objectList)
+		//	{
+		//		vec3 direction = normalize(this->m_pLocalToWorld.translation() - object->m_pLocalToWorld.translation());
+		//		if (dot(direction, this->m_pLocalToWorld.forward()) > cos(m_pFov.x * 0.5f * 1.4f))
+		//		{
+		//			cullList.push_back(object);
+		//		}
+		//	}
+		//}
+		//else
+		//{
+		//	for (Transform* object : objectList)
+		//	{
+		//		cullList.push_back(object);
+		//	}
+		//}
+		//std::cout << ">:(" << std::endl;
+
+		for (Transform* object : objectList)
 		{
-			// assuming aspect ratio is bigger on X than Y
-			for (Transform* object : objectList)
+			if (object->doCull)
 			{
-				vec3 direction = normalize(this->m_pLocalToWorld.translation() - object->m_pLocalToWorld.translation());
-				if (dot(direction, this->m_pLocalToWorld.forward()) > cos(m_pFov.x * 0.5f * 1.4f))
-				{
+				//std::cout << "THERE WAS" << std::endl;
+				vec4 center = m_pViewMatrix * object->getLocalToWorld() * vec4(object->tCenter, 1.f);
+				
+				vec4 T1 = m_pProjection * (center + vec4(object->drawPoint1, 1.f));
+				vec4 T2 = m_pProjection * (center + vec4(object->drawPoint2, 1.f));
+
+				//T1 /= T1.w;
+				//T2 /= T2.w;
+
+				//std::cout << T1 << ",   " << T2 << " |_|_|_|_| " << object->drawPoint1 << ",   " << object->drawPoint2 << std::endl;
+
+				if (T1.x > -T1.w && T1.y > -T1.w && T2.x < T2.w && T2.y < T2.w)
 					cullList.push_back(object);
-				}
 			}
-		}
-		else
-		{
-			for (Transform* object : objectList)
+			else
 			{
+				//std::cout << "NOOOOOOOOOOOOOOOOOOOOOOO" << std::endl;
 				cullList.push_back(object);
 			}
 		}
 	}
 	else
 	{
+		//std::cout << "HAHAHAHA" << std::endl;
 		for (Transform* object : objectList)
 		{
 			cullList.push_back(object);

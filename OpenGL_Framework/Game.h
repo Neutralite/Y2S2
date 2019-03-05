@@ -76,6 +76,11 @@ public:
 	void staticCollisions();
 	void batchMesh(GameObject * _GO, unsigned int front, unsigned int back);
 	void protectedBatch(GameObject* _GO);
+	void protectedWeaponShip(Weapon* _W);
+	void protectedAddWeapon(Weapon* _W, unsigned int front, unsigned int back);
+
+	void generateATTACK(Player* P);
+	void updateAttacks(float dt);
 
 	void loadAllTextures(std::string &fileName);
 	void loadAllMeshes(std::string &fileName);
@@ -125,11 +130,21 @@ public:
 
 	void cloneChildren(Transform* _TF);
 
+	void uniqueKeyPresses();
+	void resetMap();
+
 	/* Data Members */
 	Timer *updateTimer	= nullptr;
+	Timer *gameCheckTimer = nullptr;
+
 	float TotalGameTime = 0.0f;
 	int windowWidth = WINDOW_WIDTH;
 	int windowHeight = WINDOW_HEIGHT;
+
+	bool paused = false;
+	bool getTime = false;
+
+	unsigned int gameFrame = 0;
 
 private:
 	float tileSize = 6.f;
@@ -192,6 +207,7 @@ private:
 	std::vector<Light*> lightShip;
 	std::vector<GameObject*> shadowShip;
 	std::vector<Mesh*> dynamicBatchShip;
+	std::vector<Weapon*> weaponShip;
 
 	UniformBuffer uniformBufferTime;
 	UniformBuffer uRes;

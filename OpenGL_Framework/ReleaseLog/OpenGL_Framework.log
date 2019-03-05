@@ -1,0 +1,15 @@
+﻿  Camera.cpp
+  Field.cpp
+  Game.cpp
+  Player.cpp
+  ResourceManager.cpp
+  WEAPON_Hammer.cpp
+  WEAPON_Mine.cpp
+  Weapon.cpp
+  main.cpp
+  Generating code
+  8 of 3643 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    5 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  OpenGL_Framework.vcxproj -> C:\Users\100657516\Documents\Y2S2 loaner\Intermediate CG\Potential Candidate For Framework\INFR 2350\ReleaseLog\OpenGL_Framework.exe

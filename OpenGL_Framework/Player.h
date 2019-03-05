@@ -1,5 +1,6 @@
 #pragma once
 #include "GameObject.h"
+#include "Weapon.h"
 
 class Player : public GameObject
 {
@@ -27,16 +28,25 @@ public:
 	void sendInput(bool type, PLAYER_IN pin);
 	float getBob();
 	void update(float dt);
+	void performAttack(float dt);
 	void updatePhysics(float dt);
 	void draw();
+
+	void attachWeapon(Weapon* W);
+	Weapon* getWeapon();
 
 	vec3 getVelocity();
 	vec3 getAcceleration();
 	vec3 getAngularVelocity();
 	vec3 getAngularPosition();
 
+	void resetToInitials();
+
 	float Yangle = 0.f;
+	bool sendATTACK = false;
 private:
+	Weapon* attack = nullptr;
+	float attackTimer = 0.f;
 
 	bool mUP = false;
 	bool mDOWN = false;

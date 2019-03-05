@@ -6,7 +6,7 @@ class Hammer : public Weapon
 public:
 	Hammer();
 	~Hammer();
-	bool weaponInit(std::string file);
+	bool weaponInit();
 
 	static std::vector<wFrame> FRAMES;
 

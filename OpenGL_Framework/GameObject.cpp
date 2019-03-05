@@ -38,6 +38,18 @@ void GameObject::setPhysicsBody(PhysicsBody _PB)
 void GameObject::setMesh(Mesh * _mesh)
 {
 	mesh = _mesh;
+
+	if (mesh)
+	{
+		doCull = true;
+		tCenter = mesh->trueCenter;
+		drawPoint1 = mesh->testPoint1;
+		drawPoint2 = mesh->testPoint2;
+	}
+	else
+	{
+		doCull = false;
+	}
 }
 
 Mesh * GameObject::getMesh()
@@ -205,5 +217,33 @@ void GameObject::applySwing(vec3 P1, vec3 P2, float ratio)
 	swingPoint1 = P1;
 	swingPoint2 = P2;
 	swingTime = ratio * maxSwingTime;
+}
+
+void GameObject::initiateDestruction(int destrType, vec3 directionOutwards)
+{
+	TypeOfDestr = destrType;
+	DirOfDestr = directionOutwards;
+}
+
+void GameObject::setInitials(vec3 iPos, vec3 iRot, vec3 iScale)
+{
+	initialPosition = iPos;
+	initialRotation = iRot;
+	initialScale = iScale;
+}
+
+void GameObject::resetToInitials()
+{
+	setLocalPos(initialPosition);
+	setLocalRot(initialRotation);
+	setScale(initialScale);
+
+	needsUpdate = false;
+	hasBeenUpdated = false;
+
+	destroying = false;
+	destroyed = false;
+
+	getPhysicsBody()->reset();
 }
 

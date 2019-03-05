@@ -115,6 +115,9 @@
     <ClCompile Include="WEAPON_Hammer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WEAPON_Mine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -265,6 +268,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WEAPON_Hammer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WEAPON_Mine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -13,16 +13,8 @@ Hammer::~Hammer()
 {
 }
 
-bool Hammer::weaponInit(std::string file)
+bool Hammer::weaponInit()
 {
-	std::ifstream theWeapon;
-	theWeapon.open(fileDir + file + ".txt");
-	
-	std::string parse;
-	std::getline(theWeapon, parse);
-
-	
-
 	return false;
 }
 
@@ -86,7 +78,6 @@ wFrame * Hammer::getFrame2After(float t)
 		}
 	}
 
-	return nullptr;
 	return nullptr;
 }
 

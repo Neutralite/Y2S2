@@ -91,6 +91,10 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 
 				PL->mapX = gridSpotX;
 				PL->mapX = gridSpotY;
+
+				PL->setInitials(vec3(xLoc, 0.f, yLoc), vec3(0, (float)rot, 0), vec3(scale));
+
+				PL->hasInitial = true;
 			}
 			else
 			{
@@ -119,6 +123,10 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 
 				DESTR->mapX = gridSpotX;
 				DESTR->mapX = gridSpotY;
+
+				DESTR->setInitials(vec3(xLoc, 0.f, yLoc), vec3(0, (float)rot, 0), vec3(scale));
+				
+				DESTR->hasInitial = true;
 			}
 		}
 	}

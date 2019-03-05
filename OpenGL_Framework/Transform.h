@@ -71,7 +71,8 @@ public:
 		TYPE_Light,
 		TYPE_Camera,
 		TYPE_Weapon,
-		TYPE_Hammer
+		TYPE_Hammer,
+		TYPE_Mine
 	};
 
 	TransformType TT;
@@ -85,6 +86,12 @@ public:
 
 	virtual vec3 bezierPoint();
 	vec3 swingPoint;
+
+	bool doCull = false;
+	vec3 tCenter;
+	vec3 drawPoint1;
+	vec3 drawPoint2;
+
 protected:
 	// Other Properties
 	std::string name;

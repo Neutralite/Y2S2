@@ -56,6 +56,10 @@ public:
 
 	virtual void applySwing(vec3 P1, vec3 P2, float ratio);
 
+	void initiateDestruction(int destrType, vec3 directionOutwards);
+	void setInitials(vec3 iPos, vec3 iRot, vec3 iScale);
+	virtual void resetToInitials();
+
 	int mapX;
 	int mapY;
 
@@ -64,9 +68,21 @@ public:
 
 	bool needsUpdate = false;
 	bool hasBeenUpdated = false;
+
+	bool destroying = false;
+	bool destroyed = false;
+	bool hasInitial = false;
+
 private:
 	Mesh* mesh;
 	std::vector<Texture*> textures;
 	ShaderProgram* material;
 	PhysicsBody PB;
+protected:
+	vec3 initialRotation;
+	vec3 initialPosition;
+	vec3 initialScale;
+
+	vec3 DirOfDestr;
+	int TypeOfDestr;
 };

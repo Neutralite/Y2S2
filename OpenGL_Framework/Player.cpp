@@ -77,9 +77,29 @@ void Player::update(float dt)
 		updatePhysics(dt);
 	Transform::update(dt);
 
+	if (attackTimer >= 0.f)
+		attackTimer -= dt;
+	else
+		attackTimer = 0.f;
+
+	//Insert stuff here to make sure the weapon is removed when the number of them is used up
+
+	sendATTACK = false;
+	if (mATTACK && attackTimer < 0.f)
+		performAttack(dt);
+
 	needsUpdate = false;
 
 	direction = getLocalRot().forward();
+}
+
+void Player::performAttack(float dt)
+{
+	if (attack)
+	{
+		sendATTACK = true;
+		attackTimer = attack->coolDownTime();
+	}
 }
 
 void Player::updatePhysics(float dt)
@@ -169,6 +189,17 @@ void Player::draw()
 	}
 }
 
+void Player::attachWeapon(Weapon * W)
+{
+	attack = W;
+	attackTimer = 0.f;
+}
+
+Weapon * Player::getWeapon()
+{
+	return attack;
+}
+
 vec3 Player::getVelocity()
 {
 	return getPhysicsBody()->getVelocity() + Engine->getVelocity();
@@ -187,4 +218,20 @@ vec3 Player::getAngularVelocity()
 vec3 Player::getAngularPosition()
 {
 	return getPhysicsBody()->getAngularAcceleration() + Engine->getAngularAcceleration();
+}
+
+void Player::resetToInitials()
+{
+	setLocalPos(initialPosition);
+	setLocalRot(initialRotation);
+	setScale(initialScale);
+
+	needsUpdate = false;
+	hasBeenUpdated = false;
+
+	destroying = false;
+	destroyed = false;
+
+	getPhysicsBody()->reset();
+	Engine->reset();
 }

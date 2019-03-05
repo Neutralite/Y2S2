@@ -11,11 +11,13 @@
 Game::Game()
 {
 	updateTimer = new Timer();
+	gameCheckTimer = new Timer();
 }
 
 Game::~Game()
 {
 	delete updateTimer;
+	delete gameCheckTimer;
 }
 
 //int activeToonRamp = 0;
@@ -284,6 +286,19 @@ void Game::initializeGame()
 
 void Game::update()
 {
+	//getTime = true;
+	if (gameFrame > 600)
+	{
+		getTime = false;
+	}
+	
+	gameFrame++;
+
+	std::cout << std::endl;
+	if (getTime)
+	{
+		std::cout << "FRAME: " << gameFrame << std::endl;
+	}
 	renderShip.clear();
 	updateShip.clear();
 	dynamicCollisionShip.clear();
@@ -291,6 +306,12 @@ void Game::update()
 	lightShip.clear();
 	dynamicBatchShip.clear();
 
+	//for (int i = 0; i < 100; i++)
+	//{
+	//	Weapon* _W = ResourceManager::getCloneOfWeapon("MINE");
+	//	ResourceManager::destroyObjectINGAME(_W);
+	//}
+	//std::cout << ResourceManager::allWeaponsINGAME.size() << ", " << ResourceManager::TransformsINGAME.size() << std::endl;
 	//lightShip.push_back(SUN);
 	protectedLightShip(SUN);
 	//lightShip.push_back(getLight("HEADLIGHT"));
@@ -298,6 +319,8 @@ void Game::update()
 	//aspect = aspect;
 	// update our clock so we have the delta time since the last update
 	updateTimer->tick();
+	//gameCheckTimer->tick();
+	//std::cout << ";   INITIAL: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
 
 	float deltaTime = updateTimer->getElapsedTimeSeconds();
 	TotalGameTime += deltaTime;
@@ -330,6 +353,10 @@ void Game::update()
 		//std::cout << "--5" << std::endl;
 
 		//updateShip.push_back(P);
+		if (P->sendATTACK || true)
+		{
+			generateATTACK(P);
+		}
 	}
 
 	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
@@ -423,10 +450,20 @@ void Game::update()
 	//std::cout << updateShip.size() << std::endl;
 
 	updateExternals(deltaTime);
+	updateAttacks(deltaTime);
 	staticCollisions();
+
+
+	uniqueKeyPresses();
 
 	mouseHandler();
 	keyHandler();
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   POST-UPDATE: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
 }
 
 void Game::draw()
@@ -444,8 +481,21 @@ void Game::draw()
 
 	PlayerCam->setRenderList(renderShip);
 	PlayerCam->cull();
+	//std::cout << "-------------------------\n" << std::endl;
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   CULLING: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
+
 	PlayerCam->render();
 
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   STATIC-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
 	//std::cout << renderShip.size() << std::endl;
 
 	glDisable(GL_DEPTH_TEST);
@@ -556,6 +606,12 @@ void Game::draw()
 		}
 	}
 
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   LIGHT-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
+
 	ShaderProgram::unbind();
 	sceneCapture->unbindTexture(3);
 	sceneCapture->unbindTexture(2);
@@ -573,6 +629,12 @@ void Game::draw()
 	OUTPUT->bind();
 	defLight->drawFSQ();
 	OUTPUT->unbind();
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   DEFERRED-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
 
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
@@ -611,8 +673,20 @@ void Game::draw()
 	if(guiEnabled)
 		GUI();	
 
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   GUI-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
+
 	// Commit the Back-Buffer to swap with the Front-Buffer and be displayed on the monitor.
 	glutSwapBuffers();
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   BUFFER-SWAP: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
 }
 
 void Game::GUI()
@@ -1083,6 +1157,8 @@ void Game::drawChildren(Transform * TF)
 	case Transform::TransformType::TYPE_BasePlate:
 	case Transform::TransformType::TYPE_Destructable:
 	case Transform::TransformType::TYPE_Player:
+	case Transform::TransformType::TYPE_Mine:
+	case Transform::TransformType::TYPE_Hammer:
 		renderShip.push_back(TF);
 		break;
 	case Transform::TransformType::TYPE_Light:
@@ -1377,6 +1453,69 @@ void Game::protectedBatch(GameObject * _GO)
 		{
 			dynamicBatchShip.push_back(_GO->getMesh());
 			dynamicBatchShip[0]->insertMatrixAndSway(_GO->getLocalToWorld(), vec4(_GO->swingPoint, _GO->swingTime));
+		}
+	}
+}
+
+void Game::protectedWeaponShip(Weapon * _W)
+{
+	if (weaponShip.size() > 0)
+		protectedAddWeapon(_W, 0, weaponShip.size() - 1);
+	else
+		weaponShip.push_back(_W);
+}
+
+void Game::protectedAddWeapon(Weapon* _W, unsigned int front, unsigned int back)
+{
+	unsigned int mid = (front + back) / 2;
+	if (weaponShip[mid] == _W)
+	{
+		//allGameObjects.insert(allGameObjects.begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if (weaponShip[front] > _W)
+			weaponShip.insert(weaponShip.begin() + front, _W);
+		else if (weaponShip[back] > _W)
+			weaponShip.insert(weaponShip.begin() + back, _W);
+		else
+			weaponShip.insert(weaponShip.begin() + back + 1, _W);
+		//if (_W == players[0])
+		//	std::cout << "PLAYER SHIP RECEIVED!" << std::endl;
+		_W->hasBeenUpdated = true;
+	}
+	else if (weaponShip[mid] > _W)
+	{
+		protectedAddWeapon(_W, front, mid);
+	}
+	else
+	{
+		protectedAddWeapon(_W, mid, back);
+	}
+}
+
+void Game::generateATTACK(Player * P)
+{
+
+	Weapon* W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+	W->worldLocation = P->getLocalToWorld();
+
+	protectedWeaponShip(W);
+}
+
+void Game::updateAttacks(float dt)
+{
+	for (int i = weaponShip.size() - 1; i >= 0; --i)
+	{
+		weaponShip[i]->update(dt);
+		if (weaponShip[i]->timeToDie)
+		{
+			ResourceManager::destroyObjectINGAME(weaponShip[i]);
+			weaponShip.erase(weaponShip.begin() + i);
+		}
+		else
+		{
+			drawChildren(weaponShip[i]);
 		}
 	}
 }
@@ -2193,8 +2332,12 @@ void Game::setCamerasAndPlayers()
 	//playerContainer->addChild(getPlayer("PLAYER_TRUCK"));
 	//players.push_back(playerContainer);
 
+	Mine::weaponInit();
+
 	PlayerCam = getCloneOfCamera("PLAYER_CAM");
 	PlayerCam->setRenderList(renderShip);
+	//players[0]->attachWeapon(ResourceManager::getWeapon("MINE"));
+
 	//PlayerCam->attachFrameBuffer(sceneCapture);
 	//PlayerCam->perspective(60.f, aspect, 1.0f, 1000.f);
 }
@@ -2206,6 +2349,7 @@ void Game::generateMap()
 
 	players = theMap->players;
 	players[0]->addChild(PlayerCam);
+	players[0]->attachWeapon(ResourceManager::getWeapon("MINE"));
 
 	float camHeight = 20.f;
 
@@ -2550,3 +2694,36 @@ void Game::cloneChildren(Transform * _TF)
 	}
 }
 
+void Game::uniqueKeyPresses()
+{
+	if (keysDown['p'] && !backCheckKeysDown['p'])
+	{
+		paused = true;
+	}
+	if (keysDown['m'] && !backCheckKeysDown['m'])
+	{
+		resetMap();
+	}
+	if (keysDown['l'] && !backCheckKeysDown['l'])
+	{
+		PlayerCam->cullingActive = !PlayerCam->cullingActive;
+		std::cout << "CULLING TRIGGERED TO " << PlayerCam->cullingActive << std::endl;
+	}
+}
+
+void Game::resetMap()
+{
+	//std::cout << "HAPPENED" << std::endl;
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			unsigned int OBS = theMap->fieldObjects[i][j].size();
+			for (unsigned int k = 0; k < OBS; ++k)
+			{
+				if (theMap->fieldObjects[i][j][k]->hasInitial)
+					theMap->fieldObjects[i][j][k]->resetToInitials();
+			}
+		}
+	}
+}
