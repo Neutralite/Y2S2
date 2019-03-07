@@ -1,6 +1,8 @@
 #include "GameObject.h"
 #include <iostream>
 
+std::vector<std::vector<oFrame>> GameObject::destrStates;
+
 GameObject::GameObject()
 {
 	TT = TransformType::TYPE_GameObject;
@@ -23,6 +25,23 @@ GameObject::GameObject(Mesh * _mesh, std::vector<Texture*> &_textures)
 GameObject::~GameObject()
 {
 	
+}
+
+bool GameObject::initGameObjects()
+{
+	oFrame OF;
+	float accumTime = 0.f;
+
+	{
+		OF.position = vec3(0.f);
+		OF.rotationAngles = vec3(0.f);
+		OF.scale = vec3(1.f);
+		OF.duration = 2.f;
+		OF.timeOf = accumTime;
+		accumTime += OF.duration;
+	}
+
+	return true;
 }
 
 PhysicsBody * GameObject::getPhysicsBody()

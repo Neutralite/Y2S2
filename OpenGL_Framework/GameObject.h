@@ -6,6 +6,7 @@
 #include "ShaderProgram.h"
 #include <vector>
 #include "PhysicsBody.h"
+#include "oFrame.h"
 
 /*
   ////////////////
@@ -27,6 +28,8 @@ public:
 	GameObject(Mesh* _mesh, Texture *_texture);
 	GameObject(Mesh* _mesh, std::vector <Texture*>& _textures);
 	~GameObject();
+
+	static bool initGameObjects();
 
 	PhysicsBody* getPhysicsBody();
 	void setPhysicsBody(PhysicsBody _PB);
@@ -82,6 +85,8 @@ protected:
 	vec3 initialRotation;
 	vec3 initialPosition;
 	vec3 initialScale;
+
+	static std::vector<std::vector<oFrame>> destrStates;
 
 	vec3 DirOfDestr;
 	int TypeOfDestr;

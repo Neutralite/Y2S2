@@ -208,6 +208,7 @@ private:
 	std::vector<GameObject*> externalUpdateShip;
 	std::vector<GameObject*> dynamicCollisionShip;
 	std::vector<GameObject*> staticCollisionShip;
+	std::vector<GameObject*> RE_SPAWN;
 	std::vector<Light*> lightShip;
 	std::vector<GameObject*> shadowShip;
 	std::vector<Mesh*> dynamicBatchShip;

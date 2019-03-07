@@ -308,7 +308,13 @@ void Game::update()
 	
 	_INPUT.update();
 
-	
+	for (int i = 0; i < 4; i++)
+	{
+		if (_INPUT.controllerConnected(i))
+			controllers[i] = _INPUT.getController(i);
+		else
+			controllers[i] = nullptr;
+	}
 
 	gameFrame++;
 
@@ -422,7 +428,7 @@ void Game::update()
 					drawChildren(theMap->fieldObjects[j][i][k]);
 					protectedUpdateShip(theMap->fieldObjects[j][i][k]);
 					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
-					//	std::cout << "HERE HE BE SENT!" << std::endl;
+					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
 				}
 			}
 		}
@@ -2414,7 +2420,7 @@ void Game::performUpdates(float dt)
 			if (PX != NX || PY != NY)
 				if (NX >= 0 && NX < 100 && NY >= 0 && NY < 100)
 				{
-					//std::cout << NX << ", " << NY << std::endl;
+					//std::cout << object->mapX << ", " << object->mapY << std::endl;
 					theMap->removeObj(object->mapX, object->mapY, object);
 					theMap->fieldObjects[NX][NY].push_back(object);
 					object->mapX = NX;
@@ -2437,7 +2443,7 @@ void Game::updateSingle(float dt, GameObject* _T)
 	switch (_T->TT)
 	{
 	case Transform::TransformType::TYPE_Player:
-		//std::cout << "PLAYER_UPDATE!" << std::endl;
+		//std::cout << _T->mapX << ", " << _T->mapY << std::endl;
 	case Transform::TransformType::TYPE_Destructable:
 		pCur = _T->getLocalPos().xz / tileSize + vec2(0.5);
 		setNew = true;
@@ -2456,16 +2462,15 @@ void Game::updateSingle(float dt, GameObject* _T)
 		NY = (int)pNew.y;
 
 		//if (_T->TT == Transform::TransformType::TYPE_Player)
-		//	std::cout << PX << ", " << PY << std::endl;
-		if (PX != NX || PY != NY)
-			if (NX >= 0 && NX < 100 && NY >= 0 && NY < 100)
-			{
-				//std::cout << NX << ", " << NY << std::endl;
-				theMap->removeObj(_T->mapX, _T->mapY, _T);
-				theMap->fieldObjects[NX][NY].push_back(_T);
-				_T->mapX = NX;
-				_T->mapY = NY;
-			}
+		//	std::cout << PX << ", " << PY << "||" << NX << ", " << NY << std::endl;
+		if (NX >= 0 && NX < 100 && NY >= 0 && NY < 100)
+		{
+			//std::cout << NX << ", " << NY << std::endl;
+			theMap->removeObj(_T->mapX, _T->mapY, _T);
+			theMap->fieldObjects[NX][NY].push_back(_T);
+			_T->mapX = NX;
+			_T->mapY = NY;
+		}
 	}
 }
 
@@ -2820,12 +2825,22 @@ void Game::resetMap()
 			{
 				if (theMap->fieldObjects[i][j][k]->hasInitial)
 				{
-					theMap->fieldObjects[i][j][k]->resetToInitials();
-					updateSingle(0, theMap->fieldObjects[i][j][k]);
+					//theMap->fieldObjects[i][j][k]->resetToInitials();
+					////theMap->fieldObjects[i][j][k]->update(0);
+					//updateSingle(0, theMap->fieldObjects[i][j][k]);
+					RE_SPAWN.push_back(theMap->fieldObjects[i][j][k]);
 				}
 			}
 		}
 	}
 
-	std::cout << "RESET: " << players[0]->getLocalPos() << std::endl;
+	for (int i = RE_SPAWN.size() - 1; i >= 0; --i)
+	{
+		RE_SPAWN[i]->resetToInitials();
+		updateSingle(0, RE_SPAWN[i]);
+	}
+
+	RE_SPAWN.clear();
+
+	//std::cout << "RESET: " << players[0]->getLocalPos() << std::endl;
 }

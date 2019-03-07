@@ -90,7 +90,7 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 				PL->setBob(((float)(rand() % 629)) * 0.01f + 6.28f);
 
 				PL->mapX = gridSpotX;
-				PL->mapX = gridSpotY;
+				PL->mapY = gridSpotY;
 
 				PL->setInitials(vec3(xLoc, 0.f, yLoc), vec3(0, (float)rot, 0), vec3(scale));
 
@@ -122,7 +122,7 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 				DESTR->setBob(((float)(rand() % 629)) * 0.01f + 6.28f);
 
 				DESTR->mapX = gridSpotX;
-				DESTR->mapX = gridSpotY;
+				DESTR->mapY = gridSpotY;
 
 				DESTR->setInitials(vec3(xLoc, 0.f, yLoc), vec3(0, (float)rot, 0), vec3(scale));
 				

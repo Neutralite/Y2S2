@@ -226,6 +226,7 @@ void Player::initiateDestruction(int destrType, vec3 directionOutwards)
 
 void Player::resetToInitials()
 {
+	//std::cout << "HIYA" << std::endl;
 	GameObject::resetToInitials();
 	Engine->reset();
 }
