@@ -6,7 +6,6 @@
 #include "ShaderProgram.h"
 #include <vector>
 #include "PhysicsBody.h"
-#include "oFrame.h"
 
 /*
   ////////////////
@@ -59,7 +58,7 @@ public:
 
 	virtual void applySwing(vec3 P1, vec3 P2, float ratio);
 
-	virtual void initiateDestruction(int destrType, vec3 directionOutwards);
+	virtual void initiateDestruction(int destrType, vec3 directionOutwards, float upwardsRatio);
 	void setInitials(vec3 iPos, vec3 iRot, vec3 iScale);
 	virtual void resetToInitials();
 
@@ -72,10 +71,15 @@ public:
 	bool needsUpdate = false;
 	bool hasBeenUpdated = false;
 
-	bool destroying = false;
-	bool destroyed = false;
 	bool hasInitial = false;
 
+	float maxDestrTime = 0.6f;
+	float timeDestroying = 0.f;
+	void DestructionSequence(float dt);
+
+	vec3 DirOfDestr;
+	int TypeOfDestr;
+	float goUP;
 private:
 	Mesh* mesh;
 	std::vector<Texture*> textures;
@@ -86,8 +90,5 @@ protected:
 	vec3 initialPosition;
 	vec3 initialScale;
 
-	static std::vector<std::vector<oFrame>> destrStates;
-
-	vec3 DirOfDestr;
-	int TypeOfDestr;
+	mat4f DestructionMat;
 };

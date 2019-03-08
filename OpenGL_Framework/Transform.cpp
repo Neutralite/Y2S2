@@ -163,6 +163,8 @@ void Transform::update(float dt)
 		m_pLocalToWorld = m_pLocalTransform;
 	}
 
+	DestructionSequence(dt);
+
 	// Update children
 	for (unsigned int i = 0; i < m_pChildren.size(); i++)
 		m_pChildren[i]->update(dt);
@@ -226,4 +228,8 @@ vec3 Transform::bezierPoint()
 	//
 	//return lerp(stop1, stop2, sqswing);
 	return vec3();
+}
+
+void Transform::DestructionSequence(float dt)
+{
 }

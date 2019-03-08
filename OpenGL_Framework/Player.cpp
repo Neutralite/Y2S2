@@ -165,11 +165,11 @@ void Player::updatePhysics(float dt)
 
 void Player::draw()
 {
-	if (getMesh())
+	if (getMesh() && !HIDE)
 	{
 		//std::cout << "DRAWINGPLAYER" << std::endl;
 		getShader()->bind();
-		getShader()->sendUniform("uModel", getLocalToWorld());
+		getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
 		getShader()->sendUniform("bob", randomBob);
 		if (length(lerpVel) > 0)
 			getShader()->sendUniform("sway", -normalize(lerpVel) * 0.5f * (1.f - (float)pow(2, 0.1f * -length(lerpVel))));

@@ -15,7 +15,6 @@ public:
 	Mesh* weapMesh;
 	std::vector<Texture*> weapTex;
 	ShaderProgram *SP;
-	Hitbox2D* HB = nullptr;
 
 	Weapon* Attached = nullptr;
 
@@ -45,13 +44,15 @@ public:
 
 	std::vector<float> impactTimes;
 	
-	virtual bool tailoredCollision(GameObject* _GO);
+	bool tailoredCollision(GameObject* _GO);
 	virtual wFrame* getFrameBefore(float t) = 0;
 	virtual wFrame* getFrameAt(float t) = 0;
 	virtual wFrame* getFrameAfter(float t) = 0;
 	virtual wFrame* getFrame2After(float t) = 0;
 
 	bool timeToDie = false;
+
+	int flingHitbox = 0;
 
 	virtual unsigned int getDest() = 0;
 

@@ -21,7 +21,7 @@ bool Mine::weaponInit()
 
 	W.position = vec3(0, 0, 0);
 	W.rotationAngles = vec3(0, 0, 0);
-	W.duration = 3.f;
+	W.duration = 2.f;
 	W.scale = vec3(1, 1, 1);
 	W.MT = wFrame::MutationType::LINEAR;
 	W.weapMesh = ResourceManager::getMesh("MINE");
@@ -33,11 +33,12 @@ bool Mine::weaponInit()
 
 	W.position = vec3(0, 0, 0);
 	W.rotationAngles = vec3(0, 0, 0);
-	W.duration = 3.f;
+	W.duration = 1.f;
 	W.scale = vec3(1, 1, 1);
 	W.MT = wFrame::MutationType::LINEAR;
 	W.weapMesh = ResourceManager::getMesh("EXPLOSION");
 	W.Attached = _W;
+	W.BLOWUP = true;
 	W.SP = ResourceManager::getShader("COMIC_SETUP");
 	W.weapTex.push_back(ResourceManager::getTexture("EXPLOSION"));
 	FRAMES.push_back(W);
@@ -159,6 +160,9 @@ void Mine::otherUpdates(float dt)
 	while (currentFrame < FRAMES.size() && timeActive > FRAMES[currentFrame].timeOf + FRAMES[currentFrame].duration)
 	{
 		currentFrame++;
+		if (currentFrame < FRAMES.size())
+			if (FRAMES[currentFrame].BLOWUP)
+				flingHitbox++;
 	}
 
 	if (currentFrame >= FRAMES.size())

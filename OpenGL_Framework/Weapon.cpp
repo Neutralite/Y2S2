@@ -12,9 +12,10 @@ Weapon::~Weapon()
 
 bool Weapon::tailoredCollision(GameObject * _GO)
 {
-	if (_GO->getPhysicsBody()->getHB() && getFrameAfter(timeActive)->HB)
+	if (_GO->getPhysicsBody()->getHB() && Impact)
 	{
-		if (_GO->getPhysicsBody()->getHB()->enabled && getFrameAfter(timeActive)->BLOWUP)
+		//std::cout << flingHitbox << std::endl;
+		if (_GO->getPhysicsBody()->getHB()->enabled && flingHitbox > 0)
 		{
 			if (_GO->getPhysicsBody()->getHB()->dynamic)
 			{
@@ -22,32 +23,21 @@ bool Weapon::tailoredCollision(GameObject * _GO)
 			}
 			else
 			{
-				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				//std::cout << "HERE!" << std::endl;
+				if (Impact->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
 				{
-					vec3 centerToCollision = normalize(getPhysicsBody()->getHB()->closestPoint);
-					vec3 outward = normalize(getPhysicsBody()->getHB()->outDir);
+					//std::cout << "YO" << std::endl;
+					vec3 centerToCollision = (Impact->closestPoint - getLocalToWorld().translation()) / Impact->maxRad;
+					vec3 outward = normalize(mat3(inverse(_GO->getLocalToWorld())) * Impact->outDir);
 
 					centerToCollision.y = 0.f;
 					outward.y = 0.f;
 
-					//if (dot(outward, getVelocity()) < 0)
-					//{
-					//	pushAgainst += outward;
-					//}
+					_GO->initiateDestruction(0, outward, length(centerToCollision));
+					//_GO->DirOfDestr = outward;
+					//_GO->TypeOfDestr = getDest();
 					//
-					//if (dot(outward, getVelocity()) < 0.f)
-					//{
-					//	vec3 BP2 = getVelocity() * getPhysicsBody()->getMass() * 0.05f;
-					//	vec3 BP1 = (-getVelocity() + outward * 2 * dot(outward, getVelocity())) * getPhysicsBody()->getMass() * 0.05f;
-					//	if (length(BP1) > length(_GO->swingPoint1) || _GO->swingTime <= 0.f)
-					//	{
-					//		_GO->applySwing(BP1, BP2, 1.f);
-					//		//std::cout << "HELLO" << std::endl;
-					//	}
-					//
-					//	_GO->needsUpdate = true;
-					//	needsUpdate = true;
-					//}
+					return true;
 				}
 			}
 		}

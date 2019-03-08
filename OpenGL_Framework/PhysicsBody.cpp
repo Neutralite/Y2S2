@@ -20,6 +20,8 @@ void PhysicsBody::reset()
 	angularAcceleration = vec3(0, 0, 0);
 	angularVelocity = vec3(0, 0, 0);
 	rotationAngles = vec3(0, 0, 0);
+	if (getHB())
+		getHB()->enabled = true;
 }
 
 void PhysicsBody::addForce(vec3 force)

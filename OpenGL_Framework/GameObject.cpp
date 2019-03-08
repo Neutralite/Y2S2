@@ -1,7 +1,7 @@
 #include "GameObject.h"
 #include <iostream>
 
-std::vector<std::vector<oFrame>> GameObject::destrStates;
+#define PI 3.14159265358979323846f
 
 GameObject::GameObject()
 {
@@ -29,18 +29,6 @@ GameObject::~GameObject()
 
 bool GameObject::initGameObjects()
 {
-	oFrame OF;
-	float accumTime = 0.f;
-
-	{
-		OF.position = vec3(0.f);
-		OF.rotationAngles = vec3(0.f);
-		OF.scale = vec3(1.f);
-		OF.duration = 2.f;
-		OF.timeOf = accumTime;
-		accumTime += OF.duration;
-	}
-
 	return true;
 }
 
@@ -113,10 +101,10 @@ std::vector<Texture*>* GameObject::getTextures()
 
 void GameObject::draw()
 {
-	if (mesh)
+	if (mesh && !HIDE)
 	{
 		material->bind();
-		material->sendUniform("uModel", getLocalToWorld());
+		material->sendUniform("uModel", getLocalToWorld() * DestructionMat);
 		int i = 0;
 		for (Texture* texture : textures)
 		{
@@ -133,10 +121,10 @@ void GameObject::draw()
 
 void GameObject::dynamicDraw()
 {
-	if (mesh)
+	if (mesh && !HIDE)
 	{
 		material->bind();
-		material->sendUniform("uModel", getLocalToWorld());
+		material->sendUniform("uModel", getLocalToWorld() * DestructionMat);
 		int i = 0;
 		for (Texture* texture : textures)
 		{
@@ -153,7 +141,7 @@ void GameObject::dynamicDraw()
 
 void GameObject::doCollision(GameObject* _GO)
 {
-	if (_GO->getPhysicsBody()->getHB() && getPhysicsBody()->getHB())
+	if (_GO->getPhysicsBody()->getHB() && getPhysicsBody()->getHB() && !_GO->destroyed && !_GO->destroying)
 	{
 		if (_GO->getPhysicsBody()->getHB()->enabled && getPhysicsBody()->getHB()->enabled)
 		{
@@ -238,12 +226,16 @@ void GameObject::applySwing(vec3 P1, vec3 P2, float ratio)
 	swingTime = ratio * maxSwingTime;
 }
 
-void GameObject::initiateDestruction(int destrType, vec3 directionOutwards)
+void GameObject::initiateDestruction(int destrType, vec3 directionOutwards, float upwardsRatio)
 {
 	TypeOfDestr = destrType;
 	DirOfDestr = directionOutwards;
 	destroying = true;
-	getPhysicsBody()->getHB()->enabled = false;
+	goUP = upwardsRatio;
+	//getPhysicsBody()->getHB()->enabled = false;
+	//std::cout << getName() << std::endl;
+	//std::cout << goUP << std::endl;
+	//std::cout << DirOfDestr << std::endl;
 }
 
 void GameObject::setInitials(vec3 iPos, vec3 iRot, vec3 iScale)
@@ -265,5 +257,69 @@ void GameObject::resetToInitials()
 	destroyed = false;
 
 	getPhysicsBody()->reset();
+	timeDestroying = 0.f;
+
+	HIDE = false;
+
+	DestructionMat = mat4f::identity();
+}
+
+void GameObject::DestructionSequence(float dt)
+{
+	if (destroying && !destroyed)
+	{
+		//std::cout << "INSIDE!" << std::endl;
+
+		timeDestroying += dt;
+
+		if (timeDestroying > maxDestrTime)
+		{
+			destroyed = true;
+			HIDE = true;
+			needsUpdate = false;
+
+			//std::cout << "GONE!" << std::endl;
+		}
+		else
+		{
+			vec3 newPos;
+			vec3 newRot;
+			vec3 newScale;
+
+			if (TypeOfDestr == 0)
+			{
+				float LORP = timeDestroying / maxDestrTime;
+				float GOUP = goUP;
+				float force = 11.f;
+
+				newPos = -DirOfDestr * LORP * GOUP + vec3(0.f, 1.f - (1.f - LORP) * (1.f - LORP), 0.f) * (1.f - GOUP);
+				newPos *= force;
+				//if (newPos.y < 0.f)
+				//	newPos.y = 0.f;
+				newRot = vec3(0.f);
+				newScale = vec3(sin((1.f - LORP) * PI * 0.75f) / sin(PI * 0.75f));
+
+				//std::cout << getName() << ": " << newPos << ", " << newRot << ", " << newScale << std::endl;
+			}
+
+			mat4 rx = rx.rotatex(degrees(newRot.x));
+			mat4 ry = ry.rotatey(degrees(newRot.y));
+			mat4 rz = rz.rotatez(degrees(newRot.z));
+
+			// Note: pay attention to rotation order, ZYX is not the same as XYZ
+			mat4 mRot = rz * ry * rx;
+
+			// Create translation matrix
+			mat4 mTran = mTran.translate(newPos);
+
+			// Create scale matrix
+			mat4 mScale = mScale.scale(newScale);
+
+			// Combine all above transforms into a single matrix
+			DestructionMat = mTran * mRot * mScale;
+
+			//std::cout << DestructionMat << std::endl;
+		}
+	}
 }
 

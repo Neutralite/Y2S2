@@ -421,11 +421,11 @@ void Game::update()
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				drawChildren(theMap->grid[j][i]);
+				drawChildren(theMap->grid[j][i], true);
 				int sectObj = theMap->fieldObjects[j][i].size();
 				for (int k = 0; k < sectObj; k++)
 				{
-					drawChildren(theMap->fieldObjects[j][i][k]);
+					drawChildren(theMap->fieldObjects[j][i][k], true);
 					protectedUpdateShip(theMap->fieldObjects[j][i][k]);
 					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
 					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
@@ -1161,29 +1161,40 @@ void Game::triggerHandler()
 {
 }
 
-void Game::drawChildren(Transform * TF)
+void Game::drawChildren(Transform * TF, bool doLights)
 {
-	switch (TF->TT)
+	if (!TF->HIDE)
 	{
-	case Transform::TransformType::TYPE_GameObject:
-	case Transform::TransformType::TYPE_BasePlate:
-	case Transform::TransformType::TYPE_Destructable:
-	case Transform::TransformType::TYPE_Player:
-	case Transform::TransformType::TYPE_Mine:
-	case Transform::TransformType::TYPE_Hammer:
-		renderShip.push_back(TF);
-		break;
-	case Transform::TransformType::TYPE_Light:
-		Light* LIT = dynamic_cast<Light*>(TF);
-		//lightShip.push_back(LIT);
-		protectedLightShip(LIT);
-		break;
-	}
+		bool keepLight = doLights;
+		if (TF->destroying)
+		{
+			keepLight = false;
+		}
+		switch (TF->TT)
+		{
+		case Transform::TransformType::TYPE_GameObject:
+		case Transform::TransformType::TYPE_BasePlate:
+		case Transform::TransformType::TYPE_Destructable:
+		case Transform::TransformType::TYPE_Player:
+		case Transform::TransformType::TYPE_Mine:
+		case Transform::TransformType::TYPE_Hammer:
+			renderShip.push_back(TF);
+			break;
+		case Transform::TransformType::TYPE_Light:
+			if (keepLight)
+			{
+				Light* LIT = dynamic_cast<Light*>(TF);
+				//lightShip.push_back(LIT);
+				protectedLightShip(LIT);
+			}
+			break;
+		}
 
-	for (Transform* TF2 : TF->getChildren())
-	{
-		//std::cout << TF->getChildren().size() << std::endl;
-		drawChildren(TF2);
+		for (Transform* TF2 : TF->getChildren())
+		{
+			//std::cout << TF->getChildren().size() << std::endl;
+			drawChildren(TF2, keepLight);
+		}
 	}
 }
 
@@ -1520,6 +1531,11 @@ void Game::updateAttacks(float dt)
 	for (int i = weaponShip.size() - 1; i >= 0; --i)
 	{
 		weaponShip[i]->update(dt);
+		if (weaponShip[i]->flingHitbox)
+		{
+			attackHIT(i);
+			weaponShip[i]->flingHitbox = 0;
+		}
 		if (weaponShip[i]->timeToDie)
 		{
 			ResourceManager::destroyObjectINGAME(weaponShip[i]);
@@ -1527,7 +1543,45 @@ void Game::updateAttacks(float dt)
 		}
 		else
 		{
-			drawChildren(weaponShip[i]);
+			drawChildren(weaponShip[i], true);
+		}
+	}
+}
+
+void Game::attackHIT(unsigned int index)
+{
+	//std::cout << "BOOM!" << std::endl;
+	float SCALE = 9.f;
+	int IS = (int)(SCALE / 6.f) + 1;
+	
+	vec2 pW = weaponShip[index]->getLocalToWorld().translation().xz / tileSize + vec2(0.5);
+	int pWX = (int)pW.x;
+	int pWY = (int)pW.y;
+
+	for (int i = pWX - IS; i <= pWX + IS; ++i)
+	{
+		for (int j = pWY - IS; j <= pWY + IS; ++j)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				for (GameObject* _GO : theMap->fieldObjects[i][j])
+				{
+					//std::cout << i << ", " << j << std::endl;
+
+					if (!_GO->destroying && !_GO->destroyed)
+					{
+						if (weaponShip[index]->tailoredCollision(_GO))
+						{
+							//_GO->getPhysicsBody()->getHB()->enabled = false;
+							//_GO->destroying = true;
+							_GO->needsUpdate = true;
+							protectedExternalUpdateShip(_GO);
+
+							//std::cout << "GOTTEM" << std::endl;
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -2271,6 +2325,7 @@ void Game::allSetup()
 	uRes.allocateMemory(sizeof(vec4));
 	uRes.bind(4);
 
+	GameObject::initGameObjects();
 	tRamp = getTexture("Game Toon Ramp");
 
 	setBaseAndBoundaries();

@@ -47,6 +47,7 @@ public:
 	Transform* getParent() const;
 
 	virtual void update(float dt);	
+	void updateOframes(float dt);
 	virtual void draw();
 	virtual void render();
 	virtual void dynamicDraw();
@@ -85,9 +86,15 @@ public:
 	float maxSwingTime = 0.3f;
 
 	virtual vec3 bezierPoint();
+	virtual void DestructionSequence(float dt);
 	vec3 swingPoint;
 
 	bool doCull = false;
+	bool HIDE = false;
+
+	bool destroying = false;
+	bool destroyed = false;
+
 	vec3 tCenter;
 	vec3 drawPoint1;
 	vec3 drawPoint2;
@@ -96,4 +103,5 @@ protected:
 	// Other Properties
 	std::string name;
 	vec4f color; 
+	mat4f aniMat;
 };

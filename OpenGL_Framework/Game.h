@@ -62,7 +62,7 @@ public:
 	void keyHandler();
 	void mouseHandler();
 	void triggerHandler();
-	void drawChildren(Transform* TF);
+	void drawChildren(Transform* TF, bool doLights);
 
 	void protectedUpdateShip(GameObject* GO);
 	void protectedExternalUpdateShip(GameObject* GO);
@@ -82,6 +82,7 @@ public:
 
 	void generateATTACK(Player* P);
 	void updateAttacks(float dt);
+	void attackHIT(unsigned int index);
 
 	void loadAllTextures(std::string &fileName);
 	void loadAllMeshes(std::string &fileName);

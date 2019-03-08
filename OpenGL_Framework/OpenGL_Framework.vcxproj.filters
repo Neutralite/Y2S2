@@ -121,9 +121,6 @@
     <ClCompile Include="XinputManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="oFrame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -280,9 +277,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="XinputManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="oFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

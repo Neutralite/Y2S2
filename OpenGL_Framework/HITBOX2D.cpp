@@ -102,14 +102,15 @@ void Hitbox2D::loadFromFile(std::string & fileName)
 	enabled = true;
 }
 
-bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 ownWorldMat, mat4 otherWorldMat)
+bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 ownWorldMat, mat4 otherWorldMat, bool showRes)
 {
 
 	if (enabled && h->enabled)
 	{
 		if (length(ownWorldMat.translation() - otherWorldMat.translation()) > maxRad + h->maxRad)
 		{
-			//std::cout << "aHA!" << std::endl;
+			//if (showRes)
+			//	std::cout << otherWorldMat.translation() << ", " << ownWorldMat.translation() << std::endl;
 			return false;
 		}
 		else

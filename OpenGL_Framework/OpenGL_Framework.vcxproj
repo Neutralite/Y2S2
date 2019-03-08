@@ -132,7 +132,6 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="oFrame.cpp" />
     <ClCompile Include="PhysicsBody.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
@@ -201,7 +200,6 @@
     <ClInclude Include="Weapon.h" />
     <ClInclude Include="WEAPON_Hammer.h" />
     <ClInclude Include="WEAPON_Mine.h" />
-    <ClInclude Include="oFrame.h" />
     <ClInclude Include="XinputManager.h" />
   </ItemGroup>
   <ItemGroup>
