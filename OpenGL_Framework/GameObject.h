@@ -6,6 +6,7 @@
 #include "ShaderProgram.h"
 #include <vector>
 #include "PhysicsBody.h"
+#include "Material.h"
 
 /*
   ////////////////
@@ -39,6 +40,8 @@ public:
 	void setTexture(Texture* _texture);
 	void setTextures(std::vector <Texture*>& _textures);
 	void setShaderProgram(ShaderProgram* _shaderProgram);
+	void setMaterial(Material* _MAT);
+	Material* getMaterial();
 	ShaderProgram* getShader();
 	std::vector<Texture*>* getTextures();
 	void draw();
@@ -82,8 +85,9 @@ public:
 	float goUP;
 private:
 	Mesh* mesh;
-	std::vector<Texture*> textures;
-	ShaderProgram* material;
+	//Material* _MAT;
+	//std::vector<Texture*> textures;
+	Material* material;
 	PhysicsBody PB;
 protected:
 	vec3 initialRotation;

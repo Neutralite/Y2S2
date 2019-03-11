@@ -4,6 +4,7 @@
 std::vector<Transform*> ResourceManager::Transforms;
 std::vector<ShaderProgram*> ResourceManager::Shaders;
 std::vector<Camera*> ResourceManager::Cameras;
+std::vector<Material*> ResourceManager::Materials;
 
 std::vector<Texture*> ResourceManager::allTextures;
 std::vector<Mesh*> ResourceManager::allMeshes;
@@ -108,6 +109,15 @@ void ResourceManager::addFramebuffer(Framebuffer * FB)
 		allFramebuffers.push_back(FB);
 	else
 		sortAddFramebuffer(0, allFramebuffers.size() - 1, FB);
+}
+
+void ResourceManager::addMaterial(Material * _M)
+{
+
+	if (Materials.size() == 0)
+		Materials.push_back(_M);
+	else
+		sortAddMaterial(0, Materials.size() - 1, _M);
 }
 
 void ResourceManager::addEntityINGAME(Transform * entity)
@@ -407,6 +417,32 @@ void ResourceManager::sortAddWeapon(unsigned int front, unsigned int back, Weapo
 	else
 	{
 		sortAddWeapon(mid, back, ELEM);
+	}
+}
+
+void ResourceManager::sortAddMaterial(unsigned int front, unsigned int back, Material * ELEM)
+{
+	unsigned int mid = (front + back) / 2;
+	if (Materials[mid]->getName() == ELEM->getName())
+	{
+		Materials.insert(Materials.begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if (Materials[front]->getName() > ELEM->getName())
+			Materials.insert(Materials.begin() + front, ELEM);
+		else if (Materials[back]->getName() > ELEM->getName())
+			Materials.insert(Materials.begin() + back, ELEM);
+		else
+			Materials.insert(Materials.begin() + back + 1, ELEM);
+	}
+	else if (Materials[mid]->getName() > ELEM->getName())
+	{
+		sortAddMaterial(front, mid, ELEM);
+	}
+	else
+	{
+		sortAddMaterial(mid, back, ELEM);
 	}
 }
 
@@ -800,6 +836,32 @@ Weapon * ResourceManager::findWeapon(unsigned int front, unsigned int back, std:
 	}
 }
 
+Material * ResourceManager::findMaterial(unsigned int front, unsigned int back, std::string _NAME)
+{
+	unsigned int mid = (front + back) / 2;
+	if (Materials[mid]->getName() == _NAME)
+	{
+		return Materials[mid];
+	}
+	else if (back - front <= 1)
+	{
+		if (Materials[front]->getName() == _NAME)
+			return Materials[front];
+		else if (Materials[back]->getName() == _NAME)
+			return Materials[back];
+		else
+			return nullptr;
+	}
+	else if (Materials[mid]->getName() > _NAME)
+	{
+		return findMaterial(front, mid, _NAME);
+	}
+	else
+	{
+		return findMaterial(mid, back, _NAME);
+	}
+}
+
 int ResourceManager::findGameObjectINGAME(unsigned int front, unsigned int back, GameObject * _ADR)
 {
 	unsigned int mid = (front + back) / 2;
@@ -1010,6 +1072,14 @@ Weapon * ResourceManager::searchForWeapon(std::string _NAME)
 		return findWeapon(0, allWeapons.size() - 1, _NAME);
 }
 
+Material * ResourceManager::searchForMaterial(std::string _NAME)
+{
+	if (Materials.size() == 0)
+		return nullptr;
+	else
+		return findMaterial(0, Materials.size() - 1, _NAME);
+}
+
 void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 {
 	destroyChildrenINGAME(_OBJ);
@@ -1199,6 +1269,14 @@ Framebuffer * ResourceManager::getFramebuffer(std::string _NAME)
 Weapon * ResourceManager::getWeapon(std::string _NAME)
 {
 	Weapon* SUB = ResourceManager::searchForWeapon(_NAME);
+	if (!SUB)
+		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
+	return SUB;
+}
+
+Material * ResourceManager::getMaterial(std::string _NAME)
+{
+	Material* SUB = ResourceManager::searchForMaterial(_NAME);
 	if (!SUB)
 		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
 	return SUB;

@@ -165,22 +165,46 @@ void Player::updatePhysics(float dt)
 
 void Player::draw()
 {
-	if (getMesh() && !HIDE)
+	//if (getMesh() && !HIDE)
+	//{
+	//	//std::cout << "DRAWINGPLAYER" << std::endl;
+	//	getShader()->bind();
+	//	getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
+	//	getShader()->sendUniform("bob", randomBob);
+	//	if (length(lerpVel) > 0)
+	//		getShader()->sendUniform("sway", -normalize(lerpVel) * 0.5f * (1.f - (float)pow(2, 0.1f * -length(lerpVel))));
+	//	else
+	//		getShader()->sendUniform("sway", vec3());
+	//	//std::cout << getShader()->getName() << std::endl;
+	//	int i = 0;
+	//	for (Texture* texture : *(getTextures()))
+	//	{
+	//		texture->bind(i++);
+	//	}
+	//	getMesh()->draw();
+	//	for (Texture* texture : *(getTextures()))
+	//	{
+	//		texture->unbind(--i);
+	//	}
+	//}
+
+	if (getMesh() && getMaterial() && !HIDE)
 	{
-		//std::cout << "DRAWINGPLAYER" << std::endl;
-		getShader()->bind();
+		getMaterial()->bind();
+		getMaterial()->sendUniforms();
+		getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
 		getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
 		getShader()->sendUniform("bob", randomBob);
 		if (length(lerpVel) > 0)
 			getShader()->sendUniform("sway", -normalize(lerpVel) * 0.5f * (1.f - (float)pow(2, 0.1f * -length(lerpVel))));
 		else
 			getShader()->sendUniform("sway", vec3());
-		//std::cout << getShader()->getName() << std::endl;
 		int i = 0;
 		for (Texture* texture : *(getTextures()))
 		{
 			texture->bind(i++);
 		}
+		//if (mesh->amntOfSpace > 0)
 		getMesh()->draw();
 		for (Texture* texture : *(getTextures()))
 		{

@@ -188,6 +188,18 @@ void ShaderProgram::sendUniform(const std::string & name, const float scalar) co
 	glUniform1f(location, scalar);
 }
 
+void ShaderProgram::sendUniform(const std::string & name, const int integer) const
+{
+	GLint location = getUniformLocation(name);
+	glUniform1i(location, integer);
+}
+
+void ShaderProgram::sendUniform(const std::string & name, const vec2 & vector) const
+{
+	GLint location = getUniformLocation(name);
+	glUniform2fv(location, 1, &vector.x);
+}
+
 void ShaderProgram::sendUniform(const std::string & name, const vec3 & vector) const
 {
 	GLint location = getUniformLocation(name);

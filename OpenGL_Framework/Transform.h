@@ -13,6 +13,7 @@ public:
 	vec3f m_pLocalPosition;
 
 	mat4f m_pLocalRotation;
+	mat4f m_pForcedRotation;
 	
 	mat4f m_pLocalTransform;
 	mat4f m_pLocalToWorld;
@@ -33,6 +34,8 @@ public:
 	void setLocalRot(vec3 newAngle); // Local Rotation
 	void setScale(vec3 newScale); // Local Scale
 	void setScale(float newScale); // Local Scale
+	void rotateBy(float angU, vec3 axis);
+	void resetAlternateRotate();
 
 	virtual mat4 getLocalToWorld() const; // Get Local to World Matrix
 	vec3 getWorldPos() const; // Get World Position

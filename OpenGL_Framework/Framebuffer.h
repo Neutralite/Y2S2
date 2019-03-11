@@ -114,6 +114,8 @@ public:
 
 	static void initFrameBuffers();
 	static void drawFSQ();
+
+	bool isFixedSize = false;
 private:
 	static int _MaxColorAttachments;
 	static bool _IsInitFrameBuffers;

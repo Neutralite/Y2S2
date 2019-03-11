@@ -22,3 +22,9 @@ std::string zeroPadNumber(unsigned int num, unsigned int padding)
 	{	ret = "0" + ret;	}
 	return ret;
 }
+
+void setOpenGLName(GLenum identifier, GLuint name, const std::string &label)
+{
+	std::string labelEdit = label + " (" + std::to_string(name) + ")";
+	glObjectLabel(identifier, name, static_cast<GLsizei>(labelEdit.size()), labelEdit.c_str());
+}

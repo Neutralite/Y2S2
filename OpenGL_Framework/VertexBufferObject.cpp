@@ -51,6 +51,11 @@ GLuint VertexArrayObject::getVboHandle(AttributeLocations loc) const
 	return 0;
 }
 
+void VertexArrayObject::setPrimitiveType(GLenum type)
+{
+	primitiveType = type;
+}
+
 void VertexArrayObject::createVAO(GLenum vboUsage)
 {
 	if (vaoHandle)

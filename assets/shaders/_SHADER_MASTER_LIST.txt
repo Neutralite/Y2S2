@@ -40,3 +40,18 @@ FINAL_RENDER_POINT.frag
 LIGHTMESH_DEFERRED_SPOTLIGHT
 LIGHT_GEO.vert
 FINAL_RENDER_SPOTLIGHT.frag
+COMBINED_DRAW_SHADER
+GenericPost.vert
+COMBINED_DRAW.frag
+RADIAL_BLUR
+GenericPost.vert
+Radial Blur.frag
+BLUR_HORIZONTAL
+GenericPost.vert
+Blur Horizontal.frag
+BLUR_VERTICAL
+GenericPost.vert
+Blur Vertical.frag
+BLUR_EMISSIVE_OUTPUT
+GenericPost.vert
+BLUR_EMISSIVE_OUTPUT.frag

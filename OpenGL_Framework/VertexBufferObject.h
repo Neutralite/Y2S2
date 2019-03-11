@@ -29,6 +29,8 @@ enum AttributeLocations
 	TEXCOORD = 1,
 	NORMAL = 2,
 	COLOR = 3,
+	TANGENT = 4,
+	BITANGENT = 5,
 	INSTANCED_SWAY = 11,
 	INSTANCED_COL_0 = 12,
 	INSTANCED_COL_1 = 13,
@@ -84,6 +86,7 @@ public:
 	GLuint getVaoHandle() const;
 	GLenum getPrimitiveType() const;
 	GLuint getVboHandle(AttributeLocations loc) const;
+	void setPrimitiveType(GLenum type);
 
 	void createVAO(GLenum vboUsage = GL_STATIC_DRAW);
 	void reuploadVAO();

@@ -121,6 +121,12 @@
     <ClCompile Include="XinputManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PostProcessBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -279,6 +285,12 @@
     <ClInclude Include="XinputManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PostProcessBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gmtk\LICENSE.md">
@@ -354,6 +366,21 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\assets\shaders\LIGHT_GEO.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\COMBINED_DRAW.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Radial Blur.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Blur Horizontal.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Blur Vertical.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\BLUR_EMISSIVE_OUTPUT.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

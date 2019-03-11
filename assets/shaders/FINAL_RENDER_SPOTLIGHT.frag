@@ -19,7 +19,8 @@ layout(std140, binding = 3) uniform Light
 	uniform vec4 uLightColor;
 	uniform vec3 uLightPosition;
 	uniform vec3 uLightDirection;
-	uniform vec4 uLightAttenuation; 
+	uniform vec4 uLightAttenuation;
+	uniform float intensity;
 };
 
 layout(std140, binding = 4) uniform Resolution
@@ -33,18 +34,27 @@ layout(std140, binding = 4) uniform Resolution
 #define uLightQuadAttenuation uLightAttenuation.z
 #define uLightMaxAngle uLightColor.w
 
-layout(binding = 0)uniform sampler2D uAlbedo;
-layout(binding = 1)uniform sampler2D uSpecular;
-layout(binding = 2)uniform sampler2D uNormals;
-layout(binding = 3)uniform sampler2D uDepth;
+//layout(binding = 0)uniform sampler2D uAlbedo;
+//layout(binding = 1)uniform sampler2D uSpecular;
+//layout(binding = 2)uniform sampler2D uNormals;
+//layout(binding = 3)uniform sampler2D uDepth;
 layout(binding = 31)uniform sampler2D uRamp;
 //layout(binding = 4)uniform sampler2D uBase;
+
+layout (binding = 0) uniform sampler2D uAlbedo;
+layout (binding = 1) uniform sampler2D uNormals;
+layout (binding = 2) uniform sampler2D uEmissive;
+layout (binding = 3) uniform sampler2D uRoughness;
+layout (binding = 4) uniform sampler2D uMetallic;
+layout (binding = 5) uniform sampler2D uDepth;
 
 uniform float doubleCheck;
 
 in vec2 texcoord;
 
-out vec4 outColor;
+layout (location = 0) out vec4 ambientLight;
+layout (location = 1) out vec4 diffuseLight;
+layout (location = 2) out vec4 specularLight;
 
 void main()
 {
@@ -58,7 +68,7 @@ void main()
 	vec2 texOffset = Texcoord;
 
 	float depth = texture(uDepth, Texcoord).r;
-	vec3 texSpec = texture(uSpecular, Texcoord).rgb;
+	vec3 texSpec = texture(uMetallic, Texcoord).rgb;
 	vec3 texAlb = texture(uAlbedo, Texcoord).rgb;
 
 	vec4 Pos = uProjInverse * (vec4(Texcoord,depth,1.f) * 2.f - 1.f);
@@ -82,8 +92,12 @@ void main()
 	{
 		float NdotHV = max(dot(N, normalize(Ldir + normalize(-pos))), 0.0f);
 
-		outColor.rgb += NdotL * texAlb * ATT * uLightColor.rgb;
-		outColor.rgb += pow(NdotHV, specularExp) * ATT * texSpec;
+		//outColor.rgb += NdotL * texAlb * ATT * uLightColor.rgb;
+		//outColor.rgb += pow(NdotHV, specularExp) * ATT * texSpec;
+
+		diffuseLight.rgb += NdotL * ATT * uLightColor.rgb * intensity;
+		specularLight.rgb += pow(NdotHV, specularExp) * ATT * intensity;
+
 		//outColor.rgb += texture(uRamp, vec2(NdotL, 0)).rgb * texAlb * ATT * uLightColor.rgb;
 		//outColor.rgb += pow(texture(uRamp, vec2(NdotHV, 0)).r, specularExp) * ATT * texSpec;
 	}

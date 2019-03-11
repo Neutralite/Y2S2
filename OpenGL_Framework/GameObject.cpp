@@ -66,53 +66,66 @@ Mesh * GameObject::getMesh()
 
 void GameObject::addTexture(Texture * _texture)
 {
-	textures.push_back(_texture);
+	//textures.push_back(_texture);
+	material->textures.push_back(_texture);
 }
 
 void GameObject::setTexture(Texture * _texture)
 {
-	textures.clear();
-	textures.push_back(_texture);
+	material->textures.clear();
+	material->textures.push_back(_texture);
 }
 
 void GameObject::setTextures(std::vector<Texture*> &_textures)
 {
-	textures.clear();
+	material->textures.clear();
 	for (Texture* texture : _textures)
 	{
-		textures.push_back(texture);
+		material->textures.push_back(texture);
 	}
 }
 
 void GameObject::setShaderProgram(ShaderProgram * _shaderProgram)
 {
-	material = _shaderProgram;
+	if (material)
+		material->shader = _shaderProgram;
 }
 
-ShaderProgram * GameObject::getShader()
+void GameObject::setMaterial(Material * _MAT)
+{
+	material = _MAT;
+}
+
+Material * GameObject::getMaterial()
 {
 	return material;
 }
 
+ShaderProgram * GameObject::getShader()
+{
+	return material->shader;
+}
+
 std::vector<Texture*>* GameObject::getTextures()
 {
-	return &textures;
+	return &material->textures;
 }
 
 void GameObject::draw()
 {
-	if (mesh && !HIDE)
+	if (mesh && material && !HIDE)
 	{
 		material->bind();
-		material->sendUniform("uModel", getLocalToWorld() * DestructionMat);
+		material->sendUniforms();
+		material->shader->sendUniform("uModel", getLocalToWorld() * DestructionMat);
 		int i = 0;
-		for (Texture* texture : textures)
+		for (Texture* texture : material->textures)
 		{
 			texture->bind(i++);
 		}
 		//if (mesh->amntOfSpace > 0)
 		mesh->draw();
-		for (Texture* texture : textures)
+		for (Texture* texture : material->textures)
 		{
 			texture->unbind(--i);
 		}
@@ -124,14 +137,16 @@ void GameObject::dynamicDraw()
 	if (mesh && !HIDE)
 	{
 		material->bind();
-		material->sendUniform("uModel", getLocalToWorld() * DestructionMat);
+		material->sendUniforms();
+		material->shader->sendUniform("uModel", getLocalToWorld() * DestructionMat);
 		int i = 0;
-		for (Texture* texture : textures)
+		for (Texture* texture : material->textures)
 		{
 			texture->bind(i++);
 		}
-		mesh->dynamicDraw();
-		for (Texture* texture : textures)
+		//if (mesh->amntOfSpace > 0)
+		mesh->draw();
+		for (Texture* texture : material->textures)
 		{
 			texture->unbind(--i);
 		}

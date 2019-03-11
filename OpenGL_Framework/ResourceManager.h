@@ -10,6 +10,7 @@
 #include "Weapon.h"
 //#include "WEAPON_Hammer.h"
 #include "WEAPON_Mine.h"
+#include "Material.h"
 
 class ResourceManager
 {
@@ -20,12 +21,14 @@ public:
 	static void addMesh(Mesh* MESH);
 	static void addHitbox(Hitbox2D* HB);
 	static void addFramebuffer(Framebuffer* FB);
+	static void addMaterial(Material* _M);
 
 	static void addEntityINGAME(Transform* entity);
 
 	static std::vector<ShaderProgram*> Shaders;
 	static std::vector<Transform*> Transforms;
 	static std::vector<Camera*> Cameras;
+	static std::vector<Material*> Materials;
 
 	static std::vector<Texture*> allTextures;
 	static std::vector<Mesh*> allMeshes;
@@ -51,6 +54,7 @@ public:
 	static void sortAddHitbox(unsigned int front, unsigned int back, Hitbox2D* ELEM);
 	static void sortAddFramebuffer(unsigned int front, unsigned int back, Framebuffer* ELEM);
 	static void sortAddWeapon(unsigned int front, unsigned int back, Weapon* ELEM);
+	static void sortAddMaterial(unsigned int front, unsigned int back, Material* ELEM);
 
 	static void sortAddGameObjectINGAME(unsigned int front, unsigned int back, GameObject* ELEM);
 	static void sortAddLightINGAME(unsigned int front, unsigned int back, Light* ELEM);
@@ -68,6 +72,7 @@ public:
 	static Hitbox2D* findHitbox(unsigned int front, unsigned int back, std::string _NAME);
 	static Framebuffer* findFramebuffer(unsigned int front, unsigned int back, std::string _NAME);
 	static Weapon* findWeapon(unsigned int front, unsigned int back, std::string _NAME);
+	static Material* findMaterial(unsigned int front, unsigned int back, std::string _NAME);
 
 	static int findGameObjectINGAME(unsigned int front, unsigned int back, GameObject* _ADR);
 	static int findLightINGAME(unsigned int front, unsigned int back, Light* _ADR);
@@ -85,6 +90,7 @@ public:
 	static Hitbox2D* searchForHitbox(std::string _NAME);
 	static Framebuffer* searchForFramebuffer(std::string _NAME);
 	static Weapon* searchForWeapon(std::string _NAME);
+	static Material* searchForMaterial(std::string _NAME);
 
 	static void destroyObjectINGAME(Transform* _OBJ);
 	static void destroyChildrenINGAME(Transform* OBJ);
@@ -103,6 +109,7 @@ public:
 	static GameObject* getObject(std::string _NAME);
 	static Framebuffer* getFramebuffer(std::string _NAME);
 	static Weapon* getWeapon(std::string _NAME);
+	static Material* getMaterial(std::string _NAME);
 
 	static Boundary* getCloneOfBoundary(std::string _NAME);
 	static Destructable* getCloneOfDestructable(std::string _NAME);
@@ -116,3 +123,5 @@ public:
 
 	static void cloneChildren(Transform* _TF);
 };
+
+typedef ResourceManager rm;

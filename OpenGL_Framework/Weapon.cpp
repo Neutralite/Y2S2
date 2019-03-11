@@ -77,7 +77,7 @@ void Weapon::update(float dt)
 
 			//std::cout << _W2->weapMesh;
 			setMesh(_W2->weapMesh);
-			setTextures(_W2->weapTex);
+			setMaterial(_W2->weapTex);
 			setShaderProgram(_W2->SP);
 
 			if (_W1)
@@ -161,9 +161,10 @@ void Weapon::update(float dt)
 
 void Weapon::draw()
 {
-	if (getMesh())
+	if (getMesh() && getMaterial())
 	{
-		getShader()->bind();
+		getMaterial()->bind();
+		getMaterial()->sendUniforms();
 		getShader()->sendUniform("uModel", getLocalToWorld());
 		int i = 0;
 		for (Texture* texture : *getTextures())

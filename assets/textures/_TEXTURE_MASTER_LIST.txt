@@ -38,3 +38,8 @@ EXPLOSION_R
 EXPLOSION_G
 Medium shading
 Game Toon Ramp
+defaultBlack
+defaultWhite
+defaultNormal
+Diffuse Toon
+Diffuse Overlay

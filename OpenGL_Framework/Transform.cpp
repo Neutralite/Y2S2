@@ -68,6 +68,16 @@ void Transform::setScale(float newScale)
 	m_pLocalScale = vec3(newScale);
 }
 
+void Transform::rotateBy(float angU, vec3 axis)
+{
+	m_pForcedRotation = mat4f::rotate(degrees(angU), axis) * m_pForcedRotation;
+}
+
+void Transform::resetAlternateRotate()
+{
+	m_pForcedRotation = mat4f::identity();
+}
+
 mat4 Transform::getLocalToWorld() const
 {
 	return m_pLocalToWorld;
@@ -145,7 +155,7 @@ void Transform::update(float dt)
 	mat4 scale = scale.scale(m_pLocalScale);
 
 	// Combine all above transforms into a single matrix
-	m_pLocalTransform = tran * m_pLocalRotation * scale;
+	m_pLocalTransform = tran * m_pLocalRotation * m_pForcedRotation * scale;
 
 	mat4 subStep = mat4::identity();
 	if (m_pParent)

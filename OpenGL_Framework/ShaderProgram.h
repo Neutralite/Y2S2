@@ -88,6 +88,8 @@ public:
 	GLint getUniformLocation(const std::string &uniformName) const;
 
 	void sendUniform(const std::string &name, const float scalar) const;
+	void sendUniform(const std::string &name, const int integer) const;
+	void sendUniform(const std::string &name, const vec2 &vector) const;
 	void sendUniform(const std::string &name, const vec3 &vector) const;
 	void sendUniform(const std::string &name, const vec4 &vector) const;
 	void sendUniform(const std::string &name, const mat4 &matrix, bool transpose = false) const;

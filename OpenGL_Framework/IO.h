@@ -3,6 +3,7 @@
 #include <stdio.h>
 #define NOMINMAX
 #include <Windows.h>
+#include "GL/glew.h"
 
 /*
 Some handy input/output functions I made
@@ -14,6 +15,7 @@ std::string readFile(const std::string &filename);
 
 std::string zeroPadNumber(unsigned int num, unsigned int padding);
 	
+void setOpenGLName(GLenum identifier, GLuint name, const std::string &label);
 
 #define SAT_LOG_ERROR(message, ...)			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),0x0C);\
 											printf(message, ##__VA_ARGS__);	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),0x07); printf("\n");

@@ -348,9 +348,53 @@ void Mesh::dynamicDraw()
 	MATS.dynamicDraw(usedSpace);
 }
 
-void Mesh::uploadToGPU()
+void Mesh::calculateTangents()
+{
+	if (dataVertex.size() != dataTexture.size())
+		return;
+
+	dataTangent.resize(dataVertex.size());
+	dataBiTangent.resize(dataVertex.size());
+
+	for (size_t i = 0; i < dataTangent.size(); i += 3)
+	{
+		vec3 vertex0 = dataVertex[i + 0];
+		vec3 vertex1 = dataVertex[i + 1];
+		vec3 vertex2 = dataVertex[i + 2];
+
+		vec2 uv0 = dataTexture[i + 0];
+		vec2 uv1 = dataTexture[i + 1];
+		vec2 uv2 = dataTexture[i + 2];
+
+		vec3 deltaPos1 = vertex1 - vertex0;
+		vec3 deltaPos2 = vertex2 - vertex0;
+
+		vec2 deltaUV1 = uv1 - uv0;
+		vec2 deltaUV2 = uv2 - uv0;
+
+		float ff = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+
+		vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * ff;
+		vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * ff;
+
+
+		for (int j = 0; j < 3; j++)
+		{
+			dataTangent[i + j] = vec4(tangent, 1.f);
+			dataBiTangent[i + j] = vec4(bitangent, 1.f);
+			//std::cout << dataTangent[i + j] << std::endl;
+		}
+		//vec3 normal0 = dataNormal[i + 0];
+		//vec3 normal1 = dataNormal[i + 1];
+		//vec3 normal2 = dataNormal[i + 2];
+	}
+}
+
+void Mesh::uploadToGPU() //<- due to PBR-enforced code, this has more stuff than the other one. Change the other one soon, Jakob. Sincerely, Jakob.
 {
 	unsigned int numTris = (unsigned int)(dataVertex.size() / 3);
+
+	calculateTangents();
 
 	if (dataVertex.size() > 0)
 	{
@@ -386,6 +430,30 @@ void Mesh::uploadToGPU()
 		normalAttrib.numElementsPerAttribute = 4;
 		normalAttrib.numElements = numTris * 3 * normalAttrib.numElementsPerAttribute;
 		vao.addVBO(normalAttrib);
+	}
+
+	if (dataTangent.size() > 0)
+	{
+		VertexBufferData tangentAttrib;
+		tangentAttrib.attributeType = AttributeLocations::TANGENT;
+		tangentAttrib.data = &dataTangent[0];
+		tangentAttrib.sizeOfElement = sizeof(float);
+		tangentAttrib.elementType = GL_FLOAT;
+		tangentAttrib.numElementsPerAttribute = 4;
+		tangentAttrib.numElements = numTris * 3 * tangentAttrib.numElementsPerAttribute;
+		vao.addVBO(tangentAttrib);
+	}
+
+	if (dataBiTangent.size() > 0)
+	{
+		VertexBufferData biTangentAttrib;
+		biTangentAttrib.attributeType = AttributeLocations::BITANGENT;
+		biTangentAttrib.data = &dataBiTangent[0];
+		biTangentAttrib.sizeOfElement = sizeof(float);
+		biTangentAttrib.elementType = GL_FLOAT;
+		biTangentAttrib.numElementsPerAttribute = 4;
+		biTangentAttrib.numElements = numTris * 3 * biTangentAttrib.numElementsPerAttribute;
+		vao.addVBO(biTangentAttrib);
 	}
 
 	if (dataColor.size() > 0)
@@ -466,6 +534,8 @@ void Mesh::uploadMatsToGPU()
 
 	unsigned int numTris = (unsigned int)(dataVertex.size() / 3);
 
+	calculateTangents();
+
 	if (dataVertex.size() > 0)
 	{
 		VertexBufferData posAttrib;
@@ -500,6 +570,30 @@ void Mesh::uploadMatsToGPU()
 		normalAttrib.numElementsPerAttribute = 4;
 		normalAttrib.numElements = numTris * 3 * normalAttrib.numElementsPerAttribute;
 		MATS.addVBO(normalAttrib);
+	}
+
+	if (dataTangent.size() > 0)
+	{
+		VertexBufferData tangentAttrib;
+		tangentAttrib.attributeType = AttributeLocations::TANGENT;
+		tangentAttrib.data = &dataTangent[0];
+		tangentAttrib.sizeOfElement = sizeof(float);
+		tangentAttrib.elementType = GL_FLOAT;
+		tangentAttrib.numElementsPerAttribute = 4;
+		tangentAttrib.numElements = numTris * 3 * tangentAttrib.numElementsPerAttribute;
+		MATS.addVBO(tangentAttrib);
+	}
+
+	if (dataBiTangent.size() > 0)
+	{
+		VertexBufferData biTangentAttrib;
+		biTangentAttrib.attributeType = AttributeLocations::BITANGENT;
+		biTangentAttrib.data = &dataBiTangent[0];
+		biTangentAttrib.sizeOfElement = sizeof(float);
+		biTangentAttrib.elementType = GL_FLOAT;
+		biTangentAttrib.numElementsPerAttribute = 4;
+		biTangentAttrib.numElements = numTris * 3 * biTangentAttrib.numElementsPerAttribute;
+		MATS.addVBO(biTangentAttrib);
 	}
 
 	if (dataColor.size() > 0)

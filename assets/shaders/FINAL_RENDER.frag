@@ -20,6 +20,7 @@ layout(std140, binding = 3) uniform Light
 	uniform vec3 uLightPosition;
 	uniform vec3 uLightDirection;
 	uniform vec4 uLightAttenuation; 
+	uniform float intensity;
 };
 
 #define uLightConstantAttenuation uLightAttenuation.x
@@ -27,16 +28,25 @@ layout(std140, binding = 3) uniform Light
 #define uLightQuadAttenuation uLightAttenuation.z
 #define uLightMaxAngle uLightAttenuation.w
 
-layout(binding = 0)uniform sampler2D uAlbedo;
-layout(binding = 1)uniform sampler2D uSpecular;
-layout(binding = 2)uniform sampler2D uNormals;
-layout(binding = 3)uniform sampler2D uDepth;
+//layout(binding = 0)uniform sampler2D uAlbedo;
+//layout(binding = 1)uniform sampler2D uSpecular;
+//layout(binding = 2)uniform sampler2D uNormals;
+//layout(binding = 3)uniform sampler2D uDepth;
+
+layout (binding = 0) uniform sampler2D uAlbedo;
+layout (binding = 1) uniform sampler2D uNormals;
+layout (binding = 2) uniform sampler2D uEmissive;
+layout (binding = 3) uniform sampler2D uRoughness;
+layout (binding = 4) uniform sampler2D uMetallic;
+layout (binding = 5) uniform sampler2D uDepth;
 
 uniform float doubleCheck;
 
 in vec2 texcoord;
 
-out vec4 outColor;
+layout (location = 0) out vec4 ambientLight;
+layout (location = 1) out vec4 diffuseLight;
+layout (location = 2) out vec4 specularLight;
 
 void main()
 {
@@ -48,7 +58,7 @@ void main()
 	vec2 texOffset = texcoord;
 
 	float depth = texture(uDepth, texcoord).r;
-	vec3 texSpec = texture(uSpecular, texcoord).rgb;
+	vec3 texSpec = texture(uMetallic, texcoord).rgb;
 	vec3 texAlb = texture(uAlbedo, texcoord).rgb;
 
 	vec4 Pos = uProjInverse * (vec4(texcoord,depth,1.f) * 2.f - 1.f);
@@ -64,6 +74,10 @@ void main()
 
 	//outColor.rgb = vec3(NdotL * 2.f - 1.f);
 
-	outColor.rgb = 0.1f * texAlb;
+	//outColor.rgb = 0.1f * texAlb;
+
+	ambientLight.rgb = 0.1f * texAlb;
+	diffuseLight.rgb = vec3(0.f);
+	specularLight.rgb = vec3(0.f);
 	//outColor.rgb = vec3(lightType);
 }

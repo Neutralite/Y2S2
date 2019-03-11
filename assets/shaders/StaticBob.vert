@@ -20,10 +20,14 @@ layout(std140, binding = 1) uniform Time
 layout(location = 0) in vec3 in_vert;
 layout(location = 1) in vec2 in_uv;
 layout(location = 2) in vec3 in_normal;
+layout(location = 3) in vec3 in_tangent;
+layout(location = 4) in vec3 in_bitangent;
 
 out vec3 normal;
 out vec2 texcoord;
 out vec3 pos;
+out vec3 tangent;
+out vec3 bitangent;
 
 void main()
 {
@@ -33,6 +37,8 @@ void main()
 	newNorm = normalize(newNorm);
 
 	normal = mat3(uView) * mat3(uModel) * newNorm;
+	tangent = mat3(uView) * mat3(uModel) * in_tangent;
+	bitangent = mat3(uView) * mat3(uModel) * in_bitangent;
 	texcoord = vec2(in_uv.x, 1.f - in_uv.y);
 
 	vec4 viewSpace = uView * (uModel * vec4(newVert, 1.0f) + vec4(sway * in_vert.y, 0.f));

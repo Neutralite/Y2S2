@@ -14,14 +14,14 @@ Light::Light()
 
 void Light::init()
 {
-	_UBO.allocateMemory(sizeof(vec4) * 3 + sizeof(float) * 4);
+	_UBO.allocateMemory(sizeof(vec4) * 3 + sizeof(float) * 5);
 }
 
 void Light::update(float dt)
 {
 	Transform::update(dt);
 	calculateRadius();
-	_UBO.sendData(&color, sizeof(vec4) * 3 + sizeof(float) * 4, 0);
+	_UBO.sendData(&color, sizeof(vec4) * 3 + sizeof(float) * 5, 0);
 }
 
 float Light::calculateRadius()

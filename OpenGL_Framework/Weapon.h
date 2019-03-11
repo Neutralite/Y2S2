@@ -13,7 +13,7 @@ public:
 	float duration; //How long it happens for
 	float timeOf; //When it happens
 	Mesh* weapMesh;
-	std::vector<Texture*> weapTex;
+	Material* weapTex;
 	ShaderProgram *SP;
 
 	Weapon* Attached = nullptr;

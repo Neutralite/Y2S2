@@ -21,15 +21,14 @@ bool Mine::weaponInit()
 
 	W.position = vec3(0, 0, 0);
 	W.rotationAngles = vec3(0, 0, 0);
-	W.duration = 2.f;
+	W.duration = 1.5f;
 	W.scale = vec3(1, 1, 1);
 	W.MT = wFrame::MutationType::LINEAR;
 	W.weapMesh = ResourceManager::getMesh("MINE");
 	W.Attached = _W;
 	W.SP = ResourceManager::getShader("COMIC_SETUP");
-	W.weapTex.push_back(ResourceManager::getTexture("MINE_TEXTURE"));
+	W.weapTex = rm::getMaterial("MINE_TEXTURE");
 	FRAMES.push_back(W);
-	W.weapTex.clear();
 
 	W.position = vec3(0, 0, 0);
 	W.rotationAngles = vec3(0, 0, 0);
@@ -40,9 +39,8 @@ bool Mine::weaponInit()
 	W.Attached = _W;
 	W.BLOWUP = true;
 	W.SP = ResourceManager::getShader("COMIC_SETUP");
-	W.weapTex.push_back(ResourceManager::getTexture("EXPLOSION"));
+	W.weapTex = ResourceManager::getMaterial("EXPLOSION");
 	FRAMES.push_back(W);
-	W.weapTex.clear();
 
 	float accum = 0;
 	for (unsigned int i = 0; i < FRAMES.size(); i++)

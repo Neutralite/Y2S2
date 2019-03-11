@@ -64,11 +64,17 @@ void Game::initializeGame()
 	masterFile = "_SHADER_MASTER_LIST";
 	loadAllShaders(masterFile);
 
+	Material::initDefaultTextures();
+	masterFile = "_MATERIALS_MASTER_LIST";
+	loadAllMaterials(masterFile);
+
 	masterFile = "_CAMERA_MASTER_LIST";
 	loadAllCameras(masterFile);
 
+	//std::cout << "THIS FAR?" << std::endl;
 	masterFile = "_OBJECT_MASTER_LIST";
 	loadAllObjects(masterFile);
+	//std::cout << "THIS FAR??????????" << std::endl;
 
 	allSetup();
 
@@ -337,7 +343,6 @@ void Game::update()
 	//}
 	//std::cout << ResourceManager::allWeaponsINGAME.size() << ", " << ResourceManager::TransformsINGAME.size() << std::endl;
 	//lightShip.push_back(SUN);
-	protectedLightShip(SUN);
 	//lightShip.push_back(getLight("HEADLIGHT"));
 
 	//aspect = aspect;
@@ -349,11 +354,20 @@ void Game::update()
 	float deltaTime = updateTimer->getElapsedTimeSeconds();
 	TotalGameTime += deltaTime;
 
+
+
 	frameTimeSamples[frameTimeCurrSample] = min(deltaTime, 0.1f);
 	frameTimeCurrSample = (frameTimeCurrSample + 1) % frameTimeNumSamples;
 	frameTimeSamples[frameTimeCurrSample] = 1.0f;
 
 	uniformBufferTime.sendFloat(TotalGameTime, 0);
+
+
+	protectedLightShip(SUN);
+	//SUN->rotateBy(deltaTime * 0.1f, normalize(vec3(1, 0, 1)));
+	//SUN->intensity = pow(max(dot(normalize(mat3(SUN->getLocalToWorld()) * vec3(SUN->direction)), vec3(0, -1.f, 0)), 0.f), 0.6f);
+	//SUN->update(deltaTime);
+
 	//Light* lit = dynamic_cast<Light*>(players[0]->getChildren().at(0)->getChildren().at(0));
 	//std::cout << lit->position << std::endl;
 
@@ -458,6 +472,19 @@ void Game::update()
 			}
 		}
 	}
+
+	//radialBlur -= deltaTime * 0.15f;
+	radialBlur += abs(players[0]->getAngularVelocity().y * 0.001f) * deltaTime;
+	radialBlur = lerp(0.f, radialBlur, pow(0.95f, 60.f * deltaTime));
+	//if (radialBlur < 0.f)
+	//{
+	//	radialBlur = 0.f;
+	//}
+	//if (radialBlur > 0.07f)
+	//{
+	//	radialBlur = 0.07f;
+	//}
+
 	//SAT_DEBUG_LOG("\nLOOP END\n");
 	//std::cout << updateShip.size() << std::endl;
 
@@ -484,6 +511,7 @@ void Game::draw()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	for (Framebuffer* _FB : ResourceManager::allFramebuffers)
 		_FB->clear();
+	RADIAL_POST_PROC.clear();
 
 	//Transform* totBase = nullptr;
 	//for (int i = 0; i < (int)renderShip.size(); i++)
@@ -518,25 +546,19 @@ void Game::draw()
 	sceneCapture->bindColorAsTexture(0, 0);
 	sceneCapture->bindColorAsTexture(1, 1);
 	sceneCapture->bindColorAsTexture(2, 2);
-	sceneCapture->bindDepthAsTexture(3);
+	sceneCapture->bindColorAsTexture(3, 4);
+	sceneCapture->bindColorAsTexture(4, 4);
+	sceneCapture->bindDepthAsTexture(5);
 	tRamp->bind(31);
 
 	COMIC_EXECUTION->sendUniform("uModel", SUN->getLocalToWorld(), false);
-	//COMIC_EXECUTION->sendUniform("doubelCheck", 0.f);
 	defLight->renderToFSQ();
-	//useFirst = !useFirst;
 
 	for (Light* LIT : lightShip)
 	{
 		ShaderProgram* USING = nullptr;
 		LIT->update(0);
-		//std::cout << LIT->getName() << std::endl;
-		//if (useFirst)
-		//	defLight->bindColorAsTexture(0, 4);
-		//else
-		//	defLight2->bindColorAsTexture(0, 4);
 
-		//defLight->bindColorAsTexture(0, 4);
 		for (Transform* C : LIT->getChildren())
 		{
 			if (C->TT == Transform::TransformType::TYPE_Camera)
@@ -550,9 +572,6 @@ void Game::draw()
 		bool useMesh = false;
 		if (LIT->LIGHT_MESH)
 			useMesh = true;
-		//useMesh = false;
-
-		//useMesh = false;
 
 		switch(LIT->type)
 		{
@@ -580,32 +599,14 @@ void Game::draw()
 		USING->sendUniform("uModel", LIT->getLocalToWorld(), false);
 		if (useMesh)
 		{
-			//if (!useFirst)
-			//	defLight->bind();
-			//else
-			//	defLight2->bind();
 			defLight->bind();
 			LIT->LIGHT_MESH->draw();
-			//if (!useFirst)
-			//	defLight->unbind();
-			//else
-			//	defLight2->unbind();
 			defLight->unbind();
 		}
 		else
 		{
 			defLight->renderToFSQ();
-			//if (useFirst)
-			//	defLight->renderToFSQ();
-			//else
-			//	defLight2->renderToFSQ();
 		}
-
-		//if (useFirst)
-		//	defLight->unbindTexture(4);
-		//else
-		//	defLight2->unbindTexture(4);
-		//defLight->unbindTexture(4);
 
 		useFirst = !useFirst;
 
@@ -625,22 +626,55 @@ void Game::draw()
 	}
 
 	ShaderProgram::unbind();
+	sceneCapture->unbindTexture(5);
+	sceneCapture->unbindTexture(4);
 	sceneCapture->unbindTexture(3);
 	sceneCapture->unbindTexture(2);
 	sceneCapture->unbindTexture(1);
 	sceneCapture->unbindTexture(0);
 	tRamp->unbind(31);
 
-	//if (useFirst)
-	//	defLight->bindColorAsTexture(0, 0);
-	//else
-	//	defLight2->bindColorAsTexture(0, 0);
+	//sceneCapture->bindColorAsTexture(2, 0);
+	//OUTPUT->bind();
+	//RADIAL_POST_PROC.drawToPost();
+	//
+	//float emissiveBloom = 1.f;
+	//for (int i = 0; i < 5; i++)
+	//{
+	//	HORIZONTAL_BLUR->bind();
+	//	HORIZONTAL_BLUR->sendUniform("uSpread", emissiveBloom);
+	//	HORIZONTAL_BLUR->sendUniform("ASPECT", vec2(1.f / (float)windowWidth, 1.f / (float) windowHeight));
+	//	RADIAL_POST_PROC.draw();
+	//
+	//	VERTICAL_BLUR->bind();
+	//	VERTICAL_BLUR->sendUniform("uSpread", emissiveBloom);
+	//	VERTICAL_BLUR->sendUniform("ASPECT", vec2(1.f / (float)windowWidth, 1.f / (float)windowHeight));
+	//	RADIAL_POST_PROC.draw();
+	//}
+	//
+	////sceneCapture->bind();
+	//BLUR_OUTPUT->bind();
+	//RADIAL_POST_PROC.drawToFB(sceneCapture);
+	////sceneCapture->unbind();
 
-	defLight->bindColorAsTexture(0, 0);
+	sceneCapture->bindColorAsTexture(0, 0);
+	sceneCapture->bindColorAsTexture(2, 1);
+	sceneCapture->bindColorAsTexture(3, 2);
+	sceneCapture->bindColorAsTexture(4, 3);
+	defLight->bindColorAsTexture(0, 4);
+	defLight->bindColorAsTexture(1, 5);
+	defLight->bindColorAsTexture(2, 6);
+	difOver->bind(30);
+	tDiffuse->bind(31);
 
-	OUTPUT->bind();
-	defLight->drawFSQ();
-	OUTPUT->unbind();
+	//RADIAL_POST_PROC.reshape((radialHeight * windowWidth) / windowHeight, radialHeight);
+
+	COMBINED_DRAW->bind();
+	COMBINED_DRAW->sendUniform("texRot", 0.4f);
+	COMBINED_DRAW->sendUniform("ASPECT", vec2((float)windowWidth, (float)windowHeight));
+
+	RADIAL_POST_PROC.drawToPost();
+	COMBINED_DRAW->unbind();
 
 	if (getTime)
 	{
@@ -655,32 +689,36 @@ void Game::draw()
 	//	defLight->unbindTexture(0);
 	//else
 	//	defLight2->unbindTexture(0);
-	defLight->unbindTexture(0);
-	//textureToonRamp[0]->bind(31);
 
+	tDiffuse->unbind(31);
+	overlay->unbind(30);
+	defLight->unbindTexture(6);
+	defLight->unbindTexture(5);
+	defLight->unbindTexture(4);
+	sceneCapture->unbindTexture(3);
+	sceneCapture->unbindTexture(2);
+	sceneCapture->unbindTexture(1);
+	sceneCapture->unbindTexture(0);
 
-	// Render the scene from both camera's perspective
-	// this will render all objects that are in the camera list
-	//light.position = camera2.getView() * vec4(goSun.getWorldPos(), 1.0f);
-	//light.update(0.0f);
-	//camera2.render();
-	//light.position = camera.getView() * vec4(goSun.getWorldPos(), 1.0f);
-	//light.update(0.0f);
-	//camera.render();
-	//
-	////shaderGrayscale.bind();
-	//shaderPointLight.bind();
-	//gbuffer.bindDepthAsTexture(0);
-	//gbuffer.bindColorAsTexture(0, 1);
-	//gbuffer.bindColorAsTexture(1, 2);
-	//gbuffer.bindColorAsTexture(2, 3);
-	//glViewport(0, 0, windowWidth, windowHeight);
-	//gbuffer.drawFSQ();
-	//ShaderProgram::unbind();
-	//gbuffer.unbindTexture(3);
-	//gbuffer.unbindTexture(2);
-	//gbuffer.unbindTexture(1);
-	//gbuffer.unbindTexture(0);
+	RADIAL_BLUR->bind();
+	RADIAL_BLUR->sendUniform("uAngle", radialBlur);
+	RADIAL_BLUR->sendUniform("uCenter", vec2(0.5f, 0.5f));
+
+	for (int i = 0; i < radialLoops; i++)
+	{
+		RADIAL_POST_PROC.draw();
+	}
+	OUTPUT->bind();
+	RADIAL_POST_PROC.drawToScreen();
+	ShaderProgram::unbind();
+
+	//RADIAL_POST_PROC.reshape(windowWidth, windowHeight);
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   POST-PROCESSING-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
 
 	if(guiEnabled)
 		GUI();	
@@ -718,12 +756,12 @@ void Game::GUI()
 	ImGui::End();
 
 	static float grayscaleAmount = 1.0f;
-	if (ImGui::SliderFloat("Grayscale Amount", &grayscaleAmount, 0.0f, 1.0f))
-	{
-	//	shaderGrayscale.bind();
-	//	shaderGrayscale.sendUniform("uAmount", grayscaleAmount);
-	//	shaderGrayscale.unbind();
-	}
+	//if (ImGui::SliderInt("radialAmount", &radialLoops, 0, 10))
+	//{
+	////	shaderGrayscale.bind();
+	////	shaderGrayscale.sendUniform("uAmount", grayscaleAmount);
+	////	shaderGrayscale.unbind();
+	//}
 	//
 	//if (ImGui::Checkbox("Toon Shading Active", &toonActive))
 	//{
@@ -1130,14 +1168,22 @@ void Game::reshapeWindow(int w, int h)
 	aspect = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 	PlayerCam->perspective(60.f, aspect, 1, 1000);
 	PlayerCam->update(0);
+
+	radialHeight = windowHeight / 4;
+	bloomHeight = windowHeight / 4;
+
 	//camera.perspective(90.0f, aspect, 0.05f, 1000.0f);
 	vec4 RES = vec4((float)w, (float)h, 1.f / (float)w, 1.f / (float)h);
 	uRes.sendVector(RES, 0);
 	glViewport(0, 0, w, h);
 	for (Framebuffer* FB : ResourceManager::allFramebuffers)
 	{
-		FB->reshape(w, h);
+		if (!FB->isFixedSize)
+			FB->reshape(w, h);
 	}
+	//std::cout << "PHASE 1" << std::endl;
+	RADIAL_POST_PROC.reshape(w, h);
+	//std::cout << "PHASE 2" << std::endl;
 }
 
 void Game::setKeysDown(bool down, unsigned char key)
@@ -1929,6 +1975,20 @@ void Game::loadAllCameras(std::string & fileName)
 	masterFile.close();
 }
 
+void Game::loadAllMaterials(std::string & fileName)
+{
+	std::ifstream masterFile;
+	masterFile.open("../assets/materials/" + fileName + ".txt");
+	std::string temp;
+	while (std::getline(masterFile, temp))
+	{
+		Material* mat = new Material(temp);
+		mat->setName(temp);
+		ResourceManager::addMaterial(mat);
+	}
+	masterFile.close();
+}
+
 void Game::createChild(std::string & fileName, Transform * parent)
 {
 	std::ifstream objectFiles;
@@ -1976,30 +2036,31 @@ void Game::createChild(std::string & fileName, Transform * parent)
 			obj = new GameObject;
 		}
 
-		switch (obj->TT)
-		{
-		case Transform::TransformType::TYPE_Player:
-		case Transform::TransformType::TYPE_Destructable:
-			obj->setShaderProgram(getShader("BOBBING_SETUP"));
-			break;
-		default:
-			obj->setShaderProgram(getShader("COMIC_SETUP"));
-			break;
-		}
+		//switch (obj->TT)
+		//{
+		//case Transform::TransformType::TYPE_Player:
+		//case Transform::TransformType::TYPE_Destructable:
+		//	obj->setShaderProgram(getShader("BOBBING_SETUP"));
+		//	break;
+		//default:
+		//	obj->setShaderProgram(getShader("COMIC_SETUP"));
+		//	break;
+		//}
 
 		//std::cout << COMIC_SETUP << "_!" << std::endl;
 
 		if (textureName == "EMPTY")
 		{
-			obj->setTexture(nullptr);
+			obj->setMaterial(nullptr);
 			hasTex = true;
 		}
 		else
 		{
-			Texture* _TEX = getTexture(textureName);
-			if (_TEX)
+			Material* _MAT = rm::getMaterial(textureName);
+			//std::cout << _MAT << std::endl;
+			if (_MAT)
 			{
-				obj->setTexture(_TEX);
+				obj->setMaterial(_MAT);
 				hasTex = true;
 			}
 		}
@@ -2017,12 +2078,25 @@ void Game::createChild(std::string & fileName, Transform * parent)
 				hasMesh = true;
 			}
 		}
+
+
+		switch (obj->TT)
+		{
+		case Transform::TransformType::TYPE_Player:
+		case Transform::TransformType::TYPE_Destructable:
+			obj->setShaderProgram(getShader("BOBBING_SETUP"));
+			break;
+		default:
+			obj->setShaderProgram(getShader("COMIC_SETUP"));
+			break;
+		}
+
 		obj->setBoundingRadius(boundRadius);
 		if (!hasTex || !hasMesh)
 		{
 			std::cout << fileName << " game object could not load!" << std::endl;
 			if (!hasTex)
-				std::cout << "Texture not found!" << std::endl;
+				std::cout << "Material not found!" << std::endl;
 			if (!hasMesh)
 				std::cout << "Mesh not found!" << std::endl;
 			delete obj;
@@ -2146,177 +2220,6 @@ void Game::createChild(std::string & fileName, Transform * parent)
 		parent->addChild(obj);
 }
 
-void Game::createUniqueChild(std::string & fileName, Transform * parent)
-{
-	std::ifstream objectFiles;
-	objectFiles.open("../assets/Objects/" + fileName + ".txt");
-	std::string meshName, textureName, BRSTR, objType;
-	std::string dataparse;
-	float boundRadius;
-	std::getline(objectFiles, meshName);
-	std::getline(objectFiles, textureName);
-	std::getline(objectFiles, objType);
-	std::getline(objectFiles, BRSTR);
-	boundRadius = std::stof(BRSTR);
-	bool hasTex = false, hasMesh = false;
-
-	GameObject* obj; //= new GameObject;
-
-	if (objType == "BASE_PLATE")
-	{
-		obj = new BasePlate;
-	}
-	else if (objType == "PLAYER")
-	{
-		obj = new Player;
-	}
-	else if (objType == "BOUNDARY")
-	{
-		obj = new Boundary;
-	}
-	else if (objType == "DESTRUCTABLE")
-	{
-		obj = new Destructable;
-	}
-	else
-	{
-		obj = new GameObject;
-	}
-
-	switch (obj->TT)
-	{
-	case Transform::TransformType::TYPE_Player:
-	case Transform::TransformType::TYPE_Destructable:
-		obj->setShaderProgram(getShader("BOBBING_SETUP"));
-		break;
-	default:
-		obj->setShaderProgram(getShader("COMIC_SETUP"));
-		break;
-	}
-
-	if (textureName == "EMPTY")
-	{
-		obj->setTexture(nullptr);
-		hasTex = true;
-	}
-	else
-	{
-		Texture* _TEX = getTexture(textureName);
-		if (_TEX)
-		{
-			obj->setTexture(_TEX);
-			hasTex = true;
-		}
-	}
-	if (meshName == "EMPTY")
-	{
-		obj->setMesh(nullptr);
-		hasMesh = true;
-	}
-	else
-	{
-		Mesh* _MESH = getMesh(meshName);
-		if (_MESH)
-		{
-			obj->setMesh(_MESH);
-			hasMesh = true;
-		}
-	}
-	obj->setBoundingRadius(boundRadius);
-	if (!hasTex || !hasMesh)
-	{
-		std::cout << fileName << " game object could not load!" << std::endl;
-		if (!hasTex)
-			std::cout << "Texture not found!" << std::endl;
-		if (!hasMesh)
-			std::cout << "Mesh not found!" << std::endl;
-		delete obj;
-		obj = nullptr;
-	}
-	else
-	{
-		obj->setName(fileName);
-		ResourceManager::addEntityINGAME(obj);
-		while (std::getline(objectFiles, dataparse))
-		{
-			if (dataparse == "OBJECT")
-			{
-				std::getline(objectFiles, dataparse);
-
-				createUniqueChild(dataparse, obj);
-				Transform* _GO = obj->getChildren().at(obj->getChildren().size() - 1);
-				std::string popOut;
-				
-				vec3 nPos;
-				vec3 nRot;
-				float nScale;
-				
-				std::getline(objectFiles, popOut);
-				nPos.x = std::stof(popOut);
-				std::getline(objectFiles, popOut);
-				nPos.y = std::stof(popOut);
-				std::getline(objectFiles, popOut);
-				nPos.z = std::stof(popOut);
-				
-				std::getline(objectFiles, popOut);
-				nRot.x = std::stof(popOut);
-				std::getline(objectFiles, popOut);
-				nRot.y = std::stof(popOut);
-				std::getline(objectFiles, popOut);
-				nRot.z = std::stof(popOut);
-				
-				std::getline(objectFiles, popOut);
-				nScale = std::stof(popOut);
-
-				_GO->setLocalPos(nPos);
-				_GO->setLocalRot(nRot);
-				_GO->setScale(nScale);
-			}
-			else if (dataparse == "LIGHT")
-			{
-				std::getline(objectFiles, dataparse);
-				
-				Light* LIT = getCloneOfLight(dataparse);
-				if (LIT)
-				{
-					obj->addChild(LIT);
-				}
-			}
-			else if (dataparse == "PHYS")
-			{
-				std::getline(objectFiles, dataparse);
-				Hitbox2D* _HB = ResourceManager::searchForHitbox(dataparse);
-				if (_HB)
-				{
-					PhysicsBody _PB(_HB);
-					obj->setPhysicsBody(_PB);
-				}
-				std::getline(objectFiles, dataparse);
-				if (dataparse == "true")
-					obj->getPhysicsBody()->getHB()->dynamic = true;
-				else
-					obj->getPhysicsBody()->getHB()->dynamic = false;
-				if (dataparse == "grass")
-					obj->getPhysicsBody()->getHB()->grass = true;
-				if (dataparse == "INF")
-					obj->getPhysicsBody()->getHB()->unbreakable = true;
-			}
-			else if (dataparse == "TEXTURE")
-			{
-				std::getline(objectFiles, dataparse);
-				Texture* _TEX = ResourceManager::searchForTexture(dataparse);
-				if (_TEX)
-				{
-					obj->addTexture(_TEX);
-				}
-			}
-		}
-	}
-	objectFiles.close();
-	if (parent)
-		parent->addChild(obj);
-}
-
 void Game::allSetup()
 {
 	uniformBufferTime.allocateMemory(sizeof(float));
@@ -2326,7 +2229,12 @@ void Game::allSetup()
 	uRes.bind(4);
 
 	GameObject::initGameObjects();
+
 	tRamp = getTexture("Game Toon Ramp");
+	tDiffuse = getTexture("Diffuse Toon");
+	tDiffuse->setWrapParameters(GL_CLAMP_TO_EDGE);
+	tDiffuse->sendTexParameters();
+	difOver = getTexture("Diffuse Overlay");
 
 	setBaseAndBoundaries();
 	setShaders();
@@ -2384,6 +2292,11 @@ void Game::setShaders()
 	MESHLIGHT_DEFERRED_SPOTLIGHT = getShader("LIGHTMESH_DEFERRED_SPOTLIGHT");
 	OUTPUT = getShader("JUST_OUTPUT");
 	BOUNCE_SETUP = getShader("BOBBING_SETUP");
+	COMBINED_DRAW = getShader("COMBINED_DRAW_SHADER");
+	RADIAL_BLUR = getShader("RADIAL_BLUR");
+	HORIZONTAL_BLUR = getShader("BLUR_HORIZONTAL");
+	VERTICAL_BLUR = getShader("BLUR_VERTICAL");
+	BLUR_OUTPUT = getShader("BLUR_EMISSIVE_OUTPUT");
 }
 
 void Game::setFramebuffers()
@@ -2391,6 +2304,9 @@ void Game::setFramebuffers()
 	sceneCapture = getFramebuffer("INITIAL_SCREEN");
 	defLight = getFramebuffer("DEF_LIGHT");
 	defLight2 = getFramebuffer("DEF_LIGHT_2");
+
+	RADIAL_POST_PROC.setFormat(GL_RGB8);
+	RADIAL_POST_PROC.init(windowHeight, windowWidth);
 }
 
 void Game::setCamerasAndPlayers()

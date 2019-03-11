@@ -21,6 +21,7 @@ public:
 	float linearAtten;
 	float quadAtten;
 	float radius;
+	float intensity = 1.f;
 
 	LightType type;
 

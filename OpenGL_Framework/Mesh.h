@@ -16,6 +16,8 @@ public:
 	std::vector<vec4> dataVertex;
 	std::vector<vec4> dataTexture;
 	std::vector<vec4> dataNormal;
+	std::vector<vec4> dataTangent;
+	std::vector<vec4> dataBiTangent;
 	std::vector<vec4> dataColor;
 
 	void draw() const;
@@ -49,6 +51,7 @@ private:
 	bool _IsLoaded = false;
 	static std::string _ModelDirectory;
 
+	void calculateTangents();
 	void uploadToGPU();
 	void uploadMatsToGPU();
 };

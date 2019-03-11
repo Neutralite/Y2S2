@@ -18,6 +18,7 @@
 #include "UniformBuffer.h"
 #include "Light.h"
 #include "Framebuffer.h"
+#include "PostProcessBuffer.h"
 
 #include "BasePlate.h"
 #include "Boundary.h"
@@ -95,9 +96,10 @@ public:
 	void loadAllShaders(std::string &fileName);
 	void loadAllFramebuffers(std::string &fileName);
 	void loadAllCameras(std::string &fileName);
+	void loadAllMaterials(std::string &fileName);
 
 	void createChild(std::string &fileName, Transform* parent);
-	void createUniqueChild(std::string &fileName, Transform* parent);
+	//void createUniqueChild(std::string &fileName, Transform* parent);
 
 	void allSetup();
 
@@ -180,6 +182,8 @@ private:
 	Light* SUN;
 	Texture* overlay;
 	Texture* tRamp;
+	Texture* tDiffuse;
+	Texture* difOver;
 
 	//ShaderProgram* PassThrough;
 	ShaderProgram* EXPLOSIONSHADER;
@@ -196,6 +200,11 @@ private:
 	ShaderProgram* MESHLIGHT_DEFERRED_SPOTLIGHT;
 	ShaderProgram* OUTPUT;
 	ShaderProgram* BOUNCE_SETUP;
+	ShaderProgram* COMBINED_DRAW;
+	ShaderProgram* RADIAL_BLUR;
+	ShaderProgram* HORIZONTAL_BLUR;
+	ShaderProgram* VERTICAL_BLUR;
+	ShaderProgram* BLUR_OUTPUT;
 
 	Framebuffer* sceneCapture;
 	Framebuffer* defLight, *defLight2;
@@ -223,7 +232,18 @@ private:
 	std::vector<Stick> playerInput;
 	std::vector<Triggers> playerTriggers;
 
+	PostProcessBuffer RADIAL_POST_PROC;
+
 	bool useFirst = false;
+	float radialBlur = 0.f;
+	int radialLoops = 3;
+
+	vec3 rShift;
+	vec3 gShift;
+	vec3 bShift;
+	float shiftAmnt;
+	int bloomHeight;
+	int radialHeight;
 
 	// Scene Objects.
 	//Camera camera;
