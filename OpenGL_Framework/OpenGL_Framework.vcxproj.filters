@@ -127,6 +127,9 @@
     <ClCompile Include="Material.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -291,6 +294,9 @@
     <ClInclude Include="Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gmtk\LICENSE.md">
@@ -381,6 +387,21 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\assets\shaders\BLUR_EMISSIVE_OUTPUT.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\TextGeo.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\TextTexture.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\POST_TEXT.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\POST_TEXT.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\DepthSort.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

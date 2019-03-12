@@ -5,6 +5,7 @@ std::vector<Transform*> ResourceManager::Transforms;
 std::vector<ShaderProgram*> ResourceManager::Shaders;
 std::vector<Camera*> ResourceManager::Cameras;
 std::vector<Material*> ResourceManager::Materials;
+std::vector<Text*> ResourceManager::Fonts;
 
 std::vector<Texture*> ResourceManager::allTextures;
 std::vector<Mesh*> ResourceManager::allMeshes;
@@ -20,6 +21,7 @@ std::vector<Camera*> ResourceManager::CamerasINGAME;
 std::vector<GameObject*> ResourceManager::allGameObjectsINGAME;
 std::vector<Light*> ResourceManager::AllLightINGAME; //PLUS ULTRA
 std::vector<Weapon*> ResourceManager::allWeaponsINGAME;
+std::vector<Text*> ResourceManager::allTextINGAME;
 
 void ResourceManager::addEntity(Transform * entity)
 {
@@ -59,6 +61,13 @@ void ResourceManager::addEntity(Transform * entity)
 			allGameObjects.push_back(_GO);
 		else
 			sortAddGameObject(0, allGameObjects.size() - 1, _GO);
+	}
+	else if (Text* _T = dynamic_cast<Text*>(entity))
+	{
+		if (Fonts.size() == 0)
+			Fonts.push_back(_T);
+		else
+			sortAddFont(0, Fonts.size() - 1, _T);
 	}
 	else
 	{
@@ -153,6 +162,13 @@ void ResourceManager::addEntityINGAME(Transform * entity)
 			allGameObjectsINGAME.push_back(_GO);
 		else
 			sortAddGameObjectINGAME(0, allGameObjectsINGAME.size() - 1, _GO);
+	}
+	else if (Text* _T = dynamic_cast<Text*>(entity))
+	{
+		if (allTextINGAME.size() == 0)
+			allTextINGAME.push_back(_T);
+		else
+			sortAddTextINGAME(0, allTextINGAME.size() - 1, _T);
 	}
 	else
 	{
@@ -446,6 +462,32 @@ void ResourceManager::sortAddMaterial(unsigned int front, unsigned int back, Mat
 	}
 }
 
+void ResourceManager::sortAddFont(unsigned int front, unsigned int back, Text * ELEM)
+{
+	unsigned int mid = (front + back) / 2;
+	if (Fonts[mid]->getName() == ELEM->getName())
+	{
+		Fonts.insert(Fonts.begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if (Fonts[front]->getName() > ELEM->getName())
+			Fonts.insert(Fonts.begin() + front, ELEM);
+		else if (Fonts[back]->getName() > ELEM->getName())
+			Fonts.insert(Fonts.begin() + back, ELEM);
+		else
+			Fonts.insert(Fonts.begin() + back + 1, ELEM);
+	}
+	else if (Fonts[mid]->getName() > ELEM->getName())
+	{
+		sortAddFont(front, mid, ELEM);
+	}
+	else
+	{
+		sortAddFont(mid, back, ELEM);
+	}
+}
+
 void ResourceManager::sortAddGameObjectINGAME(unsigned int front, unsigned int back, GameObject * ELEM)
 {
 	unsigned int mid = (front + back) / 2;
@@ -573,6 +615,32 @@ void ResourceManager::sortAddWeaponINGAME(unsigned int front, unsigned int back,
 	else
 	{
 		sortAddWeaponINGAME(mid, back, ELEM);
+	}
+}
+
+void ResourceManager::sortAddTextINGAME(unsigned int front, unsigned int back, Text * ELEM)
+{
+	unsigned int mid = (front + back) / 2;
+	if (allTextINGAME[mid] == ELEM)
+	{
+		allTextINGAME.insert(allTextINGAME.begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if (allTextINGAME[front] > ELEM)
+			allTextINGAME.insert(allTextINGAME.begin() + front, ELEM);
+		else if (allTextINGAME[back] > ELEM)
+			allTextINGAME.insert(allTextINGAME.begin() + back, ELEM);
+		else
+			allTextINGAME.insert(allTextINGAME.begin() + back + 1, ELEM);
+	}
+	else if (allTextINGAME[mid] > ELEM)
+	{
+		sortAddTextINGAME(front, mid, ELEM);
+	}
+	else
+	{
+		sortAddTextINGAME(mid, back, ELEM);
 	}
 }
 
@@ -862,6 +930,32 @@ Material * ResourceManager::findMaterial(unsigned int front, unsigned int back, 
 	}
 }
 
+Text * ResourceManager::findFont(unsigned int front, unsigned int back, std::string _NAME)
+{
+	unsigned int mid = (front + back) / 2;
+	if (Fonts[mid]->getName() == _NAME)
+	{
+		return Fonts[mid];
+	}
+	else if (back - front <= 1)
+	{
+		if (Fonts[front]->getName() == _NAME)
+			return Fonts[front];
+		else if (Fonts[back]->getName() == _NAME)
+			return Fonts[back];
+		else
+			return nullptr;
+	}
+	else if (Fonts[mid]->getName() > _NAME)
+	{
+		return findFont(front, mid, _NAME);
+	}
+	else
+	{
+		return findFont(mid, back, _NAME);
+	}
+}
+
 int ResourceManager::findGameObjectINGAME(unsigned int front, unsigned int back, GameObject * _ADR)
 {
 	unsigned int mid = (front + back) / 2;
@@ -992,6 +1086,32 @@ int ResourceManager::findWeaponINGAME(unsigned int front, unsigned int back, Wea
 	}
 }
 
+int ResourceManager::findTextINGAME(unsigned int front, unsigned int back, Text * _ADR)
+{
+	unsigned int mid = (front + back) / 2;
+	if (allTextINGAME[mid] == _ADR)
+	{
+		return mid;
+	}
+	else if (back - front <= 1)
+	{
+		if (allTextINGAME[front] == _ADR)
+			return front;
+		else if (allTextINGAME[back] == _ADR)
+			return back;
+		else
+			return -1;
+	}
+	else if (allTextINGAME[mid] > _ADR)
+	{
+		return findTextINGAME(front, mid, _ADR);
+	}
+	else
+	{
+		return findTextINGAME(mid, back, _ADR);
+	}
+}
+
 Texture * ResourceManager::searchForTexture(std::string _NAME)
 {
 	if (allTextures.size() == 0)
@@ -1080,6 +1200,14 @@ Material * ResourceManager::searchForMaterial(std::string _NAME)
 		return findMaterial(0, Materials.size() - 1, _NAME);
 }
 
+Text * ResourceManager::searchForFont(std::string _NAME)
+{
+	if (Fonts.size() == 0)
+		return nullptr;
+	else
+		return findFont(0, Fonts.size() - 1, _NAME);
+}
+
 void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 {
 	destroyChildrenINGAME(_OBJ);
@@ -1123,6 +1251,15 @@ void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 		if (iter >= 0)
 		{
 			allGameObjectsINGAME.erase(allGameObjectsINGAME.begin() + iter);
+		}
+	}
+
+	if (Text* _T = dynamic_cast<Text*>(_OBJ))
+	{
+		iter = findTextINGAME(0, allTextINGAME.size() - 1, _T);
+		if (iter >= 0)
+		{
+			allTextINGAME.erase(allTextINGAME.begin() + iter);
 		}
 	}
 
@@ -1277,6 +1414,14 @@ Weapon * ResourceManager::getWeapon(std::string _NAME)
 Material * ResourceManager::getMaterial(std::string _NAME)
 {
 	Material* SUB = ResourceManager::searchForMaterial(_NAME);
+	if (!SUB)
+		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
+	return SUB;
+}
+
+Text * ResourceManager::getFont(std::string _NAME)
+{
+	Text* SUB = ResourceManager::searchForFont(_NAME);
 	if (!SUB)
 		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
 	return SUB;
@@ -1449,6 +1594,24 @@ Weapon * ResourceManager::getCloneOfWeapon(std::string _NAME)
 	}
 }
 
+Text * ResourceManager::getCloneOfText(std::string _NAME)
+{
+	Text* SUB = getFont(_NAME);
+	if (SUB)
+	{
+		Text* SUB2 = new Text;
+		*SUB2 = *SUB;
+
+		ResourceManager::addEntityINGAME(SUB2);
+		cloneChildren(SUB2);
+		return SUB2;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
 void ResourceManager::cloneChildren(Transform * _TF)
 {
 	unsigned int TFsize = _TF->getChildren().size();
@@ -1479,7 +1642,7 @@ void ResourceManager::cloneChildren(Transform * _TF)
 		else if (Weapon* SUB7 = dynamic_cast<Weapon*>(_TF2))
 		{
 			SUB7 = getCloneOfWeapon(_TF2->getName());
-			_TF->addChild(SUB3);
+			_TF->addChild(SUB7);
 		}
 		else if (GameObject* SUB4 = dynamic_cast<GameObject*>(_TF2))
 		{
@@ -1495,6 +1658,11 @@ void ResourceManager::cloneChildren(Transform * _TF)
 		{
 			SUB6 = getCloneOfCamera(_TF2->getName());
 			_TF->addChild(SUB6);
+		}
+		else if (Text* SUB8 = dynamic_cast<Text*>(_TF2))
+		{
+			SUB8 = getCloneOfText(_TF2->getName());
+			_TF->addChild(SUB8);
 		}
 		else
 		{

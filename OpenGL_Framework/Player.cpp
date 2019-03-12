@@ -244,6 +244,75 @@ vec3 Player::getAngularPosition()
 	return getPhysicsBody()->getAngularAcceleration() + Engine->getAngularAcceleration();
 }
 
+void Player::doCollision(GameObject* _GO)
+{
+	if (_GO->getPhysicsBody()->getHB() && getPhysicsBody()->getHB() && !_GO->destroyed && !_GO->destroying)
+	{
+		if (_GO->getPhysicsBody()->getHB()->enabled && getPhysicsBody()->getHB()->enabled)
+		{
+			//std::cout << _GO->getName() << std::endl;
+			if (_GO->getPhysicsBody()->getHB()->dynamic)
+			{
+
+			}
+			else if (_GO->getPhysicsBody()->getHB()->grass)
+			{
+				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				{
+					if (length(getVelocity()) > 0.f)
+					{
+						vec3 outward = normalize(getPhysicsBody()->getHB()->outDir);
+						vec3 BP1 = -outward * length(getVelocity()) * getPhysicsBody()->getMass() * 0.15f;
+						vec3 BP2 = -outward * length(getVelocity()) * getPhysicsBody()->getMass() * 0.15f;
+						_GO->applySwing(BP1, BP2, 0.7f);
+					}
+
+					_GO->needsUpdate = true;
+					needsUpdate = true;
+				}
+			}
+			else
+			{
+				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				{
+					//std::cout << length(getPhysicsBody()->getVelocity()) - getPhysicsBody()->getVelocityLimit() << std::endl;
+					if (length(Engine->getVelocity()) > Engine->getVelocityLimit() * ((float)_GO->destrPoints) * 0.1f && _GO->TT != TransformType::TYPE_Boundary)
+					{
+						_GO->initiateDestruction(0, normalize(getPhysicsBody()->getHB()->outDir), 0.5f, playerNumber);
+					}
+					else
+					{
+						vec3 centerToCollision = normalize(getPhysicsBody()->getHB()->closestPoint);
+						vec3 outward = normalize(getPhysicsBody()->getHB()->outDir);
+
+						centerToCollision.y = 0.f;
+						outward.y = 0.f;
+
+						if (dot(outward, getVelocity()) < 0)
+						{
+							pushAgainst += outward;
+						}
+
+						if (dot(outward, getVelocity()) < 0.f)
+						{
+							vec3 BP2 = getVelocity() * getPhysicsBody()->getMass() * 0.05f;
+							vec3 BP1 = (-getVelocity() + outward * 2 * dot(outward, getVelocity())) * getPhysicsBody()->getMass() * 0.05f;
+							if (length(BP1) > length(_GO->swingPoint1) || _GO->swingTime <= 0.f)
+							{
+								_GO->applySwing(BP1, BP2, 1.f);
+								//std::cout << "HELLO" << std::endl;
+							}
+
+							_GO->needsUpdate = true;
+							needsUpdate = true;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void Player::initiateDestruction(int destrType, vec3 directionOutwards)
 {
 }
@@ -251,6 +320,8 @@ void Player::initiateDestruction(int destrType, vec3 directionOutwards)
 void Player::resetToInitials()
 {
 	//std::cout << "HIYA" << std::endl;
+	POINT_TOTAL = 0;
+	//LERP_TOTAL = 0;
 	GameObject::resetToInitials();
 	Engine->reset();
 }

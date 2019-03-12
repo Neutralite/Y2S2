@@ -40,6 +40,8 @@ public:
 	vec3 getAngularVelocity();
 	vec3 getAngularPosition();
 
+	void doCollision(GameObject* _GO);
+
 	void initiateDestruction(int destrType, vec3 directionOutwards);
 
 	void resetToInitials();
@@ -48,6 +50,13 @@ public:
 	bool sendATTACK = false;
 	float steeringMultiplier = 1.f;
 
+	int POINT_TOTAL = 0;
+	int LERP_TOTAL = 0;
+
+	float playerHP = 1.f;
+	float maxHP = 1.f;
+
+	int playerNumber = 0;
 private:
 	Weapon* attack = nullptr;
 	float attackTimer = 0.f;

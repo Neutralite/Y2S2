@@ -68,6 +68,8 @@ public:
 	virtual float coolDownTime() = 0;
 
 	mat4 getLocalToWorld() const;
+
+	int ownedPlayer = 0;
 private:
 
 };

@@ -33,7 +33,7 @@ bool Weapon::tailoredCollision(GameObject * _GO)
 					centerToCollision.y = 0.f;
 					outward.y = 0.f;
 
-					_GO->initiateDestruction(0, outward, length(centerToCollision));
+					_GO->initiateDestruction(0, outward, length(centerToCollision), ownedPlayer);
 					//_GO->DirOfDestr = outward;
 					//_GO->TypeOfDestr = getDest();
 					//

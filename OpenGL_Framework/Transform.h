@@ -22,7 +22,7 @@ public:
 	std::vector<Transform*> m_pChildren;
 
 	Transform();
-	~Transform();
+	virtual ~Transform();
 
 	void addChild(Transform* newChild);
 	void removeChild(Transform* ripChild);
@@ -74,6 +74,7 @@ public:
 		TYPE_Destructable,
 		TYPE_Light,
 		TYPE_Camera,
+		TYPE_Text,
 		TYPE_Weapon,
 		TYPE_Hammer,
 		TYPE_Mine

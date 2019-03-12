@@ -43,3 +43,4 @@ defaultWhite
 defaultNormal
 Diffuse Toon
 Diffuse Overlay
+Text

@@ -184,6 +184,7 @@ void GameObject::doCollision(GameObject* _GO)
 			{
 				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
 				{
+					//std::cout << length(getPhysicsBody()->getVelocity()) - getPhysicsBody()->getVelocityLimit() << std::endl;
 					vec3 centerToCollision = normalize(getPhysicsBody()->getHB()->closestPoint);
 					vec3 outward = normalize(getPhysicsBody()->getHB()->outDir);
 
@@ -241,12 +242,13 @@ void GameObject::applySwing(vec3 P1, vec3 P2, float ratio)
 	swingTime = ratio * maxSwingTime;
 }
 
-void GameObject::initiateDestruction(int destrType, vec3 directionOutwards, float upwardsRatio)
+void GameObject::initiateDestruction(int destrType, vec3 directionOutwards, float upwardsRatio, int offendingPlayer)
 {
 	TypeOfDestr = destrType;
 	DirOfDestr = directionOutwards;
 	destroying = true;
 	goUP = upwardsRatio;
+	playerResponsible = offendingPlayer;
 	//getPhysicsBody()->getHB()->enabled = false;
 	//std::cout << getName() << std::endl;
 	//std::cout << goUP << std::endl;
@@ -292,7 +294,6 @@ void GameObject::DestructionSequence(float dt)
 			destroyed = true;
 			HIDE = true;
 			needsUpdate = false;
-
 			//std::cout << "GONE!" << std::endl;
 		}
 		else
@@ -336,5 +337,10 @@ void GameObject::DestructionSequence(float dt)
 			//std::cout << DestructionMat << std::endl;
 		}
 	}
+}
+
+mat4f GameObject::getDestrMat()
+{
+	return DestructionMat;
 }
 

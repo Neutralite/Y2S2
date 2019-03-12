@@ -47,7 +47,7 @@ public:
 	void draw();
 	void dynamicDraw();
 
-	void doCollision(GameObject* _GO);
+	virtual void doCollision(GameObject* _GO);
 
 	//VIRTUAL FUNCS FOR CHILDREN
 	virtual void setBoundingRadius(float boundingRadius) {};
@@ -61,7 +61,7 @@ public:
 
 	virtual void applySwing(vec3 P1, vec3 P2, float ratio);
 
-	virtual void initiateDestruction(int destrType, vec3 directionOutwards, float upwardsRatio);
+	virtual void initiateDestruction(int destrType, vec3 directionOutwards, float upwardsRatio, int offendingPlayer);
 	void setInitials(vec3 iPos, vec3 iRot, vec3 iScale);
 	virtual void resetToInitials();
 
@@ -83,6 +83,12 @@ public:
 	vec3 DirOfDestr;
 	int TypeOfDestr;
 	float goUP;
+
+	mat4f getDestrMat();
+
+	int destrPoints = 0;
+
+	int playerResponsible = 0;
 private:
 	Mesh* mesh;
 	//Material* _MAT;

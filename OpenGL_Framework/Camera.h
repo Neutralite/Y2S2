@@ -52,7 +52,7 @@ public:
 	void update(float dt);
 	void sendUBO() const;
 	void draw();
-	void render();
+	void render(bool useFB = true);
 	void clear();
 
 	void cull();
@@ -66,6 +66,8 @@ public:
 
 	bool cullingActive = false;
 	GameObject* m_pSkybox;
+
+	void giveNewOrthoRatio(float _ASPECT);
 private:
 	mat4 m_pProjection;
 	mat4 m_pViewMatrix;

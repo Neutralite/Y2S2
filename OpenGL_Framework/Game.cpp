@@ -71,6 +71,9 @@ void Game::initializeGame()
 	masterFile = "_CAMERA_MASTER_LIST";
 	loadAllCameras(masterFile);
 
+	masterFile = "_TEXT_MASTER_LIST";
+	loadAllFonts(masterFile);
+
 	//std::cout << "THIS FAR?" << std::endl;
 	masterFile = "_OBJECT_MASTER_LIST";
 	loadAllObjects(masterFile);
@@ -302,10 +305,19 @@ void Game::initializeGame()
 	Triggers t;
 	for (int i = 0; i < 4; i++)
 		playerTriggers.push_back(t);
+
+	updateTimer->tick();
 }
 
 void Game::update()
 {
+	if (!isInScene)
+	{
+		updateTimer->tick();
+		isInScene = true;
+	}
+
+	//std::cout << deltaTime << std::endl;
 	//getTime = true;
 	if (gameFrame > 600)
 	{
@@ -324,17 +336,20 @@ void Game::update()
 
 	gameFrame++;
 
-	std::cout << std::endl;
+	//std::cout << std::endl;
 	if (getTime)
 	{
 		std::cout << "FRAME: " << gameFrame << std::endl;
 	}
 	renderShip.clear();
+	UIRenderShip.clear();
 	updateShip.clear();
 	dynamicCollisionShip.clear();
 	staticCollisionShip.clear();
 	lightShip.clear();
 	dynamicBatchShip.clear();
+	UITextShip.clear();
+	textShip.clear();
 
 	//for (int i = 0; i < 100; i++)
 	//{
@@ -351,7 +366,7 @@ void Game::update()
 	//gameCheckTimer->tick();
 	//std::cout << ";   INITIAL: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
 
-	float deltaTime = updateTimer->getElapsedTimeSeconds();
+	deltaTime = updateTimer->getElapsedTimeSeconds();
 	TotalGameTime += deltaTime;
 
 
@@ -473,20 +488,103 @@ void Game::update()
 		}
 	}
 
-	//radialBlur -= deltaTime * 0.15f;
-	radialBlur += abs(players[0]->getAngularVelocity().y * 0.001f) * deltaTime;
-	radialBlur = lerp(0.f, radialBlur, pow(0.95f, 60.f * deltaTime));
-	//if (radialBlur < 0.f)
-	//{
-	//	radialBlur = 0.f;
-	//}
-	//if (radialBlur > 0.07f)
-	//{
-	//	radialBlur = 0.07f;
-	//}
+	for (int i = pTotals.size() - 1; i >= 0; --i)
+	{
+		pFloats[i] -= deltaTime;
+		if (pFloats[i] <= 0.f)
+		{
+			pFloats.erase(pFloats.begin() + i);
+			rm::destroyObjectINGAME(pTotals[i]);
+			pTotals.erase(pTotals.begin() + i);
+		}
+		else
+		{
+			textShip.push_back(pTotals[i]);
 
-	//SAT_DEBUG_LOG("\nLOOP END\n");
-	//std::cout << updateShip.size() << std::endl;
+			pTotals[i]->setLocalPos(pTotals[i]->getLocalPos() + vec3(0, deltaTime * 2.f, 0));
+			pTotals[i]->aS = vec3(pow(pFloats[i] * (pMax - pFloats[i]) / pMax / pMax, 0.1f)) * 1.f;
+			for (unsigned int j = 0; j < pTotals[i]->messageSize(); j++)
+			{
+				pTotals[i]->colorShift[j] = pow(vec3(cos(pFloats[i] * 6.f), cos(pFloats[i] * 6.f), 1), 2);
+			}
+		}
+	}
+
+	seconds -= deltaTime;
+
+	while (seconds < 0.f)
+	{
+		minutes--;
+		seconds += 60.f;
+	}
+	
+	timeString = std::to_string((int)seconds);
+	for (unsigned int i = 0; i < TIMER->messageSize(); i++)
+	{
+		TIMER->posOffset[i] = vec3(0.f);
+		TIMER2->posOffset[i] = vec3(0.f);
+	}
+	if (timeString.size() < 2)
+	{
+		timeString = std::to_string(minutes) + ":0" + std::to_string((int)seconds);
+	}
+	else
+	{
+		timeString = std::to_string(minutes) + ":" + std::to_string((int)seconds);
+	}
+
+	if (minutes < 0 || minutes == 0 && seconds == 0)
+	{
+		timeString = "TIME";
+	}
+
+	TIMER2->baseColor = vec3(180.f, 60.f * minutes + seconds, 60.f * minutes + seconds) / 180.f;
+	TIMER->setMessage(timeString);
+	TIMER2->setMessage(timeString);
+
+	if (minutes == 0 && seconds > 0)
+	{
+		for (unsigned int i = 0; i < TIMER->messageSize(); i++)
+		{
+			TIMER->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
+			TIMER2->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
+		}
+	}
+
+	UITextShip.push_back(TIMER);
+	UITextShip.push_back(TIMER2);
+
+	UITextShip.push_back(TUI);
+	UITextShip.push_back(TUI2);
+
+	if (players[0]->POINT_TOTAL != players[0]->LERP_TOTAL)
+	{
+		players[0]->LERP_TOTAL = lerp(players[0]->LERP_TOTAL, players[0]->POINT_TOTAL + 5, 1.f - pow(0.8f, deltaTime * 60.f));
+		if (players[0]->LERP_TOTAL > players[0]->POINT_TOTAL)
+			players[0]->LERP_TOTAL = players[0]->POINT_TOTAL;
+		TUI->setMessage(std::to_string(players[0]->LERP_TOTAL));
+		TUI2->setMessage(std::to_string(players[0]->LERP_TOTAL));
+
+		TUI->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
+		TUI2->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
+
+		TUI->setLocalPos(vec3(39 - TUI->wordLength * TUI->aS.x * 0.5f, 39, 0));
+		TUI2->setLocalPos(vec3(40 - TUI2->wordLength * TUI2->aS.x * 0.5f, 40, 0));
+	}
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		textShip[i]->update(deltaTime);
+		drawChildren(textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShip.size(); i++)
+	{
+		UITextShip[i]->update(deltaTime);
+		UIDrawChildren(UITextShip[i]);
+	}
+
+	radialBlur += abs(players[0]->getAngularVelocity().y * 0.001f) * deltaTime;
+	radialBlur = lerp(0.f, radialBlur, pow(0.90f, 60.f * deltaTime));
 
 	updateExternals(deltaTime);
 	updateAttacks(deltaTime);
@@ -519,8 +617,11 @@ void Game::draw()
 	//		totBase = renderShip[i];
 	//std::cout << totBase->getWorldPos() << std::endl;
 
+	PlayerCam->sendUBO();
 	PlayerCam->setRenderList(renderShip);
+	UIcam->setRenderList(UIRenderShip);
 	PlayerCam->cull();
+	UIcam->cull();
 	//std::cout << "-------------------------\n" << std::endl;
 
 	if (getTime)
@@ -710,6 +811,11 @@ void Game::draw()
 	}
 	OUTPUT->bind();
 	RADIAL_POST_PROC.drawToScreen();
+	glDisable(GL_DEPTH_TEST);
+	UIcam->sendUBO();
+	UIcam->render(false);
+	glEnable(GL_DEPTH_TEST);
+
 	ShaderProgram::unbind();
 
 	//RADIAL_POST_PROC.reshape(windowWidth, windowHeight);
@@ -1167,7 +1273,9 @@ void Game::reshapeWindow(int w, int h)
 
 	aspect = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 	PlayerCam->perspective(60.f, aspect, 1, 1000);
+	UIcam->giveNewOrthoRatio(aspect);
 	PlayerCam->update(0);
+	UIcam->update(0);
 
 	radialHeight = windowHeight / 4;
 	bloomHeight = windowHeight / 4;
@@ -1222,6 +1330,7 @@ void Game::drawChildren(Transform * TF, bool doLights)
 		case Transform::TransformType::TYPE_BasePlate:
 		case Transform::TransformType::TYPE_Destructable:
 		case Transform::TransformType::TYPE_Player:
+		case Transform::TransformType::TYPE_Text:
 		case Transform::TransformType::TYPE_Mine:
 		case Transform::TransformType::TYPE_Hammer:
 			renderShip.push_back(TF);
@@ -1240,6 +1349,31 @@ void Game::drawChildren(Transform * TF, bool doLights)
 		{
 			//std::cout << TF->getChildren().size() << std::endl;
 			drawChildren(TF2, keepLight);
+		}
+	}
+}
+
+void Game::UIDrawChildren(Transform* TF)
+{
+	if (!TF->HIDE)
+	{
+		switch (TF->TT)
+		{
+		case Transform::TransformType::TYPE_GameObject:
+		case Transform::TransformType::TYPE_BasePlate:
+		case Transform::TransformType::TYPE_Destructable:
+		case Transform::TransformType::TYPE_Player:
+		case Transform::TransformType::TYPE_Text:
+		case Transform::TransformType::TYPE_Mine:
+		case Transform::TransformType::TYPE_Hammer:
+			UIRenderShip.push_back(TF);
+			break;
+		}
+
+		for (Transform* TF2 : TF->getChildren())
+		{
+			//std::cout << TF->getChildren().size() << std::endl;
+			UIDrawChildren(TF2);
 		}
 	}
 }
@@ -1565,8 +1699,8 @@ void Game::protectedAddWeapon(Weapon* _W, unsigned int front, unsigned int back)
 
 void Game::generateATTACK(Player * P)
 {
-
 	Weapon* W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+	W->ownedPlayer = P->playerNumber;
 	W->worldLocation = P->getLocalToWorld();
 
 	protectedWeaponShip(W);
@@ -1620,6 +1754,8 @@ void Game::attackHIT(unsigned int index)
 						{
 							//_GO->getPhysicsBody()->getHB()->enabled = false;
 							//_GO->destroying = true;
+							//players[weaponShip[index]->ownedPlayer]->POINT_TOTAL += _GO->destrPoints;
+							//std::cout << players[weaponShip[index]->ownedPlayer]->POINT_TOTAL << std::endl;
 							_GO->needsUpdate = true;
 							protectedExternalUpdateShip(_GO);
 
@@ -1989,6 +2125,32 @@ void Game::loadAllMaterials(std::string & fileName)
 	masterFile.close();
 }
 
+void Game::loadAllFonts(std::string & fileName)
+{
+	std::ifstream masterFile;
+	masterFile.open("../assets/GameText/" + fileName + ".txt");
+	std::string temp, temp2, temp3;
+	//std::cout << fileName << std::endl;
+	while (std::getline(masterFile, temp))
+	{
+		//std::cout << temp << std::endl;
+		std::getline(masterFile, temp2);
+		std::getline(masterFile, temp3);
+
+		Text* _T = new Text;
+		if (temp3 == "p")
+			_T->init(temp, temp2, "TEXT_SHADER");
+		else
+			_T->init(temp, temp2, "TEXT_UI");
+		_T->setName(temp);
+
+		//std::cout << temp3 << std::endl;
+
+		ResourceManager::addEntity(_T);
+	}
+	masterFile.close();
+}
+
 void Game::createChild(std::string & fileName, Transform * parent)
 {
 	std::ifstream objectFiles;
@@ -2212,6 +2374,12 @@ void Game::createChild(std::string & fileName, Transform * parent)
 						obj->addTexture(_TEX);
 					}
 				}
+				else if (dataparse == "POINTS")
+				{
+					std::getline(objectFiles, dataparse);
+					obj->destrPoints = std::stoi(dataparse);
+					//std::cout << dataparse << std::endl;
+				}
 			}
 		}
 	}
@@ -2297,6 +2465,9 @@ void Game::setShaders()
 	HORIZONTAL_BLUR = getShader("BLUR_HORIZONTAL");
 	VERTICAL_BLUR = getShader("BLUR_VERTICAL");
 	BLUR_OUTPUT = getShader("BLUR_EMISSIVE_OUTPUT");
+	TEXT_SHADER = getShader("TEXT_SHADER");
+	TEXT_UI = getShader("TEXT_UI");
+	DOUTPUT = getShader("DEPTH_CHECK_OUTPUT");
 }
 
 void Game::setFramebuffers()
@@ -2304,6 +2475,8 @@ void Game::setFramebuffers()
 	sceneCapture = getFramebuffer("INITIAL_SCREEN");
 	defLight = getFramebuffer("DEF_LIGHT");
 	defLight2 = getFramebuffer("DEF_LIGHT_2");
+	UI_SCREEN = getFramebuffer("UI_SCREEN");
+	collect = getFramebuffer("COLLECT");
 
 	RADIAL_POST_PROC.setFormat(GL_RGB8);
 	RADIAL_POST_PROC.init(windowHeight, windowWidth);
@@ -2319,6 +2492,9 @@ void Game::setCamerasAndPlayers()
 
 	PlayerCam = getCloneOfCamera("PLAYER_CAM");
 	PlayerCam->setRenderList(renderShip);
+
+	UIcam = getCloneOfCamera("UI_CAM");
+	UIcam->setRenderList(UIRenderShip);
 	//players[0]->attachWeapon(ResourceManager::getWeapon("MINE"));
 
 	//PlayerCam->attachFrameBuffer(sceneCapture);
@@ -2353,6 +2529,36 @@ void Game::generateMap()
 	{
 		PL->playerInit(Player::PLAYER_TYPE::TRUCK);
 	}
+
+	TUI = rm::getCloneOfText("UISpaces");
+	TUI->baseColor = vec3(0.0f);
+	TUI->setMessage("0");
+	TUI->setLocalPos(vec3(39, 39, 0));
+	TUI->aS = vec3(4.0f);
+
+	TUI2 = rm::getCloneOfText("UISpaces");
+	TUI2->baseColor = vec3(1.0f);
+	TUI2->setMessage("0");
+	TUI2->setLocalPos(vec3(40, 40, 0));
+	TUI2->aS = vec3(4.0f);
+
+	TIMER = rm::getCloneOfText("UISpaces");
+	TIMER->baseColor = vec3(0.f);
+	TIMER->setMessage("3:00");
+	TIMER->setLocalPos(vec3(-36, 39, 0));
+	TIMER->aS = vec3(6.f);
+
+	TIMER2 = rm::getCloneOfText("UISpaces");
+	TIMER2->baseColor = vec3(1.f);
+	TIMER2->setMessage("3:00");
+	TIMER2->setLocalPos(vec3(-35, 40, 0));
+	TIMER2->aS = vec3(6.f);
+	//std::cout << TUI2->material->shader->getName() << std::endl;
+
+	UITextShip.push_back(TUI);
+	UITextShip.push_back(TUI2);
+	UITextShip.push_back(TIMER);
+	UITextShip.push_back(TIMER2);
 }
 
 void Game::performUpdates(float dt)
@@ -2364,7 +2570,9 @@ void Game::performUpdates(float dt)
 	int NY = 0;
 	for (GameObject* object : updateShip)
 	{
+
 		bool setNew = false;
+		bool destCheck = object->destroyed;
 		switch (object->TT)
 		{
 		case Transform::TransformType::TYPE_Player:
@@ -2375,6 +2583,19 @@ void Game::performUpdates(float dt)
 		default:
 			object->update(dt);
 			break;
+		}
+		
+
+		if (object->destroyed && !destCheck)
+		{
+			//std::cout << "HEGON" << std::endl;
+			players[object->playerResponsible]->POINT_TOTAL += object->destrPoints;
+			Text* jext = rm::getCloneOfText("TextSpaces");
+			jext->baseColor = vec3(1.f);
+			jext->setMessage(std::to_string(object->destrPoints));
+			jext->setLocalPos((object->getLocalToWorld() * object->getDestrMat()).translation());
+			pTotals.push_back(jext);
+			pFloats.push_back(pMax);
 		}
 
 		if (setNew)
@@ -2804,6 +3025,9 @@ void Game::resetMap()
 			}
 		}
 	}
+
+	minutes = 3;
+	seconds = 0;
 
 	for (int i = RE_SPAWN.size() - 1; i >= 0; --i)
 	{

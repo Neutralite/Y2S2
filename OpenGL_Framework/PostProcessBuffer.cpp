@@ -78,7 +78,6 @@ void PostProcessBuffer::drawToFB(Framebuffer * FB)
 	m_pReadBuffer->bindColorAsTexture(0, 0);
 	FB->renderToFSQ();
 	m_pReadBuffer->unbindTexture(0);
-	clear();
 }
 
 void PostProcessBuffer::swap()

@@ -55,3 +55,12 @@ Blur Vertical.frag
 BLUR_EMISSIVE_OUTPUT
 GenericPost.vert
 BLUR_EMISSIVE_OUTPUT.frag
+TEXT_SHADER
+TextGeo.vert
+TextTexture.frag
+TEXT_UI
+POST_TEXT.vert
+POST_TEXT.frag
+DEPTH_CHECK_OUTPUT
+GenericPost.vert
+DepthSort.frag

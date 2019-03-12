@@ -25,3 +25,4 @@ car-wash
 trailer
 street_light_texture
 EXPLOSION
+Text

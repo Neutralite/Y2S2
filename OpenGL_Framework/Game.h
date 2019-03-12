@@ -64,6 +64,7 @@ public:
 	void mouseHandler();
 	void triggerHandler();
 	void drawChildren(Transform* TF, bool doLights);
+	void UIDrawChildren(Transform* TF);
 
 	void protectedUpdateShip(GameObject* GO);
 	void protectedExternalUpdateShip(GameObject* GO);
@@ -97,6 +98,7 @@ public:
 	void loadAllFramebuffers(std::string &fileName);
 	void loadAllCameras(std::string &fileName);
 	void loadAllMaterials(std::string &fileName);
+	void loadAllFonts(std::string &fileName);
 
 	void createChild(std::string &fileName, Transform* parent);
 	//void createUniqueChild(std::string &fileName, Transform* parent);
@@ -145,14 +147,18 @@ public:
 	Timer *gameCheckTimer = nullptr;
 
 	float TotalGameTime = 0.0f;
+	float maxGameTimer = 180.f;
 	int windowWidth = WINDOW_WIDTH;
 	int windowHeight = WINDOW_HEIGHT;
 
 	bool paused = false;
 	bool getTime = false;
 
+	bool isInScene = false;
+
 	unsigned int gameFrame = 0;
 
+	float deltaTime = 0.f;
 private:
 	float tileSize = 6.f;
 
@@ -205,15 +211,20 @@ private:
 	ShaderProgram* HORIZONTAL_BLUR;
 	ShaderProgram* VERTICAL_BLUR;
 	ShaderProgram* BLUR_OUTPUT;
+	ShaderProgram* TEXT_SHADER;
+	ShaderProgram* TEXT_UI;
+	ShaderProgram* DOUTPUT;
 
-	Framebuffer* sceneCapture;
-	Framebuffer* defLight, *defLight2;
+	Framebuffer* sceneCapture, *collect;
+	Framebuffer* defLight, *defLight2, *UI_SCREEN;
 
 	Camera* PlayerCam;
+	Camera* UIcam;
 	std::vector<Player*> players;
 
 	Field* theMap;
 	std::vector<Transform*> renderShip;
+	std::vector<Transform*> UIRenderShip;
 	std::vector<GameObject*> updateShip;
 	std::vector<GameObject*> externalUpdateShip;
 	std::vector<GameObject*> dynamicCollisionShip;
@@ -223,6 +234,14 @@ private:
 	std::vector<GameObject*> shadowShip;
 	std::vector<Mesh*> dynamicBatchShip;
 	std::vector<Weapon*> weaponShip;
+	std::vector<Text*> textShip;
+	std::vector<Text*> UITextShip;
+
+	std::vector<Text*> pTotals;
+	std::vector<float> pFloats;
+	float pMax = 1.0f;
+	Text* TUI;
+	Text* TUI2;
 
 	UniformBuffer uniformBufferTime;
 	UniformBuffer uRes;
@@ -238,12 +257,21 @@ private:
 	float radialBlur = 0.f;
 	int radialLoops = 3;
 
+	int pScore = 0;
+	int lerpScore = 0;
+
 	vec3 rShift;
 	vec3 gShift;
 	vec3 bShift;
 	float shiftAmnt;
 	int bloomHeight;
 	int radialHeight;
+
+	int minutes = 3;
+	float seconds = 0;
+	std::string timeString;
+	Text* TIMER;
+	Text* TIMER2;
 
 	// Scene Objects.
 	//Camera camera;

@@ -109,12 +109,12 @@ void Camera::draw()
 
 }
 
-void Camera::render()
+void Camera::render(bool useFB)
 {
 	SAT_ASSERT(m_pUBO.isInit() == true, "Camera's uniform buffer has not been initialized!");
 	m_pUBO.bind(0);
 	
-	if (m_pFB != nullptr)
+	if (m_pFB != nullptr && useFB)
 	{
 		m_pFB->setViewport();
 		m_pFB->bind();
@@ -128,7 +128,7 @@ void Camera::render()
 		object->draw();
 	}
 
-	if (m_pFB != nullptr)
+	if (m_pFB != nullptr && useFB)
 	{
 		m_pFB->unbind();
 	}
@@ -196,7 +196,7 @@ void Camera::cull()
 
 		for (Transform* object : objectList)
 		{
-			if (object->doCull)
+			if (object->doCull && object->TT != TransformType::TYPE_Text)
 			{
 				//std::cout << "THERE WAS" << std::endl;
 				vec4 center = m_pViewMatrix * object->getLocalToWorld() * vec4(object->tCenter, 1.f);
@@ -260,4 +260,12 @@ void Camera::setRenderList(std::vector<Transform*> objects)
 void Camera::addToRenderList(std::vector<Transform*> objects)
 {
 	objectList = ResourceManager::Transforms;
+}
+
+void Camera::giveNewOrthoRatio(float _ASPECT)
+{
+	m_pOrthoSize.x = m_pOrthoSize.z * _ASPECT;
+	m_pOrthoSize.y = m_pOrthoSize.w * _ASPECT;
+
+	orthographic(m_pOrthoSize.x, m_pOrthoSize.y, m_pOrthoSize.z, m_pOrthoSize.w, m_pNear, m_pFar);
 }
