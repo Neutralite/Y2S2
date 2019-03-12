@@ -1,0 +1,5 @@
+PBR
+textureAlbedo: BLAST_ALBEDO
+textureEmissive: BLAST_RADIUS
+textureRoughness: defaultBlack
+textureMetallic: defaultBlack

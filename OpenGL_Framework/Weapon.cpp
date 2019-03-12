@@ -1,5 +1,5 @@
 #include "Weapon.h"
-#include <iostream>
+//#include <iostream>
 
 Weapon::Weapon()
 {
@@ -187,5 +187,17 @@ mat4 Weapon::getLocalToWorld() const
 
 float wFrame::tFunc(float t)
 {
-	return Attached->frameWarp(t);
+	if (LT == wFrame::LerpType::LT_LINEAR)
+		return t;
+	else if (LT == wFrame::LerpType::LT_SQUARE)
+		return t * t;
+	else if (LT == wFrame::LerpType::LT_ONE_MINUS_SQUARE)
+		return 1.f - pow(1.f - t, 2);
+	else if (LT == wFrame::LerpType::LT_HIGH_POWER)
+		return 1.f - pow(1.f - t, 6);
+	else if (LT == wFrame::LerpType::LT_SINUSOIDAL)
+		return pow(sin(t * 3.1415926535f * 0.5f), 2);
+	else
+		return t;
+	//return Attached->frameWarp(t);
 }

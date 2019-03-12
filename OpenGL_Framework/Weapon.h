@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.h"
 #include <fstream>
+#include <iostream>
 
 class Weapon;
 
@@ -24,6 +25,16 @@ public:
 		LINEAR
 	};
 
+	enum LerpType
+	{
+		LT_LINEAR,
+		LT_SQUARE,
+		LT_ONE_MINUS_SQUARE,
+		LT_SINUSOIDAL,
+		LT_HIGH_POWER
+	};
+
+	LerpType LT;
 	MutationType MT;
 
 	bool BLOWUP = false;

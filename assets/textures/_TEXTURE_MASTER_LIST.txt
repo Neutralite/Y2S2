@@ -44,3 +44,5 @@ defaultNormal
 Diffuse Toon
 Diffuse Overlay
 Text
+BLAST_RADIUS
+BLAST_ALBEDO

@@ -26,3 +26,4 @@ trailer
 street_light_texture
 EXPLOSION
 Text
+BLAST_RADIUS

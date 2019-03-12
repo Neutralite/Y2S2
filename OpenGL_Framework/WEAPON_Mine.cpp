@@ -19,7 +19,7 @@ bool Mine::weaponInit()
 
 	Weapon* _W = new Mine;
 
-	W.position = vec3(0, 0, 0);
+	W.position = vec3(0, 0.03f, 0);
 	W.rotationAngles = vec3(0, 0, 0);
 	W.duration = 1.5f;
 	W.scale = vec3(1, 1, 1);
@@ -28,19 +28,39 @@ bool Mine::weaponInit()
 	W.Attached = _W;
 	W.SP = ResourceManager::getShader("COMIC_SETUP");
 	W.weapTex = rm::getMaterial("MINE_TEXTURE");
+	W.LT = wFrame::LerpType::LT_LINEAR;
 	FRAMES.push_back(W);
 
-	W.position = vec3(0, 0, 0);
+	W.position = vec3(0, 0.03f, 0);
 	W.rotationAngles = vec3(0, 0, 0);
-	W.duration = 1.f;
+	W.duration = 0.01f;
 	W.scale = vec3(1, 1, 1);
 	W.MT = wFrame::MutationType::LINEAR;
-	W.weapMesh = ResourceManager::getMesh("EXPLOSION");
+	W.weapMesh = ResourceManager::getMesh("TESTING_BASE_PLATE");
 	W.Attached = _W;
 	W.BLOWUP = true;
 	W.SP = ResourceManager::getShader("COMIC_SETUP");
-	W.weapTex = ResourceManager::getMaterial("EXPLOSION");
+	W.weapTex = ResourceManager::getMaterial("BLAST_RADIUS");
+	W.LT = wFrame::LerpType::LT_LINEAR;
 	FRAMES.push_back(W);
+
+	W.position = vec3(0, 0.04f, 0);
+	W.rotationAngles = vec3(0, 0, 0);
+	W.duration = 0.6f;
+	W.scale = vec3(2.0f, 2.0f, 2.0f);
+	W.MT = wFrame::MutationType::LINEAR;
+	W.weapMesh = ResourceManager::getMesh("TESTING_BASE_PLATE");
+	W.Attached = _W;
+	//W.BLOWUP = true;
+	W.SP = ResourceManager::getShader("COMIC_SETUP");
+	W.weapTex = ResourceManager::getMaterial("BLAST_RADIUS");
+	W.LT = wFrame::LerpType::LT_HIGH_POWER;
+	FRAMES.push_back(W);
+
+	//for (unsigned int i = 0; i < FRAMES.size(); i++)
+	//{
+	//	std::cout << FRAMES[i].LT << std::endl;
+	//}
 
 	float accum = 0;
 	for (unsigned int i = 0; i < FRAMES.size(); i++)
@@ -157,6 +177,7 @@ void Mine::otherUpdates(float dt)
 {
 	while (currentFrame < FRAMES.size() && timeActive > FRAMES[currentFrame].timeOf + FRAMES[currentFrame].duration)
 	{
+		//std::cout << FRAMES[currentFrame].LT << ", " << currentFrame << ", " << timeActive << std::endl;
 		currentFrame++;
 		if (currentFrame < FRAMES.size())
 			if (FRAMES[currentFrame].BLOWUP)
