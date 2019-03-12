@@ -402,9 +402,9 @@ void Game::update()
 			controllers[i]->getTriggers(&playerTriggers[i]);
 
 			pUP = (playerTriggers[i].RT > 0.5f);
-			pLEFT = (playerInput[2 * i].x < -0.1f);
+			pLEFT = (playerInput[2 * i].x < -0.3f);
 			pDOWN = (playerTriggers[i].LT > 0.5f);
-			pRIGHT = (playerInput[2 * i].x > 0.1f);
+			pRIGHT = (playerInput[2 * i].x > 0.3f);
 			pATTACK = (controllers[i]->isButtonPressed(A));
 
 			P->steeringMultiplier = abs(playerInput[2 * i].x);

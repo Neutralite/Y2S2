@@ -7,22 +7,20 @@
   Game.cpp
   GameObject.cpp
   HITBOX2D.cpp
-  imgui.cpp
-  imgui_demo.cpp
-  imgui_draw.cpp
-  imgui_impl.cpp
   IO.cpp
   Light.cpp
   main.cpp
+  Material.cpp
   Mesh.cpp
   PhysicsBody.cpp
   Player.cpp
+  PostProcessBuffer.cpp
   ResourceManager.cpp
-  Compiling...
   ShaderProgram.cpp
+  Text.cpp
+  Compiling...
   Texture.cpp
   TextureCube.cpp
-  Timer.cpp
   Transform.cpp
   UI.cpp
   UniformBuffer.cpp
@@ -30,7 +28,10 @@
   Weapon.cpp
   WEAPON_Hammer.cpp
   WEAPON_Mine.cpp
+  XinputManager.cpp
   Generating code
-  All 3629 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  2003 of 4787 functions (41.8%) were compiled, the rest were copied from previous compilation.
+    1297 functions were new in current compilation
+    406 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   OpenGL_Framework.vcxproj -> C:\Users\100657516\Documents\Y2S2 loaner\Intermediate CG\Potential Candidate For Framework\INFR 2350\Release\OpenGL_Framework.exe
