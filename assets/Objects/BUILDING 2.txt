@@ -1,0 +1,9 @@
+Building Verison 1
+Texture Building v1-2
+DESTRUCTABLE
+2
+PHYS
+BUILDING_HITBOX
+false
+POINTS
+23

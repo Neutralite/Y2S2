@@ -1,0 +1,9 @@
+gas-station-store
+gas-station-store
+DESTRUCTABLE
+2.3
+PHYS
+STORE_HITBOX
+false
+POINTS
+11

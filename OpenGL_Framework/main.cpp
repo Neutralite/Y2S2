@@ -1,12 +1,9 @@
-#define _CRT_SECURE_NO_WARNINGS //Shut up microsoft
+#define _CRT_SECURE_NO_WARNINGS //Remove warnings from deprecated functions. Shut up, Microsoft.
 
-#include <GL\glew.h>
+#define NOMINMAX
 #include <windows.h>
 #include <iostream>
 #include "Game.h"
-
-
-const int FRAME_DELAY_SPRITE = 1000 / FRAMES_PER_SECOND;
 
 Game *theGame;
 
@@ -24,12 +21,21 @@ void DisplayCallbackFunction(void)
  * Description:
  *   - this handles keyboard input when a button is pressed
  */
-
 void KeyboardCallbackFunction(unsigned char key, int x, int y)
 {
 	theGame->keyboardDown(key, x, y);
-
 }
+
+void SpecialCallbackFunction(int key, int x, int y)
+{
+	theGame->keyboardSpecialDown(key, x, y);
+}
+
+void SpecialUpCallbackFunction(int key, int x, int y)
+{
+	theGame->keyboardSpecialUp(key, x, y);
+}
+
 /* function void KeyboardUpCallbackFunction(unsigned char, int, int)
  * Description:
  *   - this handles keyboard input when a button is lifted
@@ -58,7 +64,6 @@ void TimerCallbackFunction(int value)
 void MouseClickCallbackFunction(int button, int state, int x, int y)
 {
 	theGame->mouseClicked(button,state, x, y);
-	glutPostRedisplay();
 }
 
 /* function MouseMotionCallbackFunction()
@@ -68,24 +73,27 @@ void MouseClickCallbackFunction(int button, int state, int x, int y)
 void MouseMotionCallbackFunction(int x, int y)
 {
 	theGame->mouseMoved(x, y);
-	glutPostRedisplay();
 }
 
 void MousePassiveCallbackFunction(int x, int y)
 {
-	theGame->mouseMoved(x, y);
-	glutPostRedisplay();
+	theGame->mousePassive(x, y);
 }
 
-void NewWindowShape(int W, int H)
+
+/* function WindowReshapeCallbackFunction()
+* Description:
+*  - this is called whenever the window is resized
+*  - and sets up the projection matrix properly
+*/
+void WindowReshapeCallbackFunction(int w, int h)
 {
-	//theGame->resizeCameras((float)W / (float)H);
-	glViewport(0, 0, W, H);
+	/* Update our Window Properties */
+	theGame->reshapeWindow(w, h);
 }
 
 void CALLBACK OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *msg, const void *data)
 {
-	std::cout << "CALLBACK\n";
 	char buffer[9] = { '\0' };
 	sprintf(buffer, "%.8x", id);
 
@@ -99,70 +107,76 @@ void CALLBACK OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum 
 		message += "Error";
 		break;
 	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-		message += "Deprecated Behaviour";
+		message += "Deprecated behavior";
 		break;
 	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-		message += "Undefined Behaviour";
+		message += "Undefined behavior";
 		break;
 	case GL_DEBUG_TYPE_PORTABILITY:
-		message += "Portability Issue";
+		message += "Portability issue";
+		break;
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		message += "Performance issue";
 		break;
 	case GL_DEBUG_TYPE_MARKER:
-		message += "Stream Annotation";
+		message += "Stream annotation";
 		break;
 	case GL_DEBUG_TYPE_OTHER_ARB:
-	default:
-		message += "OTHER";
+		message += "Other";
 		break;
 	}
-	message += "\nSauce: ";
+
+	message += " \nSource: ";
 	switch (source)
 	{
 	case GL_DEBUG_SOURCE_API:
 		message += "API";
 		break;
 	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-		message += "Widnow System";
+		message += "Window system";
 		break;
 	case GL_DEBUG_SOURCE_SHADER_COMPILER:
-		message += "Shader Compiler";
+		message += "Shader compiler";
 		break;
 	case GL_DEBUG_SOURCE_THIRD_PARTY:
-		message += "Third Party";
+		message += "Third party";
 		break;
 	case GL_DEBUG_SOURCE_APPLICATION:
 		message += "Application";
 		break;
 	case GL_DEBUG_SOURCE_OTHER:
-	default:
 		message += "Other";
-		break;
 	}
-	message += "\nSeverity: ";
+
+	message += " \nSeverity: ";
 	switch (severity)
 	{
 	case GL_DEBUG_SEVERITY_HIGH:
-		message += "SNOOP DOG";
+		message += "HIGH";
 		break;
 	case GL_DEBUG_SEVERITY_MEDIUM:
-		message += "MEDIOCRE";
+		message += "Medium";
 		break;
 	case GL_DEBUG_SEVERITY_LOW:
-		message += "NOT EVEN";
+		message += "Low";
 		break;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
-		message += "NOTIFICATION";
-		break;
+		message += "Notification";
 	}
 
-	message += "\n";
+	message += " \n";
 	message += msg;
-	message += "\n";
+	message += " \n";
 
-	if (type == GL_DEBUG_TYPE_ERROR)
-		std::cout << "ERROR: " << message << std::endl;
+	if (type == GL_DEBUG_TYPE_ERROR || severity == GL_DEBUG_SEVERITY_HIGH)
+	{
+		SAT_DEBUG_LOG_ERROR("%s", message.c_str());
+		system("PAUSE");
+	}
 	else
-		std::cout << "WAT? " << message << std::endl;
+	{
+		SAT_DEBUG_LOG("%s", message.c_str());
+	}
 }
 
 void InitOpenGLDebugCallback()
@@ -170,43 +184,47 @@ void InitOpenGLDebugCallback()
 	glutInitContextFlags(GLUT_FORWARD_COMPATIBLE | GLUT_DEBUG);
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(OpenGLDebugCallback, NULL);
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+
+	// If you want to disable notifications from triggering the callback function, you can uncomment the code below
+	
+	//*
+	//glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, 0, GL_FALSE);
+	// */
 }
 
 int main(int argc, char **argv)
 {
 	/* initialize the window and OpenGL properly */
 	glutInit(&argc, argv);
-	glutInitContextVersion(3, 3);
+	glutInitContextVersion(4, 6);
+	glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
 	glutInitContextFlags(GLUT_CORE_PROFILE);
-
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutCreateWindow("HI");
+
+	glutCreateWindow("OpenGL Framework");
 
 	glewExperimental = true;
 
+	glewInit(); // gl* functions are captured from the drivers here.
 
-	if (glewInit() != GLEW_OK)
-	{
-		std::cout << "GLEW COULD NOT BE INITIALIZED\n.";
-		system("pause");
-		return 0;
-	}
-
-	std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
-
+	SAT_DEBUG_LOG("OpenGL version: %s", glGetString(GL_VERSION));
+	
 	/* set up our function callbacks */
 	glutDisplayFunc(DisplayCallbackFunction);
 	glutKeyboardFunc(KeyboardCallbackFunction);
+	glutSpecialFunc(SpecialCallbackFunction);
+	glutSpecialUpFunc(SpecialUpCallbackFunction);
 	glutKeyboardUpFunc(KeyboardUpCallbackFunction);
 	glutMouseFunc(MouseClickCallbackFunction);
 	glutMotionFunc(MouseMotionCallbackFunction);
 	glutPassiveMotionFunc(MousePassiveCallbackFunction);
 	glutTimerFunc(1, TimerCallbackFunction, 0);
-	glutReshapeFunc(NewWindowShape);
-	
-#ifdef _DEBUG
+	glutReshapeFunc(WindowReshapeCallbackFunction);
+	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+
+#if _DEBUG || DEBUG_LOG
 	InitOpenGLDebugCallback();
 #endif
 

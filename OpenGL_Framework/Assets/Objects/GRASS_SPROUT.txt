@@ -1,6 +1,0 @@
-Grass_Model
-Texture Grass Model
-0.4
-PHYS
-GRASS_HITBOX
-grass

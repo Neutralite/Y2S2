@@ -1,6 +1,0 @@
-bench
-bench_texture
-0.8
-PHYS
-BENCH_HITBOX
-false

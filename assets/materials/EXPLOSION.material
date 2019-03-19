@@ -1,0 +1,4 @@
+PBR
+textureEmissive: defaultWhite
+textureRoughness: defaultBlack
+textureMetallic: defaultBlack

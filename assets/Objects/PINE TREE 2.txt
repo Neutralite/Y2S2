@@ -1,0 +1,9 @@
+Tree Verison 2
+Texture Tree Model 2
+DESTRUCTABLE
+0.75
+PHYS
+TREE 2 HITBOX
+false
+POINTS
+8

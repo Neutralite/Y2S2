@@ -1,0 +1,9 @@
+car-wash
+car-wash
+DESTRUCTABLE
+2.36
+PHYS
+CARWASH_HITBOX
+false
+POINTS
+17

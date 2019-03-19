@@ -1,11 +1,6 @@
 #pragma once
+#define NOMINMAX
 #include <windows.h>
-
-#include "Shader.h"
-#include "MESH.h"
-#include "Texture.h"
-#include "FrameBuffer.h"
-
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -13,25 +8,35 @@
 #include <GL/freeglut.h>
 
 #include "Timer.h"
-#include "Camera.h"
 #include "Transform.h"
-#include "Object.h"
-#include <vector>
-#include "Field.h"
-#include <fstream>
+#include "Camera.h"
+#include "Mesh.h"
+#include "ShaderProgram.h"
+#include "Texture.h"
+#include "IO.h"
+#include "GameObject.h"
+#include "UniformBuffer.h"
+#include "Light.h"
+#include "Framebuffer.h"
+#include "PostProcessBuffer.h"
 
-#include "Jmath.h"
-#include "clickBox.h"
-#include "LIGHT_SOURCE.h"
-#include "Player.h"
+#include "BasePlate.h"
+#include "Boundary.h"
 #include "Destructable.h"
+#include "Player.h"
+#include "HITBOX2D.h"
+#include "PhysicsBody.h"
 
-#define WINDOW_WIDTH			800 //glutGet(GLUT_WINDOW_WIDTH)
-#define WINDOW_HEIGHT			432 //glutGet(GLUT_WINDOW_HEIGHT)
+#include "Field.h"
+#include "XinputManager.h"
+
+#define WINDOW_SCREEN_WIDTH		640
+#define WINDOW_SCREEN_HEIGHT	432
+#define WINDOW_WIDTH			960
+#define WINDOW_HEIGHT			720
 #define FRAMES_PER_SECOND		60
-#define BLOOM_THRESHOLD			0.25f
-#define BLOOM_DOWNSCALE			2.0f
-#define BLOOM_BLUR_PASSES		4
+
+const int FRAME_DELAY_SPRITE = 1000 / FRAMES_PER_SECOND;
 
 class Game
 {
@@ -39,37 +44,47 @@ public:
 	Game();
 	~Game();
 
-	virtual void initializeGame();
-	virtual void update();
-	virtual void draw();
+	void initializeGame();
+	void update();
+	void draw();
+	void GUI();
 
 	/* input callback functions */
 	void keyboardDown(unsigned char key, int mouseX, int mouseY);
 	void keyboardUp(unsigned char key, int mouseX, int mouseY);
+	void keyboardSpecialDown(int key, int mouseX, int mouseY);
+	void keyboardSpecialUp(int key, int mouseX, int mouseY);
 	void mouseClicked(int button, int state, int x, int y);
 	void mouseMoved(int x, int y);
+	void mousePassive(int x, int y);
+	void reshapeWindow(int w, int h);
 
 	void setKeysDown(bool down, unsigned char key);
 	void keyHandler();
 	void mouseHandler();
 	void triggerHandler();
-	void setCursorVisible(bool b) { if (!b)glutSetCursor(GLUT_CURSOR_NONE); else glutSetCursor(GLUT_CURSOR_LEFT_ARROW); };
+	void drawChildren(Transform* TF, bool doLights);
+	void UIDrawChildren(Transform* TF);
 
-	void addPostProcessLink(FrameBuffer* FB, std::vector<FrameBuffer*> PrevTexArray, std::vector<bool> allowEffect);
-	void addPostProcessLink(FrameBuffer* FB, FrameBuffer* PrevTexArray, bool allowEffect);
+	void protectedUpdateShip(GameObject* GO);
+	void protectedExternalUpdateShip(GameObject* GO);
+	void protectedAddUpdate(GameObject* _GO, unsigned int front, unsigned int back);
+	void protectedAddExternalUpdate(GameObject* _GO, unsigned int front, unsigned int back);
+	void protectedLightShip(Light* LIT);
+	void protectedAddLight(Light* LIT, unsigned int front, unsigned int back);
+	void updateExternals(float dt);
+	void addToCollisions(GameObject* GO, bool dynamic);
+	void putInStatic(GameObject* _GO, unsigned int front, unsigned int back);
+	void putInDynamic(GameObject* _GO, unsigned int front, unsigned int back);
+	void staticCollisions();
+	void batchMesh(GameObject * _GO, unsigned int front, unsigned int back);
+	void protectedBatch(GameObject* _GO);
+	void protectedWeaponShip(Weapon* _W);
+	void protectedAddWeapon(Weapon* _W, unsigned int front, unsigned int back);
 
-	bool dealWithCol(Object* O1, Object* O2);
-
-	bool dealWithExplosions(Object* EXP, Object* DESTR);
-
-	bool dealWithDestruction(Object* defender, Object* offender);
-
-	void drawMines(Object* _OBJ, mat4 previous, ShaderProgram *SP);
-	void drawExplosions(Object* _OBJ, mat4 previous, ShaderProgram *SP);
-
-	void drawObjectMesh(Object* _OBJ, mat4 previous, ShaderProgram *SP, vec3 B1P, vec3 B2P, float tT);
-	void drawUIObject(Object* _OBJ, mat4 previous, ShaderProgram *SP);
-	void drawOnlyPlayer(Object* _OBJ, mat4 previous, ShaderProgram *SP);
+	void generateATTACK(Player* P);
+	void updateAttacks(float dt);
+	void attackHIT(unsigned int index);
 
 	void loadAllTextures(std::string &fileName);
 	void loadAllMeshes(std::string &fileName);
@@ -79,125 +94,265 @@ public:
 	void loadAllHitboxes(std::string &fileName);
 	void loadAllPlayerObjects(std::string &fileName);
 	void loadAllMorphTargs(std::string &fileName);
+	void loadAllShaders(std::string &fileName);
+	void loadAllFramebuffers(std::string &fileName);
+	void loadAllCameras(std::string &fileName);
+	void loadAllMaterials(std::string &fileName);
+	void loadAllFonts(std::string &fileName);
 
-	void createChild(std::string &fileName, Object* parent, Transform TF);
+	void createChild(std::string &fileName, Transform* parent);
+	//void createUniqueChild(std::string &fileName, Transform* parent);
 
+	void allSetup();
+
+	void setBaseAndBoundaries();
+	void setShaders();
+	void setFramebuffers();
+	void setCamerasAndPlayers();
+	void generateMap();
+
+	void performUpdates(float dt);
+	void updateSingle(float dt, GameObject* _T);
+	
+	Boundary* getBoundary(std::string _NAME);
+	Destructable* getDestructable(std::string _NAME);
+	Player* getPlayer(std::string _NAME);
+	BasePlate* getBasePlate(std::string _NAME);
+	Light* getLight(std::string _NAME);
+	Hitbox2D* getHitbox(std::string _NAME);
+	Mesh* getMesh(std::string _NAME);
+	Texture* getTexture(std::string _NAME);
+	Camera* getCamera(std::string _NAME);
+	Transform* getEntity(std::string _NAME);
+	ShaderProgram* getShader(std::string _NAME);
+	GameObject* getObject(std::string _NAME);
+	Framebuffer* getFramebuffer(std::string _NAME);
+
+	Boundary* getCloneOfBoundary(std::string _NAME);
+	Destructable* getCloneOfDestructable(std::string _NAME);
+	Player* getCloneOfPlayer(std::string _NAME);
+	BasePlate* getCloneOfBasePlate(std::string _NAME);
+	Light* getCloneOfLight(std::string _NAME);
+	Camera* getCloneOfCamera(std::string _NAME);
+	Transform* getCloneOfEntity(std::string _NAME);
+	GameObject* getCloneOfObject(std::string _NAME);
+
+	void cloneChildren(Transform* _TF);
+
+	void uniqueKeyPresses();
 	void resetMap();
 
-	//void print(int x, int y, int z, char *string);
 	/* Data Members */
 	Timer *updateTimer	= nullptr;
+	Timer *gameCheckTimer = nullptr;
+
 	float TotalGameTime = 0.0f;
-	float DT = 0.017f;
+	float maxGameTimer = 180.f;
+	int windowWidth = WINDOW_WIDTH;
+	int windowHeight = WINDOW_HEIGHT;
 
-	//void resizeCameras(float ASPect);
+	bool paused = false;
+	bool getTime = false;
 
+	bool isInScene = false;
+
+	unsigned int gameFrame = 0;
+
+	float deltaTime = 0.f;
 private:
+	float tileSize = 6.f;
+
 	bool keysDown[256];
 	bool backCheckKeysDown[256];
 	bool mouseDown[10];
 	bool backCheckMouseDown[10];
 
-	std::vector<std::string> Triggers;
-	std::vector<Object*> parents;
-	std::vector<Object*> objects;
-	std::vector<Object*> toDraw;
-	std::vector<Object*> UIELEM;
-	std::vector<Object*> staticCollisions;
-	std::vector<Object*> dynamicCollisions;
-	std::vector<Object*> toUpdate;
-
-	std::vector<Object*> players;
-	std::vector<Object*> SHAKEYOBJ;
-	std::vector<Object*> SHAKEYBUFFER;
-
-	std::vector<Object*> MINEZ;
-	float MAX_MINE_TIMER = 1.f;
-	std::vector<float> MINETIMER;
-	std::vector<Object*> EXPLOSIONS;
-	float MAX_EXP_TIMER = 1.f;
-	std::vector<float> SPLODETIMER;
-	std::vector<Object*> GONE;
-	float MAX_GONE_TIMER = 1.f;
-	std::vector<float> GONETIMER;
-
-	Object* BASE_PLATE_SAND;
-	Object* BASE_PLATE_DIRT;
-	Object* BASE_PLATE_CONCRETE;
-	Object* BASE_PLATE_GRASS;
-	Object* BASE_PLATE_ROAD;
-	Object* BASE_PLATE_4WAY;
-	Object* BASE_PLATE_T;
-	Object* BASE_PLATE_CORNER;
-
-	Object* HEALTH_BAR;
-	Object* POINTS_BAR;
-	Object* TIME_BAR;
-	Object* SPED_BAR;
-
-	Object* MINE_OBJ;
-	Object* EXP_OBJ;
-
-	Light* SUN;
-	std::vector<mat4> lightMats;
-	std::vector<Light*> lightsToDraw;
-
-	std::vector<Texture*> baseTextures;
-	std::vector<TextureLayer*> textures;
-	std::vector<Mesh*> meshList;
-	std::vector<FrameBuffer*> postProcEffects;
-	std::vector<Light*> allLight; //PLUS ULTRA
-	std::vector<Hitbox2D*> allHitboxes;
-	//std::vector<Camera*> allCams;
-	
 	vec2 mousePosition, prevMousePosition;
 	vec2 DeltaMousePos;
-	float ambientLevel = 0.3f;
 
-	std::vector<vec4> placeAndTime;
-	unsigned int currentBulge = 0;
-	float currentCoolDown;
-	float coolDownExp = 0.1f;
+	float aspect;
 
-	vec3 currentGoal;
-	int pcX, pcY;
-	vec3 spawnPoint;
+	Boundary* RIGHT_WALL;
+	Boundary* LEFT_WALL;
+	Boundary* UPPER_WALL;
+	Boundary* LOWER_WALL;
 
-	float aspectRatio = 800.f / 432.f;
-	float tileSize = 6.f;
-	float cameraHeight = 12.f;
+	BasePlate* BASE_PLATE_SAND;
+	BasePlate* BASE_PLATE_DIRT;
+	BasePlate* BASE_PLATE_CONCRETE;
+	BasePlate* BASE_PLATE_GRASS;
+	BasePlate* BASE_PLATE_ROAD;
+	BasePlate* BASE_PLATE_4WAY;
+	BasePlate* BASE_PLATE_T;
+	BasePlate* BASE_PLATE_CORNER;
+	Light* SUN;
+	Texture* overlay;
+	Texture* tRamp;
+	Texture* tDiffuse;
+	Texture* difOver;
 
-	ShaderProgram PassThrough;
-	//ShaderProgram PLAYA;
-	ShaderProgram GreyScalePost;
-	ShaderProgram BloomHP;
-	ShaderProgram BloomVB;
-	ShaderProgram BloomHB;
-	ShaderProgram BloomCOMP;
+	//ShaderProgram* PassThrough;
+	ShaderProgram* EXPLOSIONSHADER;
+	ShaderProgram* MINESHADER;
+	ShaderProgram* COMIC_MINE;
+	ShaderProgram* COMIC_EXPLOSION;
+	ShaderProgram* COMIC_SETUP;
+	ShaderProgram* COMIC_EXECUTION;
+	ShaderProgram* COMIC_DEFERRED_DIRECTIONAL;
+	ShaderProgram* COMIC_DEFERRED_POINT;
+	ShaderProgram* COMIC_DEFERRED_SPOTLIGHT;
+	ShaderProgram* MESHLIGHT_DEFERRED_DIRECTIONAL;
+	ShaderProgram* MESHLIGHT_DEFERRED_POINT;
+	ShaderProgram* MESHLIGHT_DEFERRED_SPOTLIGHT;
+	ShaderProgram* OUTPUT;
+	ShaderProgram* BOUNCE_SETUP;
+	ShaderProgram* COMBINED_DRAW;
+	ShaderProgram* RADIAL_BLUR;
+	ShaderProgram* HORIZONTAL_BLUR;
+	ShaderProgram* VERTICAL_BLUR;
+	ShaderProgram* BLUR_OUTPUT;
+	ShaderProgram* TEXT_SHADER;
+	ShaderProgram* TEXT_UI;
+	ShaderProgram* DOUTPUT;
 
-	ShaderProgram UI_SHADER;
-	ShaderProgram EXPLOSIONSHADER;
-	ShaderProgram MINESHADER;
+	Framebuffer* sceneCapture, *collect;
+	Framebuffer* defLight, *defLight2, *UI_SCREEN;
 
-	Camera camera;
-	Camera UIcam;
+	Camera* PlayerCam;
+	Camera* UIcam;
+	std::vector<Player*> players;
 
-	FrameBuffer FB;
-	FrameBuffer testBuff;
-	FrameBuffer WorkBuffer1;
-	FrameBuffer WorkBuffer2;
-	FrameBuffer UISCREEN;
+	Field* theMap;
+	std::vector<Transform*> renderShip;
+	std::vector<Transform*> UIRenderShip;
+	std::vector<GameObject*> updateShip;
+	std::vector<GameObject*> externalUpdateShip;
+	std::vector<GameObject*> dynamicCollisionShip;
+	std::vector<GameObject*> staticCollisionShip;
+	std::vector<GameObject*> RE_SPAWN;
+	std::vector<Light*> lightShip;
+	std::vector<GameObject*> shadowShip;
+	std::vector<Mesh*> dynamicBatchShip;
+	std::vector<Weapon*> weaponShip;
+	std::vector<Text*> textShip;
+	std::vector<Text*> UITextShip;
 
-	Field *theMap;
-	Object* TOP_WALL;
-	Object* BOTTOM_WALL;
-	Object* LEFT_WALL;
-	Object* RIGHT_WALL;
+	std::vector<Text*> pTotals;
+	std::vector<float> pFloats;
+	float pMax = 1.0f;
+	Text* TUI;
+	Text* TUI2;
 
-	//clickBox SAVE_BUTTON;
+	UniformBuffer uniformBufferTime;
+	UniformBuffer uRes;
 
-	bool bloomActive = false;
-	bool normalRenderActive = true;
-	bool rippleActive = false;
-	bool paused = false;
+	XinputManager _INPUT;
+	std::vector<XinputController*> controllers;
+	std::vector<Stick> playerInput;
+	std::vector<Triggers> playerTriggers;
+
+	PostProcessBuffer RADIAL_POST_PROC;
+
+	bool useFirst = false;
+	float radialBlur = 0.f;
+	int radialLoops = 3;
+
+	int pScore = 0;
+	int lerpScore = 0;
+
+	vec3 rShift;
+	vec3 gShift;
+	vec3 bShift;
+	float shiftAmnt;
+	int bloomHeight;
+	int radialHeight;
+
+	int minutes = 3;
+	float seconds = 0;
+	std::string timeString;
+	Text* TIMER;
+	Text* TIMER2;
+
+	// Scene Objects.
+	//Camera camera;
+	//Camera camera2;
+	//
+	//Framebuffer framebuffer;
+	//Framebuffer framebufferTV;
+	//GBuffer gbuffer;
+	//
+	//Mesh meshSphere;
+	//Mesh meshSkybox;
+	//Mesh meshLight;
+	//Mesh meshPlane;
+	//Mesh meshCube;
+	//Mesh meshStan;
+	//
+	//GameObject goStan;
+	//GameObject goSun;
+	//GameObject goEarth;
+	//GameObject goEarthPlane;
+	//GameObject goMoon;
+	//GameObject goJupiter;
+	//GameObject goJupiterMoon[2];
+	//GameObject goSaturn;
+	//GameObject goSaturnRings;
+	//GameObject goSkybox;
+	//GameObject goTV;
+	//
+	//GameObject goLight;
+	//
+	//std::vector<GameObject*> goPlanets;
+	//
+	//// OpenGL Handles
+	//ShaderProgram shaderBasic;
+	////ShaderProgram shaderTexture;
+	//ShaderProgram shaderSky;
+	//ShaderProgram shaderTextureAlphaDiscard;
+	//ShaderProgram shaderTextureJupiter;
+	//
+	//ShaderProgram shaderGbuffer;
+	//ShaderProgram shaderPointLight;
+	//
+	//ShaderProgram shaderPassthrough;
+	//ShaderProgram shaderGrayscale;
+	//
+	//UniformBuffer uniformBufferTime;
+	//UniformBuffer uniformBufferLightScene;
+	//UniformBuffer uniformBufferLight;
+	//Light light;
+	//UniformBuffer uniformBufferToon;
+	//std::vector<Texture*> textureToonRamp;
+
+	bool guiEnabled = true;
+
+	//struct KeyInput
+	//{
+	//	bool moveLeft = false;
+	//	bool moveRight = false;
+	//	bool moveUp = false;
+	//	bool moveDown = false;
+	//	bool moveForward = false;
+	//	bool moveBackward = false;
+	//
+	//	bool rotateUp = false;
+	//	bool rotateDown = false;
+	//	bool rotateLeft = false;
+	//	bool rotateRight = false;
+	//
+	//
+	//	bool ctrlL = false;
+	//	bool ctrlR = false;
+	//	bool shiftL = false;
+	//	bool shiftR = false;
+	//	bool altL = false;
+	//	bool altR = false;
+	//
+	//	vec2 mouseMovement = vec2(0.0f);
+	//	vec2 mousePos = vec2(0.0f);
+	//	vec2 mousePosOld = vec2(0.0f);
+	//	vec2 mousePosGUI = vec2(10.0f, 20.0f);
+	//	
+	//	bool f11 = false;
+	//} input;
 };

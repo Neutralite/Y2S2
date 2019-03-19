@@ -1,6 +1,18 @@
 #pragma once
-#include "Transform.h"
-#include "LERP.h"
+#include "GameObject.h"
+#include "UniformBuffer.h"
+#include "Framebuffer.h"
+#include <vector>
+
+/*
+  ////////////
+ // Camera //
+////////////
+
+The Camera class uses the transform class to position the View Matrix, along 
+with tracking which objects should be drawn, and whether they should be culled
+
+*/
 
 enum ProjectionType
 {
@@ -8,11 +20,20 @@ enum ProjectionType
 	Orthographic
 };
 
+enum class ClearFlag
+{
+	Skybox,
+	SolidColor,
+	DepthOnly,
+	NoClear
+};
+
 class Camera : public Transform
 {
 public:	
 	Camera();
 	Camera(ProjectionType projType);
+	~Camera();
 
 	void perspective(
 		float fovy, float aspect, 
@@ -23,25 +44,48 @@ public:
 		float bottom, float top,
 		float zNear, float zFar);
 
+	static void init();
 	mat4 getView() const;
+	mat4 getViewProjection() const;
 	mat4 getProjection() const;
+	mat4* getViewProjectionPtr();
+	void update(float dt);
+	void sendUBO() const;
+	void draw();
+	void render(bool useFB = true);
+	void clear();
 
-	void camChase(float dt)
-	{
-		setPosition(LP::LERP(getPosition(), chasePos, pow(0.25f, 60.f * dt)));
-		if ((getPosition() - chasePos).Length() < 0.01f)
-			setPosition(chasePos);
-	}
+	void cull();
+	void sort();
 
-	void setChasePosition(vec3 _POS)
-	{
-		chasePos = _POS;
-	}
+	void attachFrameBuffer(Framebuffer* fb);
+	Framebuffer* getFrameBuffer();
+	
+	void setRenderList(std::vector<Transform*> objects);
+	void addToRenderList(std::vector<Transform*> objects);
 
-	float FOVy, ASPECT;
+	bool cullingActive = false;
+	GameObject* m_pSkybox;
 
+	void giveNewOrthoRatio(float _ASPECT);
 private:
-	ProjectionType projectionType = ProjectionType::Perspective;
-	mat4 projection;
-	vec3 chasePos;
+	mat4 m_pProjection;
+	mat4 m_pViewMatrix;
+		
+	vec4 m_pOrthoSize;
+	vec2 m_pFov;
+	float m_pAspectRatio;
+	float m_pNear;
+	float m_pFar;
+	ProjectionType m_pProjectionType = ProjectionType::Perspective;
+public:
+	ClearFlag m_pClearFlag = ClearFlag::SolidColor;
+	vec4 m_pClearColor = vec4(0, 0, 0, 0);
+private:
+
+	std::vector<Transform*> objectList;
+	std::vector<Transform*> cullList;
+
+	static UniformBuffer m_pUBO;
+	Framebuffer* m_pFB;
 };

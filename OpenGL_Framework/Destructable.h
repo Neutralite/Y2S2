@@ -1,12 +1,18 @@
 #pragma once
-#include "Object.h"
+#include "GameObject.h"
 
-class Destructable : public Object
+class Destructable : public GameObject
 {
 public:
 	Destructable();
-	//Destructable(Object* _OBJ, std::string _NAME, int _MAX_HP);
 	~Destructable();
-	virtual void updatePhysics(float dt);
+
+	void setBob(float bob);
+	float getBob();
+	void draw();
+	void update(float dt);
+
+	vec3 bezierPoint();
 private:
+	float randomBob;
 };

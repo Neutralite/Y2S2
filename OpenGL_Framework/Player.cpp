@@ -1,234 +1,327 @@
 #include "Player.h"
-#include <fstream>
 #include <iostream>
 
 Player::Player()
 {
+	TT = TransformType::TYPE_Player;
 }
 
 Player::~Player()
 {
 }
 
+void Player::playerInit(PLAYER_TYPE PT)
+{
+	direction = getLocalRot().forward();
+	right = getLocalRot().right();
+
+	//std::cout << direction << std::endl;
+
+	Yangle = 0.f;
+	Engine = new PhysicsBody();
+	if (PT == PLAYER_TYPE::TRUCK)
+	{
+		Engine->setFriction(40.f);
+		Engine->setVelocityLimit(30.f);
+		baseAcceleration = 100.f;
+		steeringForce = 720.f;
+		Engine->setAngularFriction(0.f);
+		Engine->setAngularVelocityLimit(180.f);
+
+		getPhysicsBody()->setFriction(40.f);
+		getPhysicsBody()->setVelocityLimit(30.f);
+		getPhysicsBody()->setAngularFriction(0.f);
+		getPhysicsBody()->setAngularVelocityLimit(180.f);
+	}
+
+
+	
+	//std::cout << Engine << std::endl;
+}
+
+void Player::setBob(float bob)
+{
+	randomBob = bob;
+}
+
+void Player::sendInput(bool type, PLAYER_IN pin)
+{
+	switch (pin)
+	{
+	case PLAYER_IN::UP:
+		mUP = type;
+		break;
+	case PLAYER_IN::DOWN:
+		mDOWN = type;
+		break;
+	case PLAYER_IN::LEFT:
+		mLEFT = type;
+		break;
+	case PLAYER_IN::RIGHT:
+		mRIGHT = type;
+		break;
+	case PLAYER_IN::ATTACK:
+		mATTACK = type;
+		break;
+	}
+}
+
+float Player::getBob()
+{
+	return randomBob;
+}
+
+void Player::update(float dt)
+{
+	if (Engine)
+		updatePhysics(dt);
+	Transform::update(dt);
+
+	if (attackTimer >= 0.f)
+		attackTimer -= dt;
+	else
+		attackTimer = 0.f;
+
+	//Insert stuff here to make sure the weapon is removed when the number of them is used up
+
+	sendATTACK = false;
+	if (mATTACK && attackTimer < 0.f)
+		performAttack(dt);
+
+	needsUpdate = false;
+
+	direction = getLocalRot().forward();
+}
+
+void Player::performAttack(float dt)
+{
+	if (attack)
+	{
+		sendATTACK = true;
+		attackTimer = attack->coolDownTime();
+	}
+}
+
 void Player::updatePhysics(float dt)
 {
+	vec3 move = vec3(0, 0, 0);
 
-	vChase = LP::LERP(vChase, getPhysicsBody()->velocity, 0.1f);
-	vApart = getPhysicsBody()->velocity - vChase;
-	vSub = getPhysicsBody()->vDir;
-	dealWithInputs(dt);
+	Yangle = getLocalEuler().y;
+
+	//direction = getLocalRot().forward();
+
+	float steer = 0;
+	if (mUP)
+		move -= direction;
+	if (mLEFT)
+		steer += steeringForce;
+	if (mDOWN)
+		move += direction;
+	if (mRIGHT)
+		steer -= steeringForce;
+
+	if (length(move) > 0)
+	{
+		move = normalize(move) * baseAcceleration;
+		Engine->addForce(move);
+	}
+
+	if (dot(Engine->getVelocity(), direction) > 0)
+		steer *= -1.f;
+
+	float velRat = pow(length(Engine->getVelocity()) / Engine->getVelocityLimit(), 2);
+
+	Engine->setAngularVelocity(vec3(0, steer * min(velRat, Engine->getAngularVelocityLimit()) * steeringMultiplier, 0));
+	Engine->setVelocity(mat3::rotatey(degrees(Engine->getRotationAngles().y)) * Engine->getVelocity());
+	
+	bool putBack = false;
+
+	if (length(pushAgainst) > 0)
+	{
+		pushAgainst = normalize(pushAgainst);
+		getPhysicsBody()->setVelocity((getVelocity() - (pushAgainst * 2.f * dot(getVelocity(), pushAgainst))) * 0.6f);
+		Engine->setVelocity(vec3(0.f));
+		putBack = true;
+	}
+
+	Engine->update(dt);
 	getPhysicsBody()->update(dt);
 
-	getPhysicsBody()->position.y = 0;
-	getPhysicsBody()->velocity.y = 0;
-	TranslateBy(getPhysicsBody()->position);
-	RotateBy(getPhysicsBody()->rotationAngles);
-	getPhysicsBody()->acceleration *= 0;
-	getPhysicsBody()->position *= 0;
-	getPhysicsBody()->rotationAngles *= 0;
-	float DD = Dot(getPhysicsBody()->vDir, vec3(0, 0, -1));
-	float CD = ToDegrees(acos(DD));
-	if (DD < 1.f && DD > -1.f)
+	catchUpVel = lerp(catchUpVel, Engine->getVelocity() + getPhysicsBody()->getVelocity(), 1.f - pow(0.9f, 60.f * dt));
+	lerpVel = Engine->getVelocity() + getPhysicsBody()->getVelocity() - catchUpVel;
+
+	if (putBack)
 	{
-		CD *= -Cross(getPhysicsBody()->vDir, vec3(0, 0, -1)).GetNormalized().y;
+		setLocalPos(getLocalPos() + getPhysicsBody()->getPosition());
 	}
+	else
+	{
+		setLocalPos(getLocalPos() + getPhysicsBody()->getPosition() + Engine->getPosition());
+	}
+	setLocalRotY(getLocalEuler().y + getPhysicsBody()->getRotationAngles().y + Engine->getRotationAngles().y);
 
-	//if (!(getPhysicsBody()->goingForward))
-	//{
-	//	CD = CD + 180;
-	//}
-	//CD = fmod(CD, 360.f);
-
-	getOrientation()->setRotationAngleY(CD);
+	pushAgainst = vec3(0.f);
 }
 
-void Player::giveInput(char A, bool B)
+void Player::draw()
 {
-	//if (B == true)
+	//if (getMesh() && !HIDE)
 	//{
-	//	vec3 acc = vec3(0, 0, 0);
-	//	if (A == 'U')
+	//	//std::cout << "DRAWINGPLAYER" << std::endl;
+	//	getShader()->bind();
+	//	getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
+	//	getShader()->sendUniform("bob", randomBob);
+	//	if (length(lerpVel) > 0)
+	//		getShader()->sendUniform("sway", -normalize(lerpVel) * 0.5f * (1.f - (float)pow(2, 0.1f * -length(lerpVel))));
+	//	else
+	//		getShader()->sendUniform("sway", vec3());
+	//	//std::cout << getShader()->getName() << std::endl;
+	//	int i = 0;
+	//	for (Texture* texture : *(getTextures()))
 	//	{
-	//		acc.z -= 1.f;
+	//		texture->bind(i++);
 	//	}
-	//	else if (A == 'D')
+	//	getMesh()->draw();
+	//	for (Texture* texture : *(getTextures()))
 	//	{
-	//		acc.z += 1.f;
+	//		texture->unbind(--i);
 	//	}
-	//	else if (A == 'L')
-	//	{
-	//		acc.x -= 1.f;
-	//	}
-	//	else if (A == 'R')
-	//	{
-	//		acc.x += 1.f;
-	//	}
-	//
-	//	if (acc.LengthSquared() > 0)
-	//	{
-	//		acc = acc.GetNormalized() * getPhysicsBody()->baseAcc;
-	//	}
-	//	
-	//	getPhysicsBody()->acceleration = acc;
 	//}
-	keys[A - 1] = B;
-}
 
-void Player::dealWithInputs(float dt)
-{
-	vec3 acc = vec3(0, 0, 0);
-	vec3 trueAcc = acc;
-	float maxSteer = 5000.f;
-
-	float air = ToRadians(getOrientation()->getRotationAngleY());
-
-	if (keys['U' - 1])
+	if (getMesh() && getMaterial() && !HIDE)
 	{
-		acc.z -= 1.f * cos(air);
-		acc.x -= 1.f * sin(air);
-	}
-	if (keys['D' - 1])
-	{
-		acc.z += 1.f * cos(air);
-		acc.x += 1.f * sin(air);
-	}
-	if (keys['L' - 1])
-	{
-		acc.x -= 1.f * cos(air);
-		acc.z += 1.f * sin(air);
-	}
-	if (keys['R' - 1])
-	{
-		acc.x += 1.f * cos(air);
-		acc.z -= 1.f * sin(air);
-	}
-
-	if (acc.LengthSquared() > 0)
-	{
-		acc = acc.GetNormalized() * getPhysicsBody()->baseAcc;
-		//std::cout << getPhysicsBody()->velocity.Length() << " <--"  << std::endl;
-
-		//bool FW = (Dot(acc, getPhysicsBody()->direction) >= 0);
-		//getPhysicsBody()->goingForward = FW;
-		
-		//if (Dot(getPhysicsBody()->direction, acc) >= 0)
-		//{
-		//std::cout << Dot(getPhysicsBody()->direction, acc.GetNormalized()) << std::endl;
-		float vom = getPhysicsBody()->velocity.Length() / getPhysicsBody()->velocityLimit;
-		if (Dot(getPhysicsBody()->direction, acc.GetNormalized()) >= -0.95f * vom)
+		getMaterial()->bind();
+		getMaterial()->sendUniforms();
+		getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
+		getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
+		getShader()->sendUniform("bob", randomBob);
+		if (length(lerpVel) > 0)
+			getShader()->sendUniform("sway", -normalize(lerpVel) * 0.5f * (1.f - (float)pow(2, 0.1f * -length(lerpVel))));
+		else
+			getShader()->sendUniform("sway", vec3());
+		int i = 0;
+		for (Texture* texture : *(getTextures()))
 		{
-			if (ToDegrees(acos(Dot(acc.GetNormalized(), getPhysicsBody()->direction.GetNormalized()))) > maxSteer * vom * vom * dt)
+			texture->bind(i++);
+		}
+		//if (mesh->amntOfSpace > 0)
+		getMesh()->draw();
+		for (Texture* texture : *(getTextures()))
+		{
+			texture->unbind(--i);
+		}
+	}
+}
+
+void Player::attachWeapon(Weapon * W)
+{
+	attack = W;
+	attackTimer = 0.f;
+}
+
+Weapon * Player::getWeapon()
+{
+	return attack;
+}
+
+vec3 Player::getVelocity()
+{
+	return getPhysicsBody()->getVelocity() + Engine->getVelocity();
+}
+
+vec3 Player::getAcceleration()
+{
+	return getPhysicsBody()->getAcceleration() + Engine->getAcceleration();
+}
+
+vec3 Player::getAngularVelocity()
+{
+	return getPhysicsBody()->getAngularVelocity() + Engine->getAngularVelocity();
+}
+
+vec3 Player::getAngularPosition()
+{
+	return getPhysicsBody()->getAngularAcceleration() + Engine->getAngularAcceleration();
+}
+
+void Player::doCollision(GameObject* _GO)
+{
+	if (_GO->getPhysicsBody()->getHB() && getPhysicsBody()->getHB() && !_GO->destroyed && !_GO->destroying)
+	{
+		if (_GO->getPhysicsBody()->getHB()->enabled && getPhysicsBody()->getHB()->enabled)
+		{
+			//std::cout << _GO->getName() << std::endl;
+			if (_GO->getPhysicsBody()->getHB()->dynamic)
 			{
-				//std::cout << acc.x << ", " << acc.z << std::endl;
-				if (Dot(acc.GetNormalized(), getPhysicsBody()->direction) >= -0.99f)
-				{				//std::cout << acc.x << ", " << acc.z << std::endl;
 
-					float tVal = ToDegrees(acos(Dot(acc.GetNormalized(), getPhysicsBody()->direction)));
-
-					//std::cout << tVal << std::endl;
-					if (Dot(acc.GetNormalized(), getPhysicsBody()->direction) > 0.9999f)
+			}
+			else if (_GO->getPhysicsBody()->getHB()->grass)
+			{
+				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				{
+					if (length(getVelocity()) > 0.f)
 					{
-						acc += vec3(acc.z, 0, -acc.x) * 0.01f;
-						acc = acc.GetNormalized();
-						tVal = ToDegrees(acos(Dot(acc.GetNormalized(), getPhysicsBody()->direction)));
+						vec3 outward = normalize(getPhysicsBody()->getHB()->outDir);
+						vec3 BP1 = -outward * length(getVelocity()) * getPhysicsBody()->getMass() * 0.15f;
+						vec3 BP2 = -outward * length(getVelocity()) * getPhysicsBody()->getMass() * 0.15f;
+						_GO->applySwing(BP1, BP2, 0.7f);
 					}
-					//std::cout << Dot(acc.GetNormalized(), getPhysicsBody()->direction) << std::endl;
-					trueAcc = LP::SLERP(getPhysicsBody()->direction, acc.GetNormalized(), vec3(0, 0, 0), maxSteer * vom * vom * dt / tVal) * getPhysicsBody()->baseAcc;
-					//std::cout << trueAcc.x << ", " << trueAcc.y << ", " << trueAcc.z << std::endl;
-					//std::cout << "DIS PAT" << std::endl;
+
+					_GO->needsUpdate = true;
+					needsUpdate = true;
 				}
 			}
 			else
 			{
-				trueAcc = acc;
-				//std::cout << "NO DIS PAT" << std::endl;
-			}
-			//std::cout << "FORW!" << std::endl;
-		}
-		else// if (Dot(getPhysicsBody()->direction, acc.GetNormalized()) < -0.9f * getPhysicsBody()->velocity.Length() / getPhysicsBody()->velocityLimit)
-		{
-			//std::cout << "BACKW!" << std::endl;
-			trueAcc = -getPhysicsBody()->direction * getPhysicsBody()->baseAcc;
-			//if (Dot(trueAcc, getPhysicsBody()->velocity) > 0)
-			//{
-			//	trueAcc *= -1;
-			//}
-			//else
-			//{
-				if (trueAcc.Length() * dt > getPhysicsBody()->velocity.Length())
+				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
 				{
-					getPhysicsBody()->goingForward = !getPhysicsBody()->goingForward;
-					vec3 dCheck = getPhysicsBody()->direction;
-					if ((getPhysicsBody()->velocity + trueAcc * dt).LengthSquared() > 0)
+					//std::cout << length(getPhysicsBody()->getVelocity()) - getPhysicsBody()->getVelocityLimit() << std::endl;
+					if (length(Engine->getVelocity()) > Engine->getVelocityLimit() * ((float)_GO->destrPoints) * 0.1f && _GO->TT != TransformType::TYPE_Boundary)
 					{
-						dCheck = (getPhysicsBody()->velocity + trueAcc * dt).GetNormalized();
-						if (!getPhysicsBody()->goingForward)
-							dCheck *= -1;
+						_GO->initiateDestruction(0, normalize(getPhysicsBody()->getHB()->outDir), 0.5f, playerNumber);
 					}
-					if (Dot(dCheck, getPhysicsBody()->vDir) < 0)
-						getPhysicsBody()->goingForward = !getPhysicsBody()->goingForward;
-					//std::cout << "ARE YA SWAPPING?" << std::endl;
-					//std::cout << Dot(getPhysicsBody()->velocity, getPhysicsBody()->direction) << std::endl;
-					//std::cout << getPhysicsBody()->velocity.Length() << std::endl;
-					//std::cout << trueAcc.Length() * dt << std::endl;
-					//
-					//std::cout << "-------" << std::endl;
+					else
+					{
+						vec3 centerToCollision = normalize(getPhysicsBody()->getHB()->closestPoint);
+						vec3 outward = normalize(getPhysicsBody()->getHB()->outDir);
+
+						centerToCollision.y = 0.f;
+						outward.y = 0.f;
+
+						if (dot(outward, getVelocity()) < 0)
+						{
+							pushAgainst += outward;
+						}
+
+						if (dot(outward, getVelocity()) < 0.f)
+						{
+							vec3 BP2 = getVelocity() * getPhysicsBody()->getMass() * 0.05f;
+							vec3 BP1 = (-getVelocity() + outward * 2 * dot(outward, getVelocity())) * getPhysicsBody()->getMass() * 0.05f;
+							if (length(BP1) > length(_GO->swingPoint1) || _GO->swingTime <= 0.f)
+							{
+								_GO->applySwing(BP1, BP2, 1.f);
+								//std::cout << "HELLO" << std::endl;
+							}
+
+							_GO->needsUpdate = true;
+							needsUpdate = true;
+						}
+					}
 				}
-				//std::cout << "NO, IT DIS" << std::endl;
-			//}
+			}
 		}
-		//}
-		//else
-		//{
-		//	if (ToDegrees(acos(Dot(acc.GetNormalized(), -getPhysicsBody()->direction.GetNormalized()))) > maxSteer * getPhysicsBody()->velocity.Length() * dt)
-		//	{
-		//		trueAcc = LP::SLERP(-getPhysicsBody()->direction.GetNormalized(), acc.GetNormalized(), vec3(0, 0, 0), maxSteer * getPhysicsBody()->velocity.Length() * dt / ToDegrees(acos(Dot(acc.GetNormalized(), -getPhysicsBody()->direction.GetNormalized())))) * getPhysicsBody()->baseAcc;
-		//		//std::cout << trueAcc.x << ", " << trueAcc.y << ", " << trueAcc.z << std::endl;
-		//	}
-		//	else
-		//	{
-		//		trueAcc = acc;
-		//	}
-		//}
-		//if (Dot(getPhysicsBody()->velocity, getPhysicsBody()->direction) < 0)
-		//{
-		//	trueAcc = -getPhysicsBody()->velocity.GetNormalized() * getPhysicsBody()->baseAcc;
-		//}
-		//else
-		//{
-		//	if (ToDegrees(acos(Dot(acc.GetNormalized(), getPhysicsBody()->direction.GetNormalized()))) > maxSteer * getPhysicsBody()->velocity.Length() * dt)
-		//	{
-		//		trueAcc = LP::SLERP(getPhysicsBody()->direction.GetNormalized(), acc.GetNormalized(), vec3(0, 0, 0), maxSteer * getPhysicsBody()->velocity.Length() * dt / ToDegrees(acos(Dot(acc.GetNormalized(), getPhysicsBody()->direction.GetNormalized()))));
-		//	}
-		//	else
-		//	{
-		//		trueAcc = acc;
-		//	}
-		//}
-		
-		//if (Dot(getPhysicsBody()->velocity, acc) >= 0 && FW)
-		//{
-		//	if ()
-		//}
 	}
-
-
-	//std::cout << trueAcc.Length() << std::endl;
-	getPhysicsBody()->acceleration = trueAcc;
 }
 
-void Player::setCam(Camera * cam)
+void Player::initiateDestruction(int destrType, vec3 directionOutwards)
 {
-	pCam = cam;
 }
 
-vec3* Player::getTilt()
+void Player::resetToInitials()
 {
-	return &vApart;
-	//std::cout << vApart.x << ", " << vApart.y << ", " << vApart.z << std::endl;
-}
-
-Camera * Player::getCam()
-{
-	return pCam;
+	//std::cout << "HIYA" << std::endl;
+	POINT_TOTAL = 0;
+	//LERP_TOTAL = 0;
+	GameObject::resetToInitials();
+	Engine->reset();
 }

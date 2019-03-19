@@ -1,0 +1,9 @@
+Apartment Verison 1
+Texture Apartment v1
+DESTRUCTABLE
+2.2
+PHYS
+APARTMENT_HITBOX
+false
+POINTS
+20

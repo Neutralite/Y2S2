@@ -37,12 +37,14 @@ void Hitbox2D::loadFromFile(std::string & fileName)
 			vec3 aPOINT;
 			std::sscanf(inputString, "v %f %f %f", &aPOINT.x, &aPOINT.y, &aPOINT.z);
 			tempPoints.push_back(vec3(aPOINT.x, 0, aPOINT.z));
-			if (aPOINT.Length() > maxRad)
-				maxRad = aPOINT.Length();
+			//if (aPOINT.Length() > maxRad)
+			//	maxRad = aPOINT.Length();
+			if (length(aPOINT) > maxRad)
+				maxRad = length(aPOINT);
 		}
 		else if (inputString[0] == 'f' && inputString[1] == ' ')
 		{
-			int IN[CHAR_BUFFER_SIZE];
+			//int IN[CHAR_BUFFER_SIZE];
 			//int BAM = 0;
 			//for (int i = 0; i < CHAR_BUFFER_SIZE; i++)
 			//{
@@ -91,22 +93,24 @@ void Hitbox2D::loadFromFile(std::string & fileName)
 		}
 	}
 
-	for (int i = 0; i < points.size(); i++)
+	for (int i = 0; i < (int)points.size(); i++)
 	{
-		normals.push_back((Cross(points[(i + 1) % points.size()] - points[i], vec3(0, 1, 0))).GetNormalized());
+		//normals.push_back((Cross(points[(i + 1) % points.size()] - points[i], vec3(0, 1, 0))).GetNormalized());
+		normals.push_back(normalize(cross(points[(i + 1) % points.size()] - points[i], vec3(0, 1, 0))));
 	}
 
 	enabled = true;
 }
 
-bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldMat)
+bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 ownWorldMat, mat4 otherWorldMat, bool showRes)
 {
 
 	if (enabled && h->enabled)
 	{
-		if ((*ownWorldMat * vec4(0, 0, 0, 1) - *otherWorldMat * vec4(0, 0, 0, 1)).Length() > maxRad + h->maxRad)
+		if (length(ownWorldMat.translation() - otherWorldMat.translation()) > maxRad + h->maxRad)
 		{
-			//std::cout << "aHA!" << std::endl;
+			//if (showRes)
+			//	std::cout << otherWorldMat.translation() << ", " << ownWorldMat.translation() << std::endl;
 			return false;
 		}
 		else
@@ -115,53 +119,22 @@ bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldM
 			std::vector<vec3> nW1;
 			std::vector<vec3> pW2;
 			std::vector<vec3> nW2;
-			for (int i = 0; i < points.size(); i++)
+			for (int i = 0; i < (int)points.size(); i++)
 			{
-				vec4 n1 = *ownWorldMat * vec4(points[i], 1);
-				vec4 n2 = *ownWorldMat * vec4(normals[i], 0);
-				pW1.push_back(vec3(n1.x, n1.y, n1.z));
-				nW1.push_back(vec3(n2.x, n2.y, n2.z));
+				vec4 n1 = ownWorldMat * vec4(points[i], 1);
+				vec4 n2 = ownWorldMat * vec4(normals[i], 0);
+				pW1.push_back(n1.xyz);
+				nW1.push_back(n2.xyz);
 			}
-			for (int i = 0; i < h->points.size(); i++)
+			for (int i = 0; i < (int)h->points.size(); i++)
 			{
-				vec4 n1 = *otherWorldMat * vec4(h->points[i], 1);
-				vec4 n2 = *otherWorldMat * vec4(h->normals[i], 0);
-				pW2.push_back(vec3(n1.x, n1.y, n1.z));
-				nW2.push_back(vec3(n2.x, n2.y, n2.z));
+				vec4 n1 = otherWorldMat * vec4(h->points[i], 1);
+				vec4 n2 = otherWorldMat * vec4(h->normals[i], 0);
+				pW2.push_back(n1.xyz);
+				nW2.push_back(n2.xyz);
 			}
 
 			bool COLLIDE = true;
-
-			//for (int i = 0; i < nW1.size(); i++)
-			//{
-			//	bool allMadeIt = true;
-			//	for (int j = 0; j < pW2.size(); j++)
-			//	{
-			//		if (Dot(pW2[j] - pW1[i], nW1[i]) < 0)
-			//			allMadeIt = false;
-			//	}
-			//	if (allMadeIt)
-			//	{
-			//		COLLIDE = false;
-			//	}
-			//}
-			//
-			//vec3 reboundNormal;
-			//vec3 reboundPoint;
-			//
-			//for (int i = 0; i < nW2.size(); i++)
-			//{
-			//	bool allMadeIt = true;
-			//	for (int j = 0; j < pW1.size(); j++)
-			//	{
-			//		if (Dot(pW1[j] - pW2[i], nW2[i]) < 0)
-			//			allMadeIt = false;
-			//	}
-			//	if (allMadeIt)
-			//	{
-			//		COLLIDE = false;
-			//	}
-			//}
 
 			int maxH = pW1.size();
 			int maxW = pW2.size();
@@ -181,13 +154,24 @@ bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldM
 			int A1 = 0;
 			int A2 = 0;
 
+			closestPoint = vec3(0, 0, 0);
+			int numOfClosest = 0;
+
 			for (int i = 0; i < maxH; i++)
 			{
 				for (int j = 0; j < maxW; j++)
 				{
 					//std::cout << "PASS" << std::endl;
-					if (Dot(nW1[i], pW1[i] - pW2[j]) * Dot(nW1[i], pW1[i] - pW2[(j + 1) % maxW]) < 0 && Dot(nW2[j], pW2[j] - pW1[i]) * Dot(nW2[j], pW2[j] - pW1[(i + 1) % maxH]) < 0)
+					if (dot(nW1[i], pW1[i] - pW2[j]) * dot(nW1[i], pW1[i] - pW2[(j + 1) % maxW]) < 0 && dot(nW2[j], pW2[j] - pW1[i]) * dot(nW2[j], pW2[j] - pW1[(i + 1) % maxH]) < 0)
 					{
+						float colDist = abs(dot(nW1[i], pW1[i] - pW2[j]));
+						float totDist = colDist + abs(dot(nW1[i], pW1[i] - pW2[(j + 1) % maxW]));
+
+						closestPoint *= (float) numOfClosest;
+						closestPoint += lerp(pW2[j], pW2[(j + 1) % maxW], colDist / totDist);
+						numOfClosest++;
+						closestPoint /= (float) numOfClosest;
+
 						COLLIDE = true;
 						if (!am1[i])
 						{
@@ -204,7 +188,6 @@ bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldM
 				}
 			}
 			
-			//In case you forget, there's a problem right here. It shouldn't add all the normals, just the ones that matter. You had variables in place to deal with this, why the hell didn't you use them.
 			if (A2 > A1)
 			{
 				for (int i = 0; i < maxH; i++)
@@ -224,7 +207,7 @@ bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldM
 
 				for (int i = 0; i < maxH; i++)
 				{
-					if (Dot(nW1[i], pW1[i] - pW2[0]) < 0)
+					if (dot(nW1[i], pW1[i] - pW2[0]) < 0)
 					{
 						YUP = false;
 						//std::cout << "OHNO!" << std::endl;
@@ -234,7 +217,7 @@ bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldM
 				bool YUP2 = true;
 				for (int i = 0; i < maxW; i++)
 				{
-					if (Dot(nW2[i], pW2[i] - pW1[0]) < 0)
+					if (dot(nW2[i], pW2[i] - pW1[0]) < 0)
 					{
 						YUP2 = false;
 						//std::cout << "FAILED CHECK!" << std::endl;
@@ -250,29 +233,34 @@ bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldM
 
 			if (COLLIDE)
 			{
-				vec4 sub = -*otherWorldMat * vec4(0, 0, 0, 1) + *ownWorldMat * vec4(0, 0, 0, 1);
-				vec3 sub2 = vec3(sub.x, sub.y, sub.z);
-				if (combinedNormal.Length() <= 0.0001f)
+				if (length(closestPoint) == 0)
+				{
+					closestPoint = (ownWorldMat.translation() + otherWorldMat.translation()) * 0.5f;
+				}
+
+				vec4 sub = -otherWorldMat * vec4(0, 0, 0, 1) + ownWorldMat * vec4(0, 0, 0, 1);
+				vec3 sub2 = sub.xyz;
+				if (length(combinedNormal) <= 0.0001f)
 				{
 					combinedNormal = sub2;
-					if (combinedNormal.Length() <= 0.0001f)
+					if (length(combinedNormal) <= 0.0001f)
 					{
 						combinedNormal = vec3(0, 0, -1);
 						std::cout << "NORP" << std::endl;
 					}
 				}
-				combinedNormal = combinedNormal.GetNormalized();
-				if (Dot(combinedNormal, sub2) < 0)
+				combinedNormal = normalize(combinedNormal);
+				if (dot(combinedNormal, sub2) < 0)
 					combinedNormal *= -1.f;
 
-				closestPoint = 0;
-				for (int i = 0; i < pW1.size(); i++)
-				{
-					if (Dot(pW1[0] - pW1[i], combinedNormal) < Dot(pW1[0] - pW1[closestPoint], combinedNormal))
-					{
-						closestPoint = i;
-					}
-				}
+				//closestPoint = 0;
+				//for (int i = 0; i < (int)pW1.size(); i++)
+				//{
+				//	if (dot(pW1[0] - pW1[i], combinedNormal) < dot(pW1[0] - pW1[closestPoint], combinedNormal))
+				//	{
+				//		closestPoint = i;
+				//	}
+				//}
 				outDir = combinedNormal;
 			}
 			//else
@@ -287,4 +275,14 @@ bool Hitbox2D::collidesWith(Hitbox2D * h, mat4 * ownWorldMat, mat4 * otherWorldM
 	{
 		return false;
 	}
+}
+
+std::string Hitbox2D::getName()
+{
+	return name;
+}
+
+void Hitbox2D::setName(std::string _NAME)
+{
+	name = _NAME;
 }

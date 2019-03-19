@@ -1,138 +1,171 @@
 #include "PhysicsBody.h"
 #include <iostream>
 
-PhysicsBody::PhysicsBody()
+PhysicsBody::PhysicsBody(Hitbox2D * _HB, float _MASS)
 {
-	setToBase();
-}
-
-PhysicsBody::PhysicsBody(Hitbox2D* hb)
-{
-	setToBase();
-	collider = hb;
-}
-
-PhysicsBody::PhysicsBody(Hitbox2D* hb, vec3 pos, vec3 angs)
-{
-	setToBase();
-	collider = hb;
-	rotationAngles = angs;
-	position = pos;
+	HB = _HB;
+	mass = _MASS;
 }
 
 PhysicsBody::~PhysicsBody()
 {
 }
 
-void PhysicsBody::setToBase()
+void PhysicsBody::reset()
 {
-	collider = nullptr;
-	rotationAngles = vec3(0, 0, 0);
-	angularVelocity = vec3(0, 0, 0);
-	torque = vec3(0, 0, 0);
-	position = vec3(0, 0, 0);
-	velocity = vec3(0, 0, 0);
 	acceleration = vec3(0, 0, 0);
-	direction = vec3(0, 0, -1);
-	vDir = direction;
-
-	friction = 0.f;
-	drag = 0.f;
-
-	velocityLimit = 0.f;
-	angVelocityLimit = 0.f;
-	baseAcc = 0.f;
-	baseTorque = 0.f;
-
-	preVel = vec3(0, 0, 0);
-	prePos = vec3(0, 0, 0);
-
-	axisOfRotation = vec3(0, 0, 1);
-	rotationAmnt = 0;
+	velocity = vec3(0, 0, 0);
+	position = vec3(0, 0, 0);
+	
+	angularAcceleration = vec3(0, 0, 0);
+	angularVelocity = vec3(0, 0, 0);
+	rotationAngles = vec3(0, 0, 0);
+	if (getHB())
+		getHB()->enabled = true;
 }
 
-void PhysicsBody::resetForMap()
+void PhysicsBody::addForce(vec3 force)
 {
-	position = vec3(0, 0, 0);
-	velocity = vec3(0, 0, 0);
-	acceleration = vec3(0, 0, 0);
-
-	rotationAngles = vec3(0, 0, 0);
-	angularVelocity = vec3(0, 0, 0);
-	torque = vec3(0, 0, 0);
-
-	axisOfRotation = vec3(0, 0, 1);
-	rotationAmnt = 0;
-
-	preVel = vec3(0, 0, 0);
-	prePos = vec3(0, 0, 0);
+	acceleration += force / mass;
 }
 
 void PhysicsBody::update(float dt)
 {
-	preVel = velocity;
-	prePos = position;
-
-
-	//std::cout << acceleration.Length() << std::endl;
-
+	position = vec3(0, 0, 0);
 	velocity += acceleration * dt;
 
-	if (velocity.LengthSquared() > 0 && friction > 0)
-	{
-		if (velocity.Length() > friction * dt)
-		{
-			velocity -= velocity.GetNormalized() * friction * dt;
-		}
-		else
-		{
-			velocity = vec3(0, 0, 0);
-		}
-	}
-	
-	if (velocity.Length() > velocityLimit)
-		velocity = velocity.GetNormalized() * velocityLimit;
+	if (length(velocity) - friction / mass * dt <= 0)
+		velocity = vec3(0, 0, 0);
+	else
+		velocity -= normalize(velocity) * friction / mass * dt;
 
-	//std::cout << velocity.x << ", " << velocity.z << std::endl;
+	if (length(velocity) > velocityLimit)
+		velocity = normalize(velocity) * velocityLimit;
 
 	position += velocity * dt;
+	acceleration = vec3(0, 0, 0);
 
-	angularVelocity += torque * dt;
+	rotationAngles = vec3(0, 0, 0);
+	angularVelocity += angularAcceleration * dt;
 
-	if (angularVelocity.LengthSquared() > 0 && friction > 0)
-	{
-		if (angularVelocity.Length() > friction * dt)
-		{
-			angularVelocity -= angularVelocity.GetNormalized() * friction * dt;
-		}
-		else
-		{
-			angularVelocity = vec3(0, 0, 0);
-		}
-	}
+	if (length(angularVelocity) - angularFriction / mass * dt <= 0)
+		angularVelocity = vec3(0, 0, 0);
+	else
+		angularVelocity -= normalize(angularVelocity) * angularFriction * dt;
 
-	if (angularVelocity.Length() > angVelocityLimit)
-		angularVelocity = angularVelocity.GetNormalized() * angVelocityLimit;
+	if (length(angularVelocity) > angularVelocityLimit)
+		angularVelocity = normalize(angularVelocity) * angularVelocityLimit;
 
 	rotationAngles += angularVelocity * dt;
-	if (angularVelocity.Length() * dt > 0)
-	{
-		axisOfRotation = angularVelocity.GetNormalized();
-		rotationAmnt = angularVelocity.Length() * dt;
-	}
+	angularAcceleration = vec3(0, 0, 0);
+}
 
-	if (velocity.LengthSquared() > 0)
-	{
-		direction = velocity.GetNormalized();
-		if (Dot(vDir, direction) < 0)
-		{
-			vDir = -direction;
-		}
-		else
-		{
-			vDir = direction;
-		}
-	}
+vec3 PhysicsBody::getAcceleration()
+{
+	return acceleration;
+}
 
-	//std::cout << velocity.x << ", " << velocity.z << "\n-----" << std::endl;
+void PhysicsBody::setAcceleration(vec3 ACC)
+{
+	acceleration = ACC;
+}
+
+vec3 PhysicsBody::getVelocity()
+{
+	return velocity;
+}
+
+void PhysicsBody::setVelocity(vec3 VEL)
+{
+	velocity = VEL;
+}
+
+vec3 PhysicsBody::getPosition()
+{
+	return position;
+}
+
+vec3 PhysicsBody::getAngularAcceleration()
+{
+	return angularAcceleration;
+}
+
+void PhysicsBody::setAngularAcceleration(vec3 TOR)
+{
+	angularAcceleration = TOR;
+}
+
+vec3 PhysicsBody::getAngularVelocity()
+{
+	return angularVelocity;
+}
+
+void PhysicsBody::setAngularVelocity(vec3 ANG)
+{
+	angularVelocity = ANG;
+}
+
+vec3 PhysicsBody::getRotationAngles()
+{
+	return rotationAngles;
+}
+
+float PhysicsBody::getMass()
+{
+	return mass;
+}
+
+void PhysicsBody::setMass(float _MASS)
+{
+	mass = _MASS;
+}
+
+Hitbox2D * PhysicsBody::getHB()
+{
+	return HB;
+}
+
+void PhysicsBody::setHB(Hitbox2D * _HB)
+{
+	HB = _HB;
+}
+
+void PhysicsBody::setFriction(float FRIC)
+{
+	friction = FRIC;
+}
+
+float PhysicsBody::getFriction()
+{
+	return friction;
+}
+
+void PhysicsBody::setAngularFriction(float FRIC)
+{
+	angularFriction = FRIC;
+}
+
+float PhysicsBody::getAngularFriction()
+{
+	return angularFriction;
+}
+
+void PhysicsBody::setVelocityLimit(float LIM)
+{
+	velocityLimit = LIM;
+}
+
+float PhysicsBody::getVelocityLimit()
+{
+	return velocityLimit;
+}
+
+void PhysicsBody::setAngularVelocityLimit(float LIM)
+{
+	angularVelocityLimit = LIM;
+}
+
+float PhysicsBody::getAngularVelocityLimit()
+{
+	return angularVelocityLimit;
 }

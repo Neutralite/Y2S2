@@ -1,6 +1,0 @@
-Apartment Verison 1
-Texture Apartment v1
-2.2
-PHYS
-APARTMENT_HITBOX
-false

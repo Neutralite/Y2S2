@@ -4,44 +4,54 @@
 class PhysicsBody
 {
 public:
-	PhysicsBody();
-	PhysicsBody(Hitbox2D* hb);
-	PhysicsBody(Hitbox2D* hb, vec3 pos, vec3 angs);
+	PhysicsBody(Hitbox2D *_HB = nullptr, float _MASS = 1.f);
 	~PhysicsBody();
-	void setToBase();
-	void resetForMap();
 
+	void reset();
+	void addForce(vec3 force);
 	void update(float dt);
 
-	Hitbox2D* collider;
-	int heightOfBox;
+	vec3 getAcceleration();
+	void setAcceleration(vec3 ACC);
+	vec3 getVelocity();
+	void setVelocity(vec3 VEL);
+	vec3 getPosition();
 
-	bool isEnabled = true;
-	bool hitboxEnabled = true;
+	vec3 getAngularAcceleration();
+	void setAngularAcceleration(vec3 TOR);
+	vec3 getAngularVelocity();
+	void setAngularVelocity(vec3 ANG);
+	vec3 getRotationAngles();
 
+	float getMass();
+	void setMass(float _MASS);
+
+	Hitbox2D* getHB();
+	void setHB(Hitbox2D* _HB);
+
+	void setFriction(float FRIC);
+	float getFriction();
+	void setAngularFriction(float FRIC);
+	float getAngularFriction();
+
+	void setVelocityLimit(float LIM);
+	float getVelocityLimit();
+	void setAngularVelocityLimit(float LIM);
+	float getAngularVelocityLimit();
+private:
 	vec3 acceleration;
 	vec3 velocity;
 	vec3 position;
+	float velocityLimit;
+	float mass;
 
-	vec3 torque;
+	vec3 angularAcceleration;
 	vec3 angularVelocity;
 	vec3 rotationAngles;
-
-	vec3 direction;
-	vec3 vDir;
-
-	vec3 preVel;
-	vec3 prePos;
-
-	vec3 axisOfRotation;
-	float rotationAmnt;
-
-	float velocityLimit;
-	float angVelocityLimit;
-	float baseAcc;
-	float baseTorque;
-	bool goingForward = true;
+	float angularVelocityLimit;
 
 	float friction;
-	float drag;
+	float angularFriction;
+
+	Hitbox2D* HB;
 };

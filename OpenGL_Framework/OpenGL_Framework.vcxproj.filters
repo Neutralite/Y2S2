@@ -1,172 +1,94 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{c7fc7b2c-5f85-4956-b8b9-569c63c53329}</UniqueIdentifier>
+      <UniqueIdentifier>{4058c670-eef0-454e-a23c-67ec280d4fd6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="SHADERZ">
-      <UniqueIdentifier>{5900f7b8-8054-4ea0-80d6-cb57c19920b9}</UniqueIdentifier>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{af9f5881-a32c-4ec1-ac3b-b796fbecf90f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="SHADERZ\Bloom">
-      <UniqueIdentifier>{535455fd-1c5f-48ab-8906-2bf5f9665824}</UniqueIdentifier>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{b18149b0-50ba-4a5a-8553-2473845892d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{01dbef16-ce69-427c-844e-de5f821f2988}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gmtk">
+      <UniqueIdentifier>{acf47f16-9041-4364-8bf5-6e50cfd311b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gmtk\internal">
+      <UniqueIdentifier>{a7287305-fff8-4dd4-8e8e-50e647ac90c3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MESH.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LERP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="KeyDefines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Section.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureLayer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Field.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FrameBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Destructable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TEMPLATE_SCENE.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UTILITY.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Jmath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Button.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="UIelement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="clickBox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LIGHT_SOURCE.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HITBOX.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HITBOX2D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PhysicsBody.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MESH.cpp">
+    <ClCompile Include="ShaderProgram.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
+    <ClCompile Include="Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Object.cpp">
+    <ClCompile Include="Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Section.cpp">
+    <ClCompile Include="GameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Field.cpp">
+    <ClCompile Include="IO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FrameBuffer.cpp">
+    <ClCompile Include="UniformBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Destructable.cpp">
+    <ClCompile Include="include\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_impl.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ParticleSystem.cpp">
+    <ClCompile Include="TextureCube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UTILITY.cpp">
+    <ClCompile Include="UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Jmath.cpp">
+    <ClCompile Include="VertexBufferObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TEMPLATE_SCENE.cpp">
+    <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
+    <ClCompile Include="Framebuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UIelement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="clickBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LIGHT_SOURCE.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HITBOX.cpp">
+    <ClCompile Include="BasePlate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HITBOX2D.cpp">
@@ -175,61 +97,312 @@
     <ClCompile Include="PhysicsBody.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Field.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Destructable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Boundary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Weapon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WEAPON_Hammer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WEAPON_Mine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="XinputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\ERROR.frag">
-      <Filter>SHADERZ</Filter>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderProgram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UniformBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui_impl.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\stb_rect_pack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\stb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui\stb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBufferObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\angle.h">
+      <Filter>gmtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\gmtk.h">
+      <Filter>gmtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\half.h">
+      <Filter>gmtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\matrix.h">
+      <Filter>gmtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\quaternion.h">
+      <Filter>gmtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\util.h">
+      <Filter>gmtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\vector.h">
+      <Filter>gmtk</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\mat.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\mat2.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\mat3.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\mat4.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\quat.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\vec.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\vec2.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\vec3.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\vec4.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureCube.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\swizzle2.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\swizzle3.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="include\gmtk\internal\swizzle4.h">
+      <Filter>gmtk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Framebuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BasePlate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Boundary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Destructable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HITBOX2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsBody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Field.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Weapon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WEAPON_Hammer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WEAPON_Mine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XinputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\gmtk\LICENSE.md">
+      <Filter>gmtk</Filter>
     </None>
-    <None Include="Assets\Shaders\ERROR.vert">
-      <Filter>SHADERZ</Filter>
+    <None Include="include\gmtk\README.md">
+      <Filter>gmtk</Filter>
     </None>
-    <None Include="Assets\Shaders\GreyScalePost.frag">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\BASIC.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\Bloom\BloomComposite.frag">
-      <Filter>SHADERZ\Bloom</Filter>
+    <None Include="..\assets\shaders\DynamicLights.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\Bloom\BloomBlurHorizontal.frag">
-      <Filter>SHADERZ\Bloom</Filter>
+    <None Include="..\assets\shaders\ERROR.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\Bloom\BloomBlurVertical.frag">
-      <Filter>SHADERZ\Bloom</Filter>
+    <None Include="..\assets\shaders\ERROR.vert">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\Bloom\BloomHighPass.frag">
-      <Filter>SHADERZ\Bloom</Filter>
+    <None Include="..\assets\shaders\EXPLODE.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\GenericPost.vert">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\EXPLODE.vert">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\PHONG.frag">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\EXPLODE_COMIC.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\StaticGeo.vert">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\FINAL_RENDER.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\HalfNHalf.frag">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\GenericPost.vert">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\BASIC.frag">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\GreyScalePost.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\DynamicLights.frag">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\HalfNHalf.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\UIgeo.vert">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\INITIAL_RENDER.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\Player.vert">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\MINE.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\EXPLODE.frag">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\MINE_COMIC.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\EXPLODE.vert">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\PHONG.frag">
+      <Filter>Shaders</Filter>
     </None>
-    <None Include="Assets\Shaders\MINE.frag">
-      <Filter>SHADERZ</Filter>
+    <None Include="..\assets\shaders\Player.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\StaticGeo.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\UIgeo.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\FINAL_RENDER_DIRECTIONAL.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\FINAL_RENDER_POINT.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\FINAL_RENDER_SPOTLIGHT.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\StaticBob.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\LIGHT_GEO.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\COMBINED_DRAW.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Radial Blur.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Blur Horizontal.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Blur Vertical.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\BLUR_EMISSIVE_OUTPUT.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\TextGeo.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\TextTexture.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\POST_TEXT.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\POST_TEXT.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\DepthSort.frag">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

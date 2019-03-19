@@ -1,17 +1,22 @@
 #pragma once
-#include "Section.h"
-#include "Object.h"
+#include "ResourceManager.h"
+#include "BasePlate.h"
+#include "Boundary.h"
+#include "Destructable.h"
+#include "Player.h"
 
 class Field
 {
 public:
 	Field();
-	Field(std::string &fileName, std::vector<Object*>* _OBJ, unsigned int _WIDTH, unsigned int _HEIGHT, float SECT_HEIGHT, float SECT_WIDTH, std::vector<Object*>* plateObj, std::vector<Object*>* players);
-	Section* getSection(int _X, int _Y);
+	Field(std::string &fileName);
 	~Field();
-private:
-	std::vector<std::vector<Section*>> grid;
-	unsigned int height, width;
-	float sectHeight, sectWidth;
-	void loadFromFile(std::string &fileName, std::string & dir, std::vector<Object*>* _OBJ, std::vector<Object*>* bases, std::vector<Object*>* players);
+
+	std::vector<std::vector<BasePlate*>> grid;
+	std::vector<std::vector<std::vector<GameObject*>>> fieldObjects;
+	std::vector<Player*> players;
+	unsigned int height = 100, width = 100;
+	float sectHeight = 6.f, sectWidth = 6.f;
+	void loadFromFile(std::string &fileName, std::string &dir);
+	void removeObj(int _X, int _Y, GameObject* _GO);
 };

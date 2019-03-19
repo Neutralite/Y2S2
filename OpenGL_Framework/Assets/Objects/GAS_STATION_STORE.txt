@@ -1,6 +1,0 @@
-gas-station-store
-gas-station-store
-2.3
-PHYS
-STORE_HITBOX
-false

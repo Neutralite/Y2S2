@@ -1,0 +1,9 @@
+bench
+bench_texture
+DESTRUCTABLE
+0.8
+PHYS
+BENCH_HITBOX
+false
+POINTS
+8

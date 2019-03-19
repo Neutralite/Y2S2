@@ -1,6 +1,0 @@
-street_light
-street_light_texture
-0.6
-PHYS
-STREETLAMP_HITBOX
-false
