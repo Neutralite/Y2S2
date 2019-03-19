@@ -317,6 +317,11 @@ void GameObject::DestructionSequence(float dt)
 
 				//std::cout << getName() << ": " << newPos << ", " << newRot << ", " << newScale << std::endl;
 			}
+			else if (TypeOfDestr == 1)
+			{
+				float LORP = timeDestroying / maxDestrTime;
+				newScale = vec3(1.f - pow(LORP, 6), 0.1f * (1.f - LORP), 1.f - pow(LORP, 6));
+			}
 
 			mat4 rx = rx.rotatex(degrees(newRot.x));
 			mat4 ry = ry.rotatey(degrees(newRot.y));

@@ -6,19 +6,19 @@ class Hammer : public Weapon
 public:
 	Hammer();
 	~Hammer();
-	bool weaponInit();
+	static bool weaponInit();
 
 	static std::vector<wFrame> FRAMES;
 
-	bool tailoredCollision(GameObject* _GO);
-
-	wFrame* getFrameBefore(float t);
-	wFrame* getFrameAt(float t);
-	wFrame* getFrameAfter(float t);
-	wFrame* getFrame2After(float t);
+	std::vector<wFrame>* getFL();
 
 	unsigned int getDest();
 	void otherUpdates(float dt);
 
-	int destrType = 0;
+	float frameWarp(float t);
+
+	int destrType = 1;
+
+	static float COOL_DOWN;
+	float coolDownTime();
 };

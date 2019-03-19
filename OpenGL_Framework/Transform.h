@@ -76,6 +76,7 @@ public:
 		TYPE_Camera,
 		TYPE_Text,
 		TYPE_Weapon,
+		TYPE_Axe,
 		TYPE_Hammer,
 		TYPE_Mine
 	};

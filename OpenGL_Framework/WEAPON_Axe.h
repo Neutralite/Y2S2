@@ -1,11 +1,11 @@
 #pragma once
 #include "Weapon.h"
 
-class Mine : public Weapon
+class Axe : public Weapon
 {
 public:
-	Mine();
-	~Mine();
+	Axe();
+	~Axe();
 	static bool weaponInit();
 
 	static std::vector<wFrame> FRAMES;

@@ -60,3 +60,7 @@ HEADLIGHT_AREA
 0
 TEXT_MESH
 0
+Axe
+0
+Hammer
+0

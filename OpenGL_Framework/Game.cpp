@@ -379,16 +379,19 @@ void Game::update()
 
 
 	protectedLightShip(SUN);
-	//SUN->rotateBy(deltaTime * 0.1f, normalize(vec3(1, 0, 1)));
+	//SUN->rotateBy(deltaTime * 9.f, normalize(vec3(1, 0, 1)));
 	//SUN->intensity = pow(max(dot(normalize(mat3(SUN->getLocalToWorld()) * vec3(SUN->direction)), vec3(0, -1.f, 0)), 0.f), 0.6f);
 	//SUN->update(deltaTime);
 
 	//Light* lit = dynamic_cast<Light*>(players[0]->getChildren().at(0)->getChildren().at(0));
-	//std::cout << lit->position << std::endl;
+	//std::cout << SUN->getLocalToWorld() << std::endl;
 
 	for (unsigned int i = 0; i < players.size(); i++)
 	{
 		Player* P = players[i];
+
+
+		//std::cout << P->getWeapon() << std::endl;
 
 		bool pUP;
 		bool pLEFT;
@@ -1333,6 +1336,7 @@ void Game::drawChildren(Transform * TF, bool doLights)
 		case Transform::TransformType::TYPE_Text:
 		case Transform::TransformType::TYPE_Mine:
 		case Transform::TransformType::TYPE_Hammer:
+		case Transform::TransformType::TYPE_Axe:
 			renderShip.push_back(TF);
 			break;
 		case Transform::TransformType::TYPE_Light:
@@ -1699,11 +1703,53 @@ void Game::protectedAddWeapon(Weapon* _W, unsigned int front, unsigned int back)
 
 void Game::generateATTACK(Player * P)
 {
-	Weapon* W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
-	W->ownedPlayer = P->playerNumber;
-	W->worldLocation = P->getLocalToWorld();
+	//std::cout << P->getWeapon()->getName() << std::endl;
+	if (P->getWeapon())
+	{
+		//std::cout << "ATTTAAAAAAAACK" << std::endl;
+		if (P->getWeapon()->TT == Transform::TransformType::TYPE_Mine)
+		{
+			Weapon* W;
+			W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W->ownedPlayer = P->playerNumber;
+			W->worldLocation = P->getLocalToWorld();
 
-	protectedWeaponShip(W);
+			protectedWeaponShip(W);
+		}
+		else if (P->getWeapon()->TT == Transform::TransformType::TYPE_Hammer)
+		{
+			Weapon* W, *W2;
+			W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W2 = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W->ownedPlayer = P->playerNumber;
+			W2->ownedPlayer = P->playerNumber;
+			W->worldLocation = P->getLocalToWorld();
+			W2->worldLocation = P->getLocalToWorld() * mat4::rotatey(degrees(180.f));
+
+			protectedWeaponShip(W);
+			protectedWeaponShip(W2);
+		}
+		if (P->getWeapon()->TT == Transform::TransformType::TYPE_Axe)
+		{
+			//std::cout << "READY!?" << std::endl;
+			Weapon* W, *W2, *W3;
+			W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W->ownedPlayer = P->playerNumber;
+			W->worldLocation = P->getLocalToWorld();
+
+			W2 = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W2->ownedPlayer = P->playerNumber;
+			W2->worldLocation = P->getLocalToWorld() * mat4::rotatey(degrees(15.f));
+
+			W3 = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W3->ownedPlayer = P->playerNumber;
+			W3->worldLocation = P->getLocalToWorld() * mat4::rotatey(degrees(-15.f));
+
+			protectedWeaponShip(W);
+			protectedWeaponShip(W2);
+			protectedWeaponShip(W3);
+		}
+	}
 }
 
 void Game::updateAttacks(float dt)
@@ -1720,6 +1766,7 @@ void Game::updateAttacks(float dt)
 		{
 			ResourceManager::destroyObjectINGAME(weaponShip[i]);
 			weaponShip.erase(weaponShip.begin() + i);
+			//std::cout << "SHE GONE" << std::endl;
 		}
 		else
 		{
@@ -1734,7 +1781,13 @@ void Game::attackHIT(unsigned int index)
 	float SCALE = 9.f;
 	int IS = (int)(SCALE / 6.f) + 1;
 	
-	vec2 pW = weaponShip[index]->getLocalToWorld().translation().xz / tileSize + vec2(0.5);
+	//vec2 pW = (weaponShip[index]->getLocalToWorld().translation().xz + (mat3(weaponShip[index]->getLocalToWorld()) * weaponShip[index]->hitboxOffset).xz) / tileSize + vec2(0.5);
+	//mat4 weapLoc = weaponShip[index]->getLocalToWorld() * mat4::rotatey(degrees(weaponShip[index]->getLocalEuler().y)) * mat4(mat3::identity(), weaponShip[index]->hitboxOffset);
+	vec2 pW = (weaponShip[index]->getLocalToWorld() * mat4::rotatey(degrees(weaponShip[index]->getLocalEuler().y))
+		* vec4(weaponShip[index]->hitboxOffset, 1.f)).xz  / tileSize + vec2(0.5);
+	//std::cout << players[0]->getWorldPos() << std::endl;
+	//std::cout << (weaponShip[index]->getLocalToWorld() * mat4::rotatey(degrees(weaponShip[index]->getLocalEuler().y))
+	//	* vec4(weaponShip[index]->hitboxOffset, 1.f)).xz << std::endl;
 	int pWX = (int)pW.x;
 	int pWY = (int)pW.y;
 
@@ -2489,6 +2542,8 @@ void Game::setCamerasAndPlayers()
 	//players.push_back(playerContainer);
 
 	Mine::weaponInit();
+	Hammer::weaponInit();
+	Axe::weaponInit();
 
 	PlayerCam = getCloneOfCamera("PLAYER_CAM");
 	PlayerCam->setRenderList(renderShip);
@@ -3002,6 +3057,21 @@ void Game::uniqueKeyPresses()
 	{
 		PlayerCam->cullingActive = !PlayerCam->cullingActive;
 		std::cout << "CULLING TRIGGERED TO " << PlayerCam->cullingActive << std::endl;
+	}
+	if (keysDown['1'] && !backCheckKeysDown['1'])
+	{
+		std::cout << "MINE EQUIPPED!" << std::endl;
+		players[0]->attachWeapon(rm::getWeapon("MINE"));
+	}
+	if (keysDown['2'] && !backCheckKeysDown['2'])
+	{
+		std::cout << "MINE EQUIPPED!" << std::endl;
+		players[0]->attachWeapon(rm::getWeapon("HAMMER"));
+	}
+	if (keysDown['3'] && !backCheckKeysDown['3'])
+	{
+		std::cout << "MINE EQUIPPED!" << std::endl;
+		players[0]->attachWeapon(rm::getWeapon("AXE"));
 	}
 }
 

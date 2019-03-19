@@ -1579,6 +1579,10 @@ Weapon * ResourceManager::getCloneOfWeapon(std::string _NAME)
 		Weapon* SUB2 = nullptr;
 		if (SUB->TT == Transform::TransformType::TYPE_Mine)
 			SUB2 = new Mine;
+		else if (SUB->TT == Transform::TransformType::TYPE_Hammer)
+			SUB2 = new Hammer;
+		else if (SUB->TT == Transform::TransformType::TYPE_Axe)
+			SUB2 = new Axe;
 		*SUB2 = *SUB;
 
 		if (SUB2)

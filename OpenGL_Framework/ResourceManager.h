@@ -8,8 +8,9 @@
 #include "Destructable.h"
 #include "Player.h"
 #include "Weapon.h"
-//#include "WEAPON_Hammer.h"
 #include "WEAPON_Mine.h"
+#include "WEAPON_Hammer.h"
+#include "WEAPON_Axe.h"
 #include "Material.h"
 #include "Text.h"
 

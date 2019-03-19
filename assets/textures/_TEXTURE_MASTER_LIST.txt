@@ -46,3 +46,5 @@ Diffuse Overlay
 Text
 BLAST_RADIUS
 BLAST_ALBEDO
+HammerBaseColours
+AxeBaseColours
