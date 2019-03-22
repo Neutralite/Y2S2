@@ -8,10 +8,14 @@
 #include <fstream>
 #include <random>
 
+#include <cstdlib>
+#include <ctime>
+
 Game::Game()
 {
 	updateTimer = new Timer();
 	gameCheckTimer = new Timer();
+	srand((unsigned int)time(0));
 }
 
 Game::~Game()
@@ -1329,6 +1333,8 @@ void Game::drawChildren(Transform * TF, bool doLights)
 		}
 		switch (TF->TT)
 		{
+		case Transform::TransformType::TYPE_Powerup:
+			//std::cout << "ONE IS THERE!" << std::endl;
 		case Transform::TransformType::TYPE_GameObject:
 		case Transform::TransformType::TYPE_BasePlate:
 		case Transform::TransformType::TYPE_Destructable:
@@ -1337,6 +1343,7 @@ void Game::drawChildren(Transform * TF, bool doLights)
 		case Transform::TransformType::TYPE_Mine:
 		case Transform::TransformType::TYPE_Hammer:
 		case Transform::TransformType::TYPE_Axe:
+
 			renderShip.push_back(TF);
 			break;
 		case Transform::TransformType::TYPE_Light:
@@ -1502,11 +1509,39 @@ void Game::updateExternals(float dt)
 
 	for (int i = externalUpdateShip.size() - 1; i >= 0; --i)
 	{
-		protectedUpdateShip(externalUpdateShip[i]);
-		if (!externalUpdateShip[i]->needsUpdate)
+		if (externalUpdateShip[i]->TT == Transform::TransformType::TYPE_Powerup && externalUpdateShip[i]->destroying)
 		{
-			externalUpdateShip[i]->hasBeenUpdated = false;
+			for (int j = (int)renderShip.size() - 1; j >= 0; --j)
+			{
+				if (renderShip[j] == externalUpdateShip[i])
+					renderShip.erase(renderShip.begin() + j);
+			}
+
+			GameObject* _O = nullptr;
+			for (int k = (int)theMap->fieldObjects[externalUpdateShip[i]->mapX][externalUpdateShip[i]->mapY].size() - 1; k >= 0; --k)
+			{
+				_O = theMap->fieldObjects[externalUpdateShip[i]->mapX][externalUpdateShip[i]->mapY][k];
+				if (_O == externalUpdateShip[i])
+					theMap->removeObj(_O->mapX, _O->mapY, _O);
+			}
+
+			//for (int j = (int)updateShip.size() - 1; j >= 0; --j)
+			//{
+			//	if (updateShip[j] == externalUpdateShip[i])
+			//		updateShip.erase(updateShip.begin() + j);
+			//}
+
+			rm::destroyObjectINGAME(externalUpdateShip[i]);
 			externalUpdateShip.erase(externalUpdateShip.begin() + i);
+		}
+		else
+		{
+			protectedUpdateShip(externalUpdateShip[i]);
+			if (!externalUpdateShip[i]->needsUpdate)
+			{
+				externalUpdateShip[i]->hasBeenUpdated = false;
+				externalUpdateShip.erase(externalUpdateShip.begin() + i);
+			}
 		}
 	}
 }
@@ -1590,7 +1625,62 @@ void Game::staticCollisions()
 	{
 		for (int j = 0; j < sA; ++j)
 		{
+			vec3 curPos = staticCollisionShip[j]->getLocalPos();
+			bool desting = staticCollisionShip[j]->destroying;
 			dynamicCollisionShip[i]->doCollision(staticCollisionShip[j]);
+			if (!desting && staticCollisionShip[j]->destroying)
+			{
+				//std::cout << "YES!" << std::endl;
+				if (staticCollisionShip[j]->destrPoints > rand() % 200)
+				{
+					//std::cout << "PUT ONE UP!" << std::endl;
+					Powerup* _PUP = rm::getCloneOfPowerup("POWERUP");
+					int I = rand() % 3;
+					if (I == 0)
+					{
+						_PUP->setPower(Powerup::pType::MINE);
+					}
+					else if (I == 1)
+					{
+						_PUP->setPower(Powerup::pType::HAMMER);
+					}
+					else if (I == 2)
+					{
+						_PUP->setPower(Powerup::pType::AXE);
+					}
+					_PUP->setLocalPos(curPos);
+					int xPos = clamp((int)(_PUP->getLocalPos().x / tileSize + 0.5f), 0, 99);
+					int yPos = clamp((int)(_PUP->getLocalPos().z / tileSize + 0.5f), 0, 99);
+					//std::cout << _PUP->getLocalPos() << std::endl;
+					theMap->fieldObjects[xPos][yPos].push_back(_PUP);
+				}
+			
+				if (staticCollisionShip[j]->TT == Transform::TransformType::TYPE_Powerup)
+				{
+					if (Player* _P = dynamic_cast<Player*>(dynamicCollisionShip[i]))
+					{
+						if (staticCollisionShip[j]->getChildren().at(0)->getName() == "MINE_MODEL")
+						{
+							_P->attachWeapon(rm::getWeapon("MINE"));
+							std::cout << "SHIFTED TO MINE" << std::endl;
+						}
+						else if (staticCollisionShip[j]->getChildren().at(0)->getName() == "HAMMER_MODEL")
+						{
+							_P->attachWeapon(rm::getWeapon("HAMMER"));
+							std::cout << "SHIFTED TO HAMMER" << std::endl;
+						}
+						else if (staticCollisionShip[j]->getChildren().at(0)->getName() == "AXE_MODEL")
+						{
+							_P->attachWeapon(rm::getWeapon("AXE"));
+							std::cout << "SHIFTED TO AXE" << std::endl;
+						}
+			
+						int xPos = clamp((int)(staticCollisionShip[j]->getLocalPos().x / tileSize + 0.5f), 0, 99);
+						int yPos = clamp((int)(staticCollisionShip[j]->getLocalPos().z / tileSize + 0.5f), 0, 99);
+						theMap->removeObj(xPos, yPos, staticCollisionShip[j]);
+					}
+				}
+			}
 		}
 	}
 
@@ -1803,6 +1893,7 @@ void Game::attackHIT(unsigned int index)
 
 					if (!_GO->destroying && !_GO->destroyed)
 					{
+						vec3 curPos = _GO->getLocalPos();
 						if (weaponShip[index]->tailoredCollision(_GO))
 						{
 							//_GO->getPhysicsBody()->getHB()->enabled = false;
@@ -1811,6 +1902,30 @@ void Game::attackHIT(unsigned int index)
 							//std::cout << players[weaponShip[index]->ownedPlayer]->POINT_TOTAL << std::endl;
 							_GO->needsUpdate = true;
 							protectedExternalUpdateShip(_GO);
+
+							if (_GO->destrPoints > rand() % 600)
+							{
+								//std::cout << "PUT ONE UP!" << std::endl;
+								Powerup* _PUP = rm::getCloneOfPowerup("POWERUP");
+								int I = rand() % 3;
+								if (I == 0)
+								{
+									_PUP->setPower(Powerup::pType::MINE);
+								}
+								else if (I == 1)
+								{
+									_PUP->setPower(Powerup::pType::HAMMER);
+								}
+								else if (I == 2)
+								{
+									_PUP->setPower(Powerup::pType::AXE);
+								}
+								_PUP->setLocalPos(curPos);
+								int xPos = clamp((int)(_PUP->getLocalPos().x / tileSize + 0.5f), 0, 99);
+								int yPos = clamp((int)(_PUP->getLocalPos().z / tileSize + 0.5f), 0, 99);
+								//std::cout << _PUP->getLocalPos() << std::endl;
+								theMap->fieldObjects[xPos][yPos].push_back(_PUP);
+							}
 
 							//std::cout << "GOTTEM" << std::endl;
 						}
@@ -2173,6 +2288,7 @@ void Game::loadAllMaterials(std::string & fileName)
 	{
 		Material* mat = new Material(temp);
 		mat->setName(temp);
+		//std::cout << mat << ", " << temp << std::endl;
 		ResourceManager::addMaterial(mat);
 	}
 	masterFile.close();
@@ -2292,18 +2408,6 @@ void Game::createChild(std::string & fileName, Transform * parent)
 				obj->setMesh(_MESH);
 				hasMesh = true;
 			}
-		}
-
-
-		switch (obj->TT)
-		{
-		case Transform::TransformType::TYPE_Player:
-		case Transform::TransformType::TYPE_Destructable:
-			obj->setShaderProgram(getShader("BOBBING_SETUP"));
-			break;
-		default:
-			obj->setShaderProgram(getShader("COMIC_SETUP"));
-			break;
 		}
 
 		obj->setBoundingRadius(boundRadius);
@@ -2545,6 +2649,10 @@ void Game::setCamerasAndPlayers()
 	Hammer::weaponInit();
 	Axe::weaponInit();
 
+	Powerup* BASEPOWER = new Powerup;
+	BASEPOWER->setName("POWERUP");
+	rm::addEntity(BASEPOWER);
+
 	PlayerCam = getCloneOfCamera("PLAYER_CAM");
 	PlayerCam->setRenderList(renderShip);
 
@@ -2608,7 +2716,6 @@ void Game::generateMap()
 	TIMER2->setMessage("3:00");
 	TIMER2->setLocalPos(vec3(-35, 40, 0));
 	TIMER2->aS = vec3(6.f);
-	//std::cout << TUI2->material->shader->getName() << std::endl;
 
 	UITextShip.push_back(TUI);
 	UITextShip.push_back(TUI2);
@@ -3065,27 +3172,60 @@ void Game::uniqueKeyPresses()
 	}
 	if (keysDown['2'] && !backCheckKeysDown['2'])
 	{
-		std::cout << "MINE EQUIPPED!" << std::endl;
+		std::cout << "HAMMER EQUIPPED!" << std::endl;
 		players[0]->attachWeapon(rm::getWeapon("HAMMER"));
 	}
 	if (keysDown['3'] && !backCheckKeysDown['3'])
 	{
-		std::cout << "MINE EQUIPPED!" << std::endl;
+		std::cout << "AXE EQUIPPED!" << std::endl;
 		players[0]->attachWeapon(rm::getWeapon("AXE"));
+	}
+	if (keysDown['7'] && !backCheckKeysDown['7'])
+	{
+		players[0]->setMesh(rm::getMesh("PickupTruck"));
+		players[0]->setMaterial(rm::getMaterial("Texture PickupTruck"));
+	}
+	if (keysDown['8'] && !backCheckKeysDown['8'])
+	{
+		players[0]->setMesh(rm::getMesh("tank"));
+		players[0]->setMaterial(rm::getMaterial("Tank_Base_Colours2"));
+	}
+	if (keysDown['9'] && !backCheckKeysDown['9'])
+	{
+		players[0]->setMesh(rm::getMesh("Wrecking_Ball_2"));
+		players[0]->setMaterial(rm::getMaterial("WreckingBall_Base_Color 2"));
+	}
+	if (keysDown['0'] && !backCheckKeysDown['0'])
+	{
+		players[0]->setMesh(rm::getMesh("BullDozer"));
+		players[0]->setMaterial(rm::getMaterial("Bulldozer_Base_Colours 2"));
 	}
 }
 
 void Game::resetMap()
 {
 	//std::cout << "HAPPENED" << std::endl;
+	std::vector<Transform*> EMPT;
+	for (unsigned int i = 0; i < rm::CamerasINGAME.size(); i++)
+	{
+		rm::CamerasINGAME[i]->setRenderList(EMPT);
+	}
+	renderShip.clear();
 	for (int i = 0; i < 100; ++i)
 	{
 		for (int j = 0; j < 100; ++j)
 		{
 			unsigned int OBS = theMap->fieldObjects[i][j].size();
-			for (unsigned int k = 0; k < OBS; ++k)
+			for (int k = (int)OBS - 1; k >= 0; --k)
 			{
-				if (theMap->fieldObjects[i][j][k]->hasInitial)
+				if (theMap->fieldObjects[i][j][k]->TT == Transform::TransformType::TYPE_Powerup)
+				{
+					GameObject* _O = theMap->fieldObjects[i][j][k];
+					theMap->removeObj(i, j, _O);
+					rm::destroyObjectINGAME(_O);
+					//std::cout << "BEGONE THOT" << std::endl;
+				}
+				else if (theMap->fieldObjects[i][j][k]->hasInitial)
 				{
 					//theMap->fieldObjects[i][j][k]->resetToInitials();
 					////theMap->fieldObjects[i][j][k]->update(0);

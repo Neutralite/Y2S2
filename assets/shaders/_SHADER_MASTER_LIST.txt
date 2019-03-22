@@ -64,3 +64,9 @@ POST_TEXT.frag
 DEPTH_CHECK_OUTPUT
 GenericPost.vert
 DepthSort.frag
+POWERUP
+StaticGeo.vert
+POWERUP_RENDER.frag
+WEAPON_POWERUP
+StaticGeo.vert
+Lighter.frag

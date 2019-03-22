@@ -133,6 +133,9 @@
     <ClCompile Include="WEAPON_Axe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Powerup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -303,6 +306,9 @@
     <ClInclude Include="WEAPON_Axe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Powerup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gmtk\LICENSE.md">
@@ -408,6 +414,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\assets\shaders\DepthSort.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\POWERUP_RENDER.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\Lighter.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

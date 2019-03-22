@@ -14,6 +14,7 @@ std::vector<Light*> ResourceManager::AllLight; //PLUS ULTRA
 std::vector<Hitbox2D*> ResourceManager::allHitboxes;
 std::vector<Framebuffer*> ResourceManager::allFramebuffers;
 std::vector<Weapon*> ResourceManager::allWeapons;
+std::vector<Powerup*> ResourceManager::allPowerups;
 
 
 std::vector<Transform*> ResourceManager::TransformsINGAME;
@@ -22,6 +23,7 @@ std::vector<GameObject*> ResourceManager::allGameObjectsINGAME;
 std::vector<Light*> ResourceManager::AllLightINGAME; //PLUS ULTRA
 std::vector<Weapon*> ResourceManager::allWeaponsINGAME;
 std::vector<Text*> ResourceManager::allTextINGAME;
+std::vector<Powerup*> ResourceManager::allPowerupsINGAME;
 
 void ResourceManager::addEntity(Transform * entity)
 {
@@ -53,6 +55,14 @@ void ResourceManager::addEntity(Transform * entity)
 			allWeapons.push_back(_W);
 		else
 			sortAddWeapon(0, allWeapons.size() - 1, _W);
+	}
+	else if (Powerup* _PUP = dynamic_cast<Powerup*>(entity))
+	{
+		//AllLight.push_back(light);
+		if (allPowerups.size() == 0)
+			allPowerups.push_back(_PUP);
+		else
+			sortAddPowerup(0, allPowerups.size() - 1, _PUP);
 	}
 	else if (GameObject* _GO = dynamic_cast<GameObject*>(entity))
 	{
@@ -155,6 +165,13 @@ void ResourceManager::addEntityINGAME(Transform * entity)
 			allWeaponsINGAME.push_back(W);
 		else
 			sortAddWeaponINGAME(0, allWeaponsINGAME.size() - 1, W);
+	}
+	else if (Powerup* _PUP = dynamic_cast<Powerup*>(entity))
+	{
+		if (allPowerupsINGAME.size() == 0)
+			allPowerupsINGAME.push_back(_PUP);
+		else
+			sortAddPowerupINGAME(0, allPowerupsINGAME.size() - 1, _PUP);
 	}
 	else if (GameObject* _GO = dynamic_cast<GameObject*>(entity))
 	{
@@ -488,6 +505,32 @@ void ResourceManager::sortAddFont(unsigned int front, unsigned int back, Text * 
 	}
 }
 
+void ResourceManager::sortAddPowerup(unsigned int front, unsigned int back, Powerup * ELEM)
+{
+	unsigned int mid = (front + back) / 2;
+	if (allPowerups[mid]->getName() == ELEM->getName())
+	{
+		allPowerups.insert(allPowerups.begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if (allPowerups[front]->getName() > ELEM->getName())
+			allPowerups.insert(allPowerups.begin() + front, ELEM);
+		else if (allPowerups[back]->getName() > ELEM->getName())
+			allPowerups.insert(allPowerups.begin() + back, ELEM);
+		else
+			allPowerups.insert(allPowerups.begin() + back + 1, ELEM);
+	}
+	else if (allPowerups[mid]->getName() > ELEM->getName())
+	{
+		sortAddPowerup(front, mid, ELEM);
+	}
+	else
+	{
+		sortAddPowerup(mid, back, ELEM);
+	}
+}
+
 void ResourceManager::sortAddGameObjectINGAME(unsigned int front, unsigned int back, GameObject * ELEM)
 {
 	unsigned int mid = (front + back) / 2;
@@ -641,6 +684,32 @@ void ResourceManager::sortAddTextINGAME(unsigned int front, unsigned int back, T
 	else
 	{
 		sortAddTextINGAME(mid, back, ELEM);
+	}
+}
+
+void ResourceManager::sortAddPowerupINGAME(unsigned int front, unsigned int back, Powerup * ELEM)
+{
+	unsigned int mid = (front + back) / 2;
+	if (allPowerupsINGAME[mid] == ELEM)
+	{
+		allPowerupsINGAME.insert(allPowerupsINGAME.begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if (allPowerupsINGAME[front] > ELEM)
+			allPowerupsINGAME.insert(allPowerupsINGAME.begin() + front, ELEM);
+		else if (allPowerupsINGAME[back] > ELEM)
+			allPowerupsINGAME.insert(allPowerupsINGAME.begin() + back, ELEM);
+		else
+			allPowerupsINGAME.insert(allPowerupsINGAME.begin() + back + 1, ELEM);
+	}
+	else if (allPowerupsINGAME[mid] > ELEM)
+	{
+		sortAddPowerupINGAME(front, mid, ELEM);
+	}
+	else
+	{
+		sortAddPowerupINGAME(mid, back, ELEM);
 	}
 }
 
@@ -956,6 +1025,32 @@ Text * ResourceManager::findFont(unsigned int front, unsigned int back, std::str
 	}
 }
 
+Powerup * ResourceManager::findPowerup(unsigned int front, unsigned int back, std::string _NAME)
+{
+	unsigned int mid = (front + back) / 2;
+	if (allPowerups[mid]->getName() == _NAME)
+	{
+		return allPowerups[mid];
+	}
+	else if (back - front <= 1)
+	{
+		if (allPowerups[front]->getName() == _NAME)
+			return allPowerups[front];
+		else if (allPowerups[back]->getName() == _NAME)
+			return allPowerups[back];
+		else
+			return nullptr;
+	}
+	else if (allPowerups[mid]->getName() > _NAME)
+	{
+		return findPowerup(front, mid, _NAME);
+	}
+	else
+	{
+		return findPowerup(mid, back, _NAME);
+	}
+}
+
 int ResourceManager::findGameObjectINGAME(unsigned int front, unsigned int back, GameObject * _ADR)
 {
 	unsigned int mid = (front + back) / 2;
@@ -1112,6 +1207,32 @@ int ResourceManager::findTextINGAME(unsigned int front, unsigned int back, Text 
 	}
 }
 
+int ResourceManager::findPowerupINGAME(unsigned int front, unsigned int back, Powerup * _ADR)
+{
+	unsigned int mid = (front + back) / 2;
+	if (allPowerupsINGAME[mid] == _ADR)
+	{
+		return mid;
+	}
+	else if (back - front <= 1)
+	{
+		if (allPowerupsINGAME[front] == _ADR)
+			return front;
+		else if (allPowerupsINGAME[back] == _ADR)
+			return back;
+		else
+			return -1;
+	}
+	else if (allPowerupsINGAME[mid] > _ADR)
+	{
+		return findPowerupINGAME(front, mid, _ADR);
+	}
+	else
+	{
+		return findPowerupINGAME(mid, back, _ADR);
+	}
+}
+
 Texture * ResourceManager::searchForTexture(std::string _NAME)
 {
 	if (allTextures.size() == 0)
@@ -1208,6 +1329,14 @@ Text * ResourceManager::searchForFont(std::string _NAME)
 		return findFont(0, Fonts.size() - 1, _NAME);
 }
 
+Powerup * ResourceManager::searchForPowerup(std::string _NAME)
+{
+	if (allPowerups.size() == 0)
+		return nullptr;
+	else
+		return findPowerup(0, allPowerups.size() - 1, _NAME);
+}
+
 void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 {
 	destroyChildrenINGAME(_OBJ);
@@ -1242,6 +1371,15 @@ void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 		if (iter >= 0)
 		{
 			allWeaponsINGAME.erase(allWeaponsINGAME.begin() + iter);
+		}
+	}
+
+	if (Powerup* _PUP = dynamic_cast<Powerup*>(_OBJ))
+	{
+		iter = findPowerupINGAME(0, allPowerupsINGAME.size() - 1, _PUP);
+		if (iter >= 0)
+		{
+			allPowerupsINGAME.erase(allPowerupsINGAME.begin() + iter);
 		}
 	}
 
@@ -1422,6 +1560,14 @@ Material * ResourceManager::getMaterial(std::string _NAME)
 Text * ResourceManager::getFont(std::string _NAME)
 {
 	Text* SUB = ResourceManager::searchForFont(_NAME);
+	if (!SUB)
+		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
+	return SUB;
+}
+
+Powerup * ResourceManager::getPowerup(std::string _NAME)
+{
+	Powerup* SUB = ResourceManager::searchForPowerup(_NAME);
 	if (!SUB)
 		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
 	return SUB;
@@ -1616,6 +1762,24 @@ Text * ResourceManager::getCloneOfText(std::string _NAME)
 	}
 }
 
+Powerup * ResourceManager::getCloneOfPowerup(std::string _NAME)
+{
+	Powerup* SUB = getPowerup(_NAME);
+	if (SUB)
+	{
+		Powerup* SUB2 = new Powerup;
+		*SUB2 = *SUB;
+
+		ResourceManager::addEntityINGAME(SUB2);
+		cloneChildren(SUB2);
+		return SUB2;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
 void ResourceManager::cloneChildren(Transform * _TF)
 {
 	unsigned int TFsize = _TF->getChildren().size();
@@ -1647,6 +1811,11 @@ void ResourceManager::cloneChildren(Transform * _TF)
 		{
 			SUB7 = getCloneOfWeapon(_TF2->getName());
 			_TF->addChild(SUB7);
+		}
+		else if (Powerup* SUB9 = dynamic_cast<Powerup*>(_TF2))
+		{
+			SUB9 = getCloneOfPowerup(_TF2->getName());
+			_TF->addChild(SUB9);
 		}
 		else if (GameObject* SUB4 = dynamic_cast<GameObject*>(_TF2))
 		{

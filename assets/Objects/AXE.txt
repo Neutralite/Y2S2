@@ -2,6 +2,6 @@ Axe
 AxeBaseColours
 EMPTY
 0
-PHYS
+phys
 AXE_HITBOX
 false

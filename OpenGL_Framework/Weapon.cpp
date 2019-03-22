@@ -21,6 +21,10 @@ bool Weapon::tailoredCollision(GameObject * _GO)
 			{
 
 			}
+			else if (_GO->TT == TYPE_Powerup)
+			{
+
+			}
 			else
 			{
 				//std::cout << "HERE!" << std::endl;

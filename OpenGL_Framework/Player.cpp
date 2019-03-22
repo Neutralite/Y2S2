@@ -1,5 +1,6 @@
 #include "Player.h"
 #include <iostream>
+#include "Powerup.h"
 
 Player::Player()
 {
@@ -8,6 +9,7 @@ Player::Player()
 
 Player::~Player()
 {
+	delete Engine;
 }
 
 void Player::playerInit(PLAYER_TYPE PT)
@@ -255,6 +257,15 @@ void Player::doCollision(GameObject* _GO)
 			{
 
 			}
+			else if (_GO->TT == TYPE_Powerup)
+			{
+				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				{
+					_GO->needsUpdate = true;
+					_GO->destroying = true;
+					needsUpdate = true;
+				}
+			}
 			else if (_GO->getPhysicsBody()->getHB()->grass)
 			{
 				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
@@ -279,6 +290,7 @@ void Player::doCollision(GameObject* _GO)
 					if (length(Engine->getVelocity()) > Engine->getVelocityLimit() * ((float)_GO->destrPoints) * 0.1f && _GO->TT != TransformType::TYPE_Boundary)
 					{
 						_GO->initiateDestruction(0, normalize(getPhysicsBody()->getHB()->outDir), 0.5f, playerNumber);
+						
 					}
 					else
 					{

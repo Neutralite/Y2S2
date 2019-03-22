@@ -78,7 +78,8 @@ public:
 		TYPE_Weapon,
 		TYPE_Axe,
 		TYPE_Hammer,
-		TYPE_Mine
+		TYPE_Mine,
+		TYPE_Powerup
 	};
 
 	TransformType TT;

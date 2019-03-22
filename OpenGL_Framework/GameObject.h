@@ -78,7 +78,7 @@ public:
 
 	float maxDestrTime = 0.6f;
 	float timeDestroying = 0.f;
-	void DestructionSequence(float dt);
+	virtual void DestructionSequence(float dt);
 
 	vec3 DirOfDestr;
 	int TypeOfDestr;

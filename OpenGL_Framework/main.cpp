@@ -4,6 +4,9 @@
 #include <windows.h>
 #include <iostream>
 #include "Game.h"
+#include <cstdlib>
+#include <ctime>
+
 
 Game *theGame;
 
@@ -195,6 +198,8 @@ void InitOpenGLDebugCallback()
 
 int main(int argc, char **argv)
 {
+	srand((unsigned int)time(0));
+
 	/* initialize the window and OpenGL properly */
 	glutInit(&argc, argv);
 	glutInitContextVersion(4, 6);

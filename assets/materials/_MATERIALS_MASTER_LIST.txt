@@ -29,3 +29,10 @@ Text
 BLAST_RADIUS
 HammerBaseColours
 AxeBaseColours
+Bulldozer_Base_Colours 2
+Tank_Base_Colours2
+WreckingBall_Base_Color 2
+POWERUP
+AXE_MODEL
+HAMMER_MODEL
+MINE_MODEL

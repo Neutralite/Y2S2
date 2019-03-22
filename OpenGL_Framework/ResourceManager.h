@@ -13,6 +13,7 @@
 #include "WEAPON_Axe.h"
 #include "Material.h"
 #include "Text.h"
+#include "Powerup.h"
 
 class ResourceManager
 {
@@ -40,6 +41,7 @@ public:
 	static std::vector<Hitbox2D*> allHitboxes;
 	static std::vector<Framebuffer*> allFramebuffers;
 	static std::vector<Weapon*> allWeapons;
+	static std::vector<Powerup*> allPowerups;
 
 	static std::vector<Transform*> TransformsINGAME;
 	static std::vector<Camera*> CamerasINGAME;
@@ -47,6 +49,7 @@ public:
 	static std::vector<Light*> AllLightINGAME; //PLUS ULTRA
 	static std::vector<Weapon*> allWeaponsINGAME;
 	static std::vector<Text*> allTextINGAME;
+	static std::vector<Powerup*> allPowerupsINGAME;
 	
 	static void sortAddTexture(unsigned int front, unsigned int back, Texture* ELEM);
 	static void sortAddMesh(unsigned int front, unsigned int back, Mesh* ELEM);
@@ -60,6 +63,7 @@ public:
 	static void sortAddWeapon(unsigned int front, unsigned int back, Weapon* ELEM);
 	static void sortAddMaterial(unsigned int front, unsigned int back, Material* ELEM);
 	static void sortAddFont(unsigned int front, unsigned int back, Text* ELEM);
+	static void sortAddPowerup(unsigned int front, unsigned int back, Powerup* ELEM);
 
 	static void sortAddGameObjectINGAME(unsigned int front, unsigned int back, GameObject* ELEM);
 	static void sortAddLightINGAME(unsigned int front, unsigned int back, Light* ELEM);
@@ -67,6 +71,7 @@ public:
 	static void sortAddEntityINGAME(unsigned int front, unsigned int back, Transform* ELEM);
 	static void sortAddWeaponINGAME(unsigned int front, unsigned int back, Weapon* ELEM);
 	static void sortAddTextINGAME(unsigned int front, unsigned int back, Text* ELEM);
+	static void sortAddPowerupINGAME(unsigned int front, unsigned int back, Powerup* ELEM);
 	
 	static Texture* findTexture(unsigned int front, unsigned int back, std::string _NAME);
 	static Mesh* findMesh(unsigned int front, unsigned int back, std::string _NAME);
@@ -80,6 +85,7 @@ public:
 	static Weapon* findWeapon(unsigned int front, unsigned int back, std::string _NAME);
 	static Material* findMaterial(unsigned int front, unsigned int back, std::string _NAME);
 	static Text* findFont(unsigned int front, unsigned int back, std::string _NAME);
+	static Powerup* findPowerup(unsigned int front, unsigned int back, std::string _NAME);
 
 	static int findGameObjectINGAME(unsigned int front, unsigned int back, GameObject* _ADR);
 	static int findLightINGAME(unsigned int front, unsigned int back, Light* _ADR);
@@ -87,6 +93,7 @@ public:
 	static int findCameraINGAME(unsigned int front, unsigned int back, Camera* _ADR);
 	static int findWeaponINGAME(unsigned int front, unsigned int back, Weapon* _ADR);
 	static int findTextINGAME(unsigned int front, unsigned int back, Text* _ADR);
+	static int findPowerupINGAME(unsigned int front, unsigned int back, Powerup* _ADR);
 
 	static Texture* searchForTexture(std::string _NAME);
 	static Mesh* searchForMesh(std::string _NAME);
@@ -100,6 +107,7 @@ public:
 	static Weapon* searchForWeapon(std::string _NAME);
 	static Material* searchForMaterial(std::string _NAME);
 	static Text* searchForFont(std::string _NAME);
+	static Powerup* searchForPowerup(std::string _NAME);
 
 	static void destroyObjectINGAME(Transform* _OBJ);
 	static void destroyChildrenINGAME(Transform* OBJ);
@@ -120,6 +128,7 @@ public:
 	static Weapon* getWeapon(std::string _NAME);
 	static Material* getMaterial(std::string _NAME);
 	static Text* getFont(std::string _NAME);
+	static Powerup* getPowerup(std::string _NAME);
 
 	static Boundary* getCloneOfBoundary(std::string _NAME);
 	static Destructable* getCloneOfDestructable(std::string _NAME);
@@ -131,6 +140,7 @@ public:
 	static GameObject* getCloneOfObject(std::string _NAME);
 	static Weapon* getCloneOfWeapon(std::string _NAME);
 	static Text* getCloneOfText(std::string _NAME);
+	static Powerup* getCloneOfPowerup(std::string _NAME);
 
 	static void cloneChildren(Transform* _TF);
 };

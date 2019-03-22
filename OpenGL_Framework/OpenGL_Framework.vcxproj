@@ -136,6 +136,7 @@
     <ClCompile Include="PhysicsBody.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PostProcessBuffer.cpp" />
+    <ClCompile Include="Powerup.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="Text.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="PhysicsBody.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PostProcessBuffer.h" />
+    <ClInclude Include="Powerup.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="ShaderProgram.h" />
     <ClInclude Include="Text.h" />
@@ -227,9 +229,11 @@
     <None Include="..\assets\shaders\FINAL_RENDER_DIRECTIONAL.frag" />
     <None Include="..\assets\shaders\FINAL_RENDER_POINT.frag" />
     <None Include="..\assets\shaders\FINAL_RENDER_SPOTLIGHT.frag" />
+    <None Include="..\assets\shaders\Lighter.frag" />
     <None Include="..\assets\shaders\LIGHT_GEO.vert" />
     <None Include="..\assets\shaders\POST_TEXT.frag" />
     <None Include="..\assets\shaders\POST_TEXT.vert" />
+    <None Include="..\assets\shaders\POWERUP_RENDER.frag" />
     <None Include="..\assets\shaders\Radial Blur.frag" />
     <None Include="..\assets\shaders\StaticBob.vert" />
     <None Include="..\assets\shaders\GenericPost.vert" />

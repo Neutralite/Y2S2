@@ -1,0 +1,7 @@
+Wrecking_Ball_2
+WreckingBall_Base_Color 2
+PLAYER
+0
+PHYS
+TRUCK_HITBOX
+true

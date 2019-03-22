@@ -48,3 +48,6 @@ BLAST_RADIUS
 BLAST_ALBEDO
 HammerBaseColours
 AxeBaseColours
+Bulldozer_Base_Colours 2
+Tank_Base_Colours2
+WreckingBall_Base_Color 2
