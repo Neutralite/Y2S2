@@ -3,5 +3,5 @@ WreckingBall_Base_Color 2
 PLAYER
 0
 PHYS
-TRUCK_HITBOX
+WRECKING_BALL_HITBOX
 true

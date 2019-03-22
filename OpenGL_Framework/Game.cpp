@@ -1662,17 +1662,17 @@ void Game::staticCollisions()
 						if (staticCollisionShip[j]->getChildren().at(0)->getName() == "MINE_MODEL")
 						{
 							_P->attachWeapon(rm::getWeapon("MINE"));
-							std::cout << "SHIFTED TO MINE" << std::endl;
+							//std::cout << "SHIFTED TO MINE" << std::endl;
 						}
 						else if (staticCollisionShip[j]->getChildren().at(0)->getName() == "HAMMER_MODEL")
 						{
 							_P->attachWeapon(rm::getWeapon("HAMMER"));
-							std::cout << "SHIFTED TO HAMMER" << std::endl;
+							//std::cout << "SHIFTED TO HAMMER" << std::endl;
 						}
 						else if (staticCollisionShip[j]->getChildren().at(0)->getName() == "AXE_MODEL")
 						{
 							_P->attachWeapon(rm::getWeapon("AXE"));
-							std::cout << "SHIFTED TO AXE" << std::endl;
+							//std::cout << "SHIFTED TO AXE" << std::endl;
 						}
 			
 						int xPos = clamp((int)(staticCollisionShip[j]->getLocalPos().x / tileSize + 0.5f), 0, 99);
@@ -2690,7 +2690,14 @@ void Game::generateMap()
 
 	for (Player* PL : players)
 	{
-		PL->playerInit(Player::PLAYER_TYPE::TRUCK);
+		if (PL->getName() == "PLAYER_TRUCK")
+			PL->playerInit(Player::PLAYER_TYPE::TRUCK);
+		else if (PL->getName() == "PLAYER_TANK")
+			PL->playerInit(Player::PLAYER_TYPE::TANK);
+		else if (PL->getName() == "PLAYER_BULLDOZER")
+			PL->playerInit(Player::PLAYER_TYPE::BULLDOZER);
+		else if (PL->getName() == "PLAYER_WRECKINGBALL")
+			PL->playerInit(Player::PLAYER_TYPE::WRECKING_BALL);
 	}
 
 	TUI = rm::getCloneOfText("UISpaces");
@@ -3167,17 +3174,17 @@ void Game::uniqueKeyPresses()
 	}
 	if (keysDown['1'] && !backCheckKeysDown['1'])
 	{
-		std::cout << "MINE EQUIPPED!" << std::endl;
+		//std::cout << "MINE EQUIPPED!" << std::endl;
 		players[0]->attachWeapon(rm::getWeapon("MINE"));
 	}
 	if (keysDown['2'] && !backCheckKeysDown['2'])
 	{
-		std::cout << "HAMMER EQUIPPED!" << std::endl;
+		//std::cout << "HAMMER EQUIPPED!" << std::endl;
 		players[0]->attachWeapon(rm::getWeapon("HAMMER"));
 	}
 	if (keysDown['3'] && !backCheckKeysDown['3'])
 	{
-		std::cout << "AXE EQUIPPED!" << std::endl;
+		//std::cout << "AXE EQUIPPED!" << std::endl;
 		players[0]->attachWeapon(rm::getWeapon("AXE"));
 	}
 	if (keysDown['7'] && !backCheckKeysDown['7'])

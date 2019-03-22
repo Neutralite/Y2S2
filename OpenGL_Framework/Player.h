@@ -16,7 +16,10 @@ public:
 
 	enum PLAYER_TYPE
 	{
-		TRUCK
+		TRUCK,
+		TANK,
+		WRECKING_BALL,
+		BULLDOZER
 	};
 
 	Player();

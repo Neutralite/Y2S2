@@ -35,8 +35,48 @@ void Player::playerInit(PLAYER_TYPE PT)
 		getPhysicsBody()->setAngularFriction(0.f);
 		getPhysicsBody()->setAngularVelocityLimit(180.f);
 	}
+	else if (PT == PLAYER_TYPE::BULLDOZER)
+	{
+		Engine->setFriction(90.f);
+		Engine->setVelocityLimit(27.f);
+		baseAcceleration = 155.f;
+		steeringForce = 1000.f;
+		Engine->setAngularFriction(0.f);
+		Engine->setAngularVelocityLimit(220.f);
 
+		getPhysicsBody()->setFriction(90.f);
+		getPhysicsBody()->setVelocityLimit(27.f);
+		getPhysicsBody()->setAngularFriction(0.f);
+		getPhysicsBody()->setAngularVelocityLimit(220.f);
+	}
+	else if (PT == PLAYER_TYPE::WRECKING_BALL)
+	{
+		Engine->setFriction(20.f);
+		Engine->setVelocityLimit(35.f);
+		baseAcceleration = 90.f;
+		steeringForce = 600.f;
+		Engine->setAngularFriction(0.f);
+		Engine->setAngularVelocityLimit(130.f);
 
+		getPhysicsBody()->setFriction(20.f);
+		getPhysicsBody()->setVelocityLimit(35.f);
+		getPhysicsBody()->setAngularFriction(0.f);
+		getPhysicsBody()->setAngularVelocityLimit(130.f);
+	}
+	else if (PT == PLAYER_TYPE::TANK)
+	{
+		Engine->setFriction(100.f);
+		Engine->setVelocityLimit(25.f);
+		baseAcceleration = 180.f;
+		steeringForce = 1500.f;
+		Engine->setAngularFriction(0.f);
+		Engine->setAngularVelocityLimit(300.f);
+
+		getPhysicsBody()->setFriction(100.f);
+		getPhysicsBody()->setVelocityLimit(25.f);
+		getPhysicsBody()->setAngularFriction(0.f);
+		getPhysicsBody()->setAngularVelocityLimit(300.f);
+	}
 	
 	//std::cout << Engine << std::endl;
 }

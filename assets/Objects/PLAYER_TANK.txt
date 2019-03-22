@@ -3,5 +3,5 @@ Tank_Base_Colours2
 PLAYER
 0
 PHYS
-TRUCK_HITBOX
+TANK_HITBOX
 true

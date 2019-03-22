@@ -3,5 +3,5 @@ Bulldozer_Base_Colours 2
 PLAYER
 0
 PHYS
-TRUCK_HITBOX
+BULLDOZER_HITBOX
 true
