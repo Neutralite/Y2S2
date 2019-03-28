@@ -1,0 +1,4 @@
+PBR
+textureRoughness: defaultWhite
+textureMetallic: defaultBlack
+shader: RECOLOR_INITIAL_RENDER

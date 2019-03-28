@@ -26,4 +26,25 @@ trailer
 street_light_texture
 EXPLOSION
 Text
+TextUI
+TextRot
 BLAST_RADIUS
+HammerBaseColours
+AxeBaseColours
+Bulldozer_Base_Colours 2
+Tank_Base_Colours2
+WreckingBall_Base_Color 2
+POWERUP
+AXE_MODEL
+HAMMER_MODEL
+MINE_MODEL
+Arrow
+Back Button
+Exit Button
+Menu Scene
+Play Button
+Ready white version
+Rules Button
+SelectionSceneTexture
+Cube
+Downtown_Destruction_New

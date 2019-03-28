@@ -1,0 +1,4 @@
+PBR
+textureAlbedo: defaultBlack
+textureEmissive: HammerBaseColours
+shader: WEAPON_POWERUP

@@ -1,0 +1,7 @@
+Axe
+AxeBaseColours
+EMPTY
+0
+phys
+AXE_HITBOX
+false

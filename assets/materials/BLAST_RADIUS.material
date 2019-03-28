@@ -3,3 +3,4 @@ textureAlbedo: BLAST_ALBEDO
 textureEmissive: BLAST_RADIUS
 textureRoughness: defaultBlack
 textureMetallic: defaultBlack
+shader: COMIC_SETUP

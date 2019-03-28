@@ -3,9 +3,21 @@
 #define NOMINMAX
 #include <windows.h>
 #include <iostream>
+#include "SceneHandler.h"
 #include "Game.h"
+#include "Title.h"
+#include "VictoryScene.h"
+#include "VehicleSelection.h"
+#include "ExternalPlayerData.h"
+#include <cstdlib>
+#include <ctime>
 
-Game *theGame;
+
+//Game *theGame;
+Scene *theGame;
+Scene *titleScreen;
+Scene* vehicleSelection;
+Scene* victoryScreen;
 
 /* function DisplayCallbackFunction(void)
  * Description:
@@ -14,7 +26,8 @@ Game *theGame;
  */
 void DisplayCallbackFunction(void)
 {
-	theGame->draw();
+	//theGame->draw();
+	SceneHandler::draw();
 }
 
 /* function void KeyboardCallbackFunction(unsigned char, int, int)
@@ -23,17 +36,20 @@ void DisplayCallbackFunction(void)
  */
 void KeyboardCallbackFunction(unsigned char key, int x, int y)
 {
-	theGame->keyboardDown(key, x, y);
+	//theGame->keyboardDown(key, x, y);
+	SceneHandler::keyboardDown(key, x, y);
 }
 
 void SpecialCallbackFunction(int key, int x, int y)
 {
-	theGame->keyboardSpecialDown(key, x, y);
+	//theGame->keyboardSpecialDown(key, x, y);
+	SceneHandler::keyboardSpecialDown(key, x, y);
 }
 
 void SpecialUpCallbackFunction(int key, int x, int y)
 {
-	theGame->keyboardSpecialUp(key, x, y);
+	//theGame->keyboardSpecialUp(key, x, y);
+	SceneHandler::keyboardSpecialUp(key, x, y);
 }
 
 /* function void KeyboardUpCallbackFunction(unsigned char, int, int)
@@ -42,7 +58,8 @@ void SpecialUpCallbackFunction(int key, int x, int y)
  */
 void KeyboardUpCallbackFunction(unsigned char key, int x, int y)
 {
-	theGame->keyboardUp(key, x, y);
+	//theGame->keyboardUp(key, x, y);
+	SceneHandler::keyboardUp(key, x, y);
 }
 
 /* function TimerCallbackFunction(int value)
@@ -55,7 +72,8 @@ void KeyboardUpCallbackFunction(unsigned char key, int x, int y)
  */
 void TimerCallbackFunction(int value)
 {
-	theGame->update();
+	//theGame->update();
+	SceneHandler::update();
 
 	glutPostRedisplay();
 	glutTimerFunc(FRAME_DELAY_SPRITE, TimerCallbackFunction, 0);
@@ -63,7 +81,8 @@ void TimerCallbackFunction(int value)
 
 void MouseClickCallbackFunction(int button, int state, int x, int y)
 {
-	theGame->mouseClicked(button,state, x, y);
+	//theGame->mouseClicked(button,state, x, y);
+	SceneHandler::mouseClicked(button, state, x, y);
 }
 
 /* function MouseMotionCallbackFunction()
@@ -72,12 +91,14 @@ void MouseClickCallbackFunction(int button, int state, int x, int y)
  */
 void MouseMotionCallbackFunction(int x, int y)
 {
-	theGame->mouseMoved(x, y);
+	//theGame->mouseMoved(x, y);
+	SceneHandler::mouseMoved(x, y);
 }
 
 void MousePassiveCallbackFunction(int x, int y)
 {
-	theGame->mousePassive(x, y);
+	//theGame->mousePassive(x, y);
+	SceneHandler::mousePassive(x, y);
 }
 
 
@@ -89,7 +110,8 @@ void MousePassiveCallbackFunction(int x, int y)
 void WindowReshapeCallbackFunction(int w, int h)
 {
 	/* Update our Window Properties */
-	theGame->reshapeWindow(w, h);
+	//theGame->reshapeWindow(w, h);
+	SceneHandler::reshapeWindow(w, h);
 }
 
 void CALLBACK OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *msg, const void *data)
@@ -195,6 +217,8 @@ void InitOpenGLDebugCallback()
 
 int main(int argc, char **argv)
 {
+	srand((unsigned int)time(0));
+
 	/* initialize the window and OpenGL properly */
 	glutInit(&argc, argv);
 	glutInitContextVersion(4, 6);
@@ -203,7 +227,7 @@ int main(int argc, char **argv)
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 
-	glutCreateWindow("OpenGL Framework");
+	glutCreateWindow("Down Town Destruction");
 
 	glewExperimental = true;
 
@@ -228,11 +252,37 @@ int main(int argc, char **argv)
 	InitOpenGLDebugCallback();
 #endif
 
+	SceneHandler::initHandler(WINDOW_WIDTH, WINDOW_HEIGHT);
+
 	/* init the game */
 	theGame = new Game();
-	theGame->initializeGame();
+	theGame->setName("MAIN_LOOP");
+	SceneHandler::addScene(theGame);
+
+	titleScreen = new Title();
+	titleScreen->setName("TITLE_SCREEN");
+	SceneHandler::addScene(titleScreen);
+
+	vehicleSelection = new VehicleSelection();
+	vehicleSelection->setName("VEHICLE_SELECTION");
+	SceneHandler::addScene(vehicleSelection);
+
+	victoryScreen = new VictoryScene();
+	victoryScreen->setName("VICTORY");
+	SceneHandler::addScene(victoryScreen);
+
+	EPD::initEPD();
+
+
+
+	//theGame->initializeGame();
+	//SceneHandler::replaceScene(theGame);
+	SceneHandler::replaceScene(titleScreen);
+	//SceneHandler::replaceScene(victoryScreen);
+	//SceneHandler::replaceScene(vehicleSelection);
 
 	/* start the game */
+	glutFullScreen();
 	glutMainLoop();
 	return 0;
 }

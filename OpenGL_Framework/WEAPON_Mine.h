@@ -10,12 +10,7 @@ public:
 
 	static std::vector<wFrame> FRAMES;
 
-	//bool tailoredCollision(GameObject* _GO);
-
-	wFrame* getFrameBefore(float t);
-	wFrame* getFrameAt(float t);
-	wFrame* getFrameAfter(float t);
-	wFrame* getFrame2After(float t);
+	std::vector<wFrame>* getFL();
 
 	unsigned int getDest();
 	void otherUpdates(float dt);

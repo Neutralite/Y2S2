@@ -8,10 +8,13 @@
 #include "Destructable.h"
 #include "Player.h"
 #include "Weapon.h"
-//#include "WEAPON_Hammer.h"
 #include "WEAPON_Mine.h"
+#include "WEAPON_Hammer.h"
+#include "WEAPON_Axe.h"
 #include "Material.h"
 #include "Text.h"
+#include "Powerup.h"
+#include "RecolorObject.h"
 
 class ResourceManager
 {
@@ -35,61 +38,39 @@ public:
 	static std::vector<Texture*> allTextures;
 	static std::vector<Mesh*> allMeshes;
 	static std::vector<GameObject*> allGameObjects;
+	static std::vector<RecolorObject*> allRecolorObjects;
 	static std::vector<Light*> AllLight; //PLUS ULTRA
 	static std::vector<Hitbox2D*> allHitboxes;
 	static std::vector<Framebuffer*> allFramebuffers;
 	static std::vector<Weapon*> allWeapons;
+	static std::vector<Powerup*> allPowerups;
 
 	static std::vector<Transform*> TransformsINGAME;
 	static std::vector<Camera*> CamerasINGAME;
 	static std::vector<GameObject*> allGameObjectsINGAME;
+	static std::vector<RecolorObject*> allRecolorObjectsINGAME;
 	static std::vector<Light*> AllLightINGAME; //PLUS ULTRA
 	static std::vector<Weapon*> allWeaponsINGAME;
 	static std::vector<Text*> allTextINGAME;
-	
-	static void sortAddTexture(unsigned int front, unsigned int back, Texture* ELEM);
-	static void sortAddMesh(unsigned int front, unsigned int back, Mesh* ELEM);
-	static void sortAddGameObject(unsigned int front, unsigned int back, GameObject* ELEM);
-	static void sortAddLight(unsigned int front, unsigned int back, Light* ELEM);
-	static void sortAddShader(unsigned int front, unsigned int back, ShaderProgram* ELEM);
-	static void sortAddCamera(unsigned int front, unsigned int back, Camera* ELEM);
-	static void sortAddEntity(unsigned int front, unsigned int back, Transform* ELEM);
-	static void sortAddHitbox(unsigned int front, unsigned int back, Hitbox2D* ELEM);
-	static void sortAddFramebuffer(unsigned int front, unsigned int back, Framebuffer* ELEM);
-	static void sortAddWeapon(unsigned int front, unsigned int back, Weapon* ELEM);
-	static void sortAddMaterial(unsigned int front, unsigned int back, Material* ELEM);
-	static void sortAddFont(unsigned int front, unsigned int back, Text* ELEM);
+	static std::vector<Powerup*> allPowerupsINGAME;
 
-	static void sortAddGameObjectINGAME(unsigned int front, unsigned int back, GameObject* ELEM);
-	static void sortAddLightINGAME(unsigned int front, unsigned int back, Light* ELEM);
-	static void sortAddCameraINGAME(unsigned int front, unsigned int back, Camera* ELEM);
-	static void sortAddEntityINGAME(unsigned int front, unsigned int back, Transform* ELEM);
-	static void sortAddWeaponINGAME(unsigned int front, unsigned int back, Weapon* ELEM);
-	static void sortAddTextINGAME(unsigned int front, unsigned int back, Text* ELEM);
+	template <class T>
+	static void sortAdd(unsigned int front, unsigned int back, T* ELEM, std::vector<T*> *LIST);
+	template <class T>
+	static void sortAddINGAME(unsigned int front, unsigned int back, T* ELEM, std::vector<T*> *LIST);
 	
-	static Texture* findTexture(unsigned int front, unsigned int back, std::string _NAME);
-	static Mesh* findMesh(unsigned int front, unsigned int back, std::string _NAME);
-	static GameObject* findGameObject(unsigned int front, unsigned int back, std::string _NAME);
-	static Light* findLight(unsigned int front, unsigned int back, std::string _NAME);
-	static ShaderProgram* findShader(unsigned int front, unsigned int back, std::string _NAME);
-	static Transform* findEntity(unsigned int front, unsigned int back, std::string _NAME);
-	static Camera* findCamera(unsigned int front, unsigned int back, std::string _NAME);
-	static Hitbox2D* findHitbox(unsigned int front, unsigned int back, std::string _NAME);
-	static Framebuffer* findFramebuffer(unsigned int front, unsigned int back, std::string _NAME);
-	static Weapon* findWeapon(unsigned int front, unsigned int back, std::string _NAME);
-	static Material* findMaterial(unsigned int front, unsigned int back, std::string _NAME);
-	static Text* findFont(unsigned int front, unsigned int back, std::string _NAME);
+	template <class T>
+	static T* find(unsigned int front, unsigned int back, std::string _NAME, std::vector<T*> *LIST);
+	template <class T>
+	static int findINGAME(unsigned int front, unsigned int back, T* _ADR, std::vector<T*> *LIST);
 
-	static int findGameObjectINGAME(unsigned int front, unsigned int back, GameObject* _ADR);
-	static int findLightINGAME(unsigned int front, unsigned int back, Light* _ADR);
-	static int findEntityINGAME(unsigned int front, unsigned int back, Transform* _ADR);
-	static int findCameraINGAME(unsigned int front, unsigned int back, Camera* _ADR);
-	static int findWeaponINGAME(unsigned int front, unsigned int back, Weapon* _ADR);
-	static int findTextINGAME(unsigned int front, unsigned int back, Text* _ADR);
+	template <class T>
+	static int protectedFindINGAME(T* _ADR, std::vector<T*> *LIST);
 
 	static Texture* searchForTexture(std::string _NAME);
 	static Mesh* searchForMesh(std::string _NAME);
 	static GameObject* searchForGameObject(std::string _NAME);
+	static RecolorObject* searchForRecolorObject(std::string _NAME);
 	static Light* searchForLight(std::string _NAME);
 	static ShaderProgram* searchForShader(std::string _NAME);
 	static Transform* searchForTransform(std::string _NAME);
@@ -99,6 +80,7 @@ public:
 	static Weapon* searchForWeapon(std::string _NAME);
 	static Material* searchForMaterial(std::string _NAME);
 	static Text* searchForFont(std::string _NAME);
+	static Powerup* searchForPowerup(std::string _NAME);
 
 	static void destroyObjectINGAME(Transform* _OBJ);
 	static void destroyChildrenINGAME(Transform* OBJ);
@@ -115,10 +97,12 @@ public:
 	static Transform* getEntity(std::string _NAME);
 	static ShaderProgram* getShader(std::string _NAME);
 	static GameObject* getObject(std::string _NAME);
+	static RecolorObject* getRecolorObject(std::string _NAME);
 	static Framebuffer* getFramebuffer(std::string _NAME);
 	static Weapon* getWeapon(std::string _NAME);
 	static Material* getMaterial(std::string _NAME);
 	static Text* getFont(std::string _NAME);
+	static Powerup* getPowerup(std::string _NAME);
 
 	static Boundary* getCloneOfBoundary(std::string _NAME);
 	static Destructable* getCloneOfDestructable(std::string _NAME);
@@ -128,10 +112,131 @@ public:
 	static Camera* getCloneOfCamera(std::string _NAME);
 	static Transform* getCloneOfEntity(std::string _NAME);
 	static GameObject* getCloneOfObject(std::string _NAME);
+	static RecolorObject* getCloneOfRecolorObject(std::string _NAME);
 	static Weapon* getCloneOfWeapon(std::string _NAME);
 	static Text* getCloneOfText(std::string _NAME);
+	static Powerup* getCloneOfPowerup(std::string _NAME);
 
 	static void cloneChildren(Transform* _TF);
+
+	static void order66();
 };
 
 typedef ResourceManager rm;
+
+template<class T>
+inline void ResourceManager::sortAdd(unsigned int front, unsigned int back, T * ELEM, std::vector<T*> *LIST)
+{
+	unsigned int mid = (front + back) / 2;
+	if ((*LIST)[mid]->getName() == ELEM->getName())
+	{
+		LIST->insert(LIST->begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if ((*LIST)[front]->getName() > ELEM->getName())
+			LIST->insert(LIST->begin() + front, ELEM);
+		else if ((*LIST)[back]->getName() > ELEM->getName())
+			LIST->insert(LIST->begin() + back, ELEM);
+		else
+			LIST->insert(LIST->begin() + back + 1, ELEM);
+	}
+	else if ((*LIST)[mid]->getName() > ELEM->getName())
+	{
+		sortAdd(front, mid, ELEM, LIST);
+	}
+	else
+	{
+		sortAdd(mid, back, ELEM, LIST);
+	}
+}
+
+template<class T>
+inline void ResourceManager::sortAddINGAME(unsigned int front, unsigned int back, T * ELEM, std::vector<T*> *LIST)
+{
+	unsigned int mid = (front + back) / 2;
+	if ((*LIST)[mid] == ELEM)
+	{
+		LIST->insert(LIST->begin() + mid, ELEM);
+	}
+	else if (back - front <= 1)
+	{
+		if ((*LIST)[front] > ELEM)
+			LIST->insert(LIST->begin() + front, ELEM);
+		else if ((*LIST)[back] > ELEM)
+			LIST->insert(LIST->begin() + back, ELEM);
+		else
+			LIST->insert(LIST->begin() + back + 1, ELEM);
+	}
+	else if ((*LIST)[mid] > ELEM)
+	{
+		sortAddINGAME(front, mid, ELEM, LIST);
+	}
+	else
+	{
+		sortAddINGAME(mid, back, ELEM, LIST);
+	}
+}
+
+template<class T>
+inline T * ResourceManager::find(unsigned int front, unsigned int back, std::string _NAME, std::vector<T*>* LIST)
+{
+	unsigned int mid = (front + back) / 2;
+	if ((*LIST)[mid]->getName() == _NAME)
+	{
+		return (*LIST)[mid];
+	}
+	else if (back - front <= 1)
+	{
+		if ((*LIST)[front]->getName() == _NAME)
+			return (*LIST)[front];
+		else if ((*LIST)[back]->getName() == _NAME)
+			return (*LIST)[back];
+		else
+			return nullptr;
+	}
+	else if ((*LIST)[mid]->getName() > _NAME)
+	{
+		return find(front, mid, _NAME, LIST);
+	}
+	else
+	{
+		return find(mid, back, _NAME, LIST);
+	}
+}
+
+template<class T>
+inline int ResourceManager::findINGAME(unsigned int front, unsigned int back, T* _ADR, std::vector<T*>* LIST)
+{
+	unsigned int mid = (front + back) / 2;
+	if ((*LIST)[mid] == _ADR)
+	{
+		return mid;
+	}
+	else if (back - front <= 1)
+	{
+		if ((*LIST)[front] == _ADR)
+			return front;
+		else if ((*LIST)[back] == _ADR)
+			return back;
+		else
+			return -1;
+	}
+	else if ((*LIST)[mid] > _ADR)
+	{
+		return findINGAME(front, mid, _ADR, LIST);
+	}
+	else
+	{
+		return findINGAME(mid, back, _ADR, LIST);
+	}
+}
+
+template<class T>
+inline int ResourceManager::protectedFindINGAME(T * _ADR, std::vector<T*>* LIST)
+{
+	if (LIST->size() == 0)
+		return -1;
+	else
+		return findINGAME(0, LIST->size() - 1, _ADR, LIST);
+}

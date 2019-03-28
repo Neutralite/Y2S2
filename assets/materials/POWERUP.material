@@ -1,0 +1,6 @@
+PBR
+textureEmissive: defaultWhite
+textureRoughness: defaultBlack
+textureMetallic: defaultBlack
+textureAlbedo: BLAST_RADIUS
+shader: POWERUP

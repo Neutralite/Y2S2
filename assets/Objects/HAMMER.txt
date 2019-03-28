@@ -1,0 +1,7 @@
+Hammer
+HammerBaseColours
+EMPTY
+0
+PHYS
+HAMMER_HITBOX
+false

@@ -1,0 +1,7 @@
+tank
+Tank_Base_Colours2
+PLAYER
+0
+PHYS
+TANK_HITBOX
+true

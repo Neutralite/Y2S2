@@ -1,6 +1,7 @@
 #include "Field.h"
 #include <fstream>
 #include <iostream>
+#include "ExternalPlayerData.h"
 
 Field::Field()
 {
@@ -8,6 +9,11 @@ Field::Field()
 
 Field::Field(std::string & fileName)
 {
+	grid.clear();
+	players.clear();
+	spawnPoints.clear();
+	fieldObjects.clear();
+
 	for (unsigned int i = 0; i < width; i++)
 	{
 		std::vector<BasePlate*> sub;
@@ -69,7 +75,22 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 		{
 			if (temp == "PLACEHOLDER_PLAYER")
 			{
-				temp = "PLAYER_TRUCK";
+				if (EPD::playerVehicleChoice[0] == 0)
+				{ 
+					temp = "PLAYER_TRUCK";
+				}
+				else if (EPD::playerVehicleChoice[0] == 1)
+				{
+					temp = "PLAYER_TANK";
+				}
+				else if (EPD::playerVehicleChoice[0] == 2)
+				{
+					temp = "PLAYER_BULLDOZER";
+				}
+				else if (EPD::playerVehicleChoice[0] == 3)
+				{
+					temp = "PLAYER_WRECKINGBALL";
+				}
 
 				Player* PL = ResourceManager::getCloneOfPlayer(temp);
 				std::getline(theFile, temp);
@@ -95,6 +116,8 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 				PL->setInitials(vec3(xLoc, 0.f, yLoc), vec3(0, (float)rot, 0), vec3(scale));
 
 				PL->hasInitial = true;
+
+				spawnPoints.push_back(vec2(xLoc, yLoc));
 			}
 			else
 			{

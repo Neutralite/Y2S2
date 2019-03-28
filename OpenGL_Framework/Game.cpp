@@ -8,10 +8,19 @@
 #include <fstream>
 #include <random>
 
+#include <cstdlib>
+#include <ctime>
+#include "ExternalPlayerData.h"
+
 Game::Game()
 {
 	updateTimer = new Timer();
 	gameCheckTimer = new Timer();
+	srand((unsigned int)time(0));
+
+
+	RADIAL_POST_PROC.setFormat(GL_RGB8);
+	RADIAL_POST_PROC.init(windowWidth, windowHeight);
 }
 
 Game::~Game()
@@ -20,293 +29,43 @@ Game::~Game()
 	delete gameCheckTimer;
 }
 
-//int activeToonRamp = 0;
-//bool toonActive = false;
-
-constexpr int frameTimeNumSamples = 600;
-int frameTimeCurrSample = 0;
-float frameTimeSamples[frameTimeNumSamples];
-
-//UniformBuffer* testBuffer;
-
 void Game::initializeGame()
 {
-	aspect = WINDOW_WIDTH / WINDOW_HEIGHT;
+	//std::cout << "INITING" << std::endl;
+	readyToTerminate = false;
+	isInScene = false;
+	TotalTime = 0.f;
+	dropOffTimer = 0.f;
 
-	for (int i = 0; i < frameTimeNumSamples; ++i)
-		frameTimeSamples[i] = 0.016f;
-	if (guiEnabled && !UI::isInit)
-		UI::InitImGUI();
+	minutes = 3;
+	seconds = 0;
 
-	Camera::init();
+	pScore = 0;
+	lerpScore = 0;
 
-	Light::init();
-	Light::_UBO.bind(3);
-
-	ShaderProgram::initDefault();
-	Framebuffer::initFrameBuffers();
-
-	std::string masterFile = "_MESH_MASTER_LIST";
-	loadAllMeshes(masterFile);
-
-	masterFile = "_TEXTURE_MASTER_LIST";
-	loadAllTextures(masterFile);
-
-	masterFile = "_LIGHTS_MASTER_LIST";
-	loadAllLights(masterFile);
-
-	masterFile = "_HITBOX_MASTER_LIST";
-	loadAllHitboxes(masterFile);
-
-	masterFile = "_FRAMEBUFFER_MASTER_LIST";
-	loadAllFramebuffers(masterFile);
-
-	masterFile = "_SHADER_MASTER_LIST";
-	loadAllShaders(masterFile);
-
-	Material::initDefaultTextures();
-	masterFile = "_MATERIALS_MASTER_LIST";
-	loadAllMaterials(masterFile);
-
-	masterFile = "_CAMERA_MASTER_LIST";
-	loadAllCameras(masterFile);
-
-	masterFile = "_TEXT_MASTER_LIST";
-	loadAllFonts(masterFile);
-
-	//std::cout << "THIS FAR?" << std::endl;
-	masterFile = "_OBJECT_MASTER_LIST";
-	loadAllObjects(masterFile);
-	//std::cout << "THIS FAR??????????" << std::endl;
-
+	tTime = 1.0001f;
 	allSetup();
 
 	PlayerCam->perspective(60.f, aspect, 1, 1000);
 	PlayerCam->update(0);
 
-	//masterFile = "_MESH_MASTER_LIST";
-	//loadAllMeshes(masterFile);
-	//
-	//masterFile = "_MESH_MASTER_LIST";
-	//loadAllMeshes(masterFile);
-
-
-	//gbuffer.init(windowWidth, windowHeight);
-	//framebuffer.addDepthTarget();
-	//framebuffer.addColorTarget(GL_RGB8);
-	//framebuffer.init(windowWidth, windowHeight);
-	//framebufferTV.addDepthTarget();
-	//framebufferTV.addColorTarget(GL_RGB8);
-	//framebufferTV.init(128, 128);
-	//
-	//meshStan.LoadFromObj("stan_big.obj");
-	//meshSphere.initMeshSphere(32U, 32U);
-	//meshSkybox.initMeshSphere(32U, 32U, true);
-	//meshLight.initMeshSphere(6U, 6U);
-	//meshPlane.initMeshPlane(32U, 32U);
-	//
-	//shaderBasic.load("shader.vert", "shader.frag");
-	////shaderTexture.load("shader.vert", "shaderTexture.frag");
-	//shaderTextureJupiter.load("shader.vert", "shaderTextureJupiter.frag");
-	//shaderTextureAlphaDiscard.load("shader.vert", "shaderTextureAlphaDiscard.frag");
-	//shaderSky.load("shaderSky.vert", "shaderSky.frag");
-	//shaderPassthrough.load("PassThrough.vert", "PassThrough.frag");
-	//shaderGrayscale.load("PassThrough.vert", "Post/GreyscalePost.frag");
-	//shaderGbuffer.load("shader.vert", "gBuffer.frag");
-	//shaderPointLight.load("PassThrough.vert", "dPointLight.frag");
-	//
-	//ResourceManager::Shaders.push_back(&shaderBasic);
-	////ResourceManager::Shaders.push_back(&shaderTexture);
-	//ResourceManager::Shaders.push_back(&shaderTextureJupiter);
-	//ResourceManager::Shaders.push_back(&shaderTextureAlphaDiscard);
-	//ResourceManager::Shaders.push_back(&shaderSky);
-	//ResourceManager::Shaders.push_back(&shaderPassthrough);
-	//ResourceManager::Shaders.push_back(&shaderGrayscale);
-	//ResourceManager::Shaders.push_back(&shaderGbuffer);
-	//ResourceManager::Shaders.push_back(&shaderPointLight);
-	//
-	//uniformBufferTime.allocateMemory(sizeof(float));
-	//uniformBufferTime.bind(1);
-	//uniformBufferLightScene.allocateMemory(sizeof(vec4));
-	//uniformBufferLightScene.bind(2);
-	//
-	//light.init();
-	//light._UBO.bind(3);
-	//
-	//uniformBufferToon.allocateMemory(sizeof(int) * 4);
-	//uniformBufferToon.bind(5);
-	//uniformBufferToon.sendBool(false, 0);
-	//
-	//uniformBufferLightScene.sendVector(vec3(0.05f), 0);
-	////uniformBufferLight.sendVector(vec3(1.0f), sizeof(vec4)); // Set color of light to white
-	//
-	//Texture* texBlack = new Texture("black.png");
-	//Texture* texWhite = new Texture("white.png");
-	//Texture* texYellow = new Texture("yellow.png");
-	////Texture* texGray = new Texture("gray.png");
-	//Texture* texEarthAlbedo = new Texture("earth.jpg");
-	//Texture* texEarthEmissive = new Texture("earthEmissive.png");
-	//Texture* texEarthSpecular = new Texture("earthSpec.png");
-	//Texture* texRings = new Texture("saturnRings.png");
-	//Texture* texMoonAlbedo = new Texture("8k_moon.jpg");
-	//Texture* texJupiterAlbedo = new Texture("jupiter.png");
-	//Texture* texSaturnAlbedo = new Texture("8k_saturn.jpg");
-	//Texture* texCheckerboard = new Texture("checkboard.png");
-	//Texture* texStanAlbedo = new Texture("stan_tex.png");
-	//Texture* texStanEmissive = new Texture("stan_emit.png");
-	//
-	//textureToonRamp.push_back(new Texture("tinyramp.png", false));
-	//textureToonRamp[0]->setWrapParameters(GL_CLAMP_TO_EDGE);
-	//textureToonRamp[0]->sendTexParameters();
-	//
-	//std::vector<Texture*> texEarth = { texEarthAlbedo, texEarthEmissive, texEarthSpecular };
-	//std::vector<Texture*> texCheckboards { texCheckerboard, texBlack, texWhite };
-	//std::vector<Texture*> texSun = { texBlack, texYellow, texBlack };
-	//std::vector<Texture*> texMoon = { texMoonAlbedo, texBlack, texBlack };
-	//std::vector<Texture*> texJupiter = { texJupiterAlbedo, texBlack, texBlack };
-	//std::vector<Texture*> texPlanet = { texWhite, texBlack, texBlack };
-	//std::vector<Texture*> texSaturn = { texSaturnAlbedo, texBlack, texBlack };
-	//std::vector<Texture*> texSaturnRings = { texRings, texBlack, texBlack };
-	//std::vector<Texture*> texStan = { texStanAlbedo, texStanEmissive, texBlack };
-	//std::vector<Texture*> texTV = { texBlack, &framebufferTV._Color._Tex[0] , texBlack };
-	//
-	//goStan = GameObject(&meshStan, texStan);
-	//goSun = GameObject(&meshSphere, texSun);
-	//goEarth = GameObject(&meshSphere, texEarth);
-	//goEarthPlane = GameObject(&meshPlane, texCheckboards);
-	//goMoon = GameObject(&meshSphere, texMoon);
-	//goJupiter = GameObject(&meshSphere, texJupiter);
-	//goJupiterMoon[0] = GameObject(&meshSphere, texMoon);
-	//goJupiterMoon[1] = GameObject(&meshSphere, texMoon);
-	//goSaturn = GameObject(&meshSphere, texSaturn);
-	//goSaturnRings = GameObject(&meshPlane, texSaturnRings);
-	//goTV = GameObject(&meshPlane, texTV);
-	//
-	//std::vector<std::string> skyboxTex;
-	//skyboxTex.push_back("sky2/sky_c00.bmp");
-	//skyboxTex.push_back("sky2/sky_c01.bmp");
-	//skyboxTex.push_back("sky2/sky_c02.bmp");
-	//skyboxTex.push_back("sky2/sky_c03.bmp");
-	//skyboxTex.push_back("sky2/sky_c04.bmp");
-	//skyboxTex.push_back("sky2/sky_c05.bmp");
-	//goSkybox = GameObject(&meshSkybox, new TextureCube(skyboxTex));
-	//goSkybox.setShaderProgram(&shaderSky);
-	//camera2.m_pSkybox = camera.m_pSkybox = &goSkybox;
-	//
-	//ResourceManager::addEntity(&goStan);
-	//ResourceManager::addEntity(&goSun);
-	//ResourceManager::addEntity(&goEarth);
-	//ResourceManager::addEntity(&goEarthPlane);
-	//ResourceManager::addEntity(&goMoon);
-	//ResourceManager::addEntity(&goJupiter);
-	//ResourceManager::addEntity(&goJupiterMoon[0]);
-	//ResourceManager::addEntity(&goJupiterMoon[1]);
-	//ResourceManager::addEntity(&goSaturn);
-	//ResourceManager::addEntity(&goSaturnRings);
-	//ResourceManager::addEntity(&camera);
-	//ResourceManager::addEntity(&camera2);
-	//ResourceManager::addEntity(&goTV);	
-	//
-	////goLight.setShaderProgram(&shaderPointLight);
-	////goLight.setMesh(&meshSphere);
-	////goLight.setTextures(gbuffer.textures);
-	//
-	//goStan.setLocalPos(vec3(-4.0f, 10.0f, 0.0f));
-	//goSun.setLocalPos(vec3(4, 5, 0));
-	//goEarth.setLocalPos(vec3(-2, 0, 0));
-	//goEarthPlane.setLocalPos(vec3(0, -5.0f, -50));
-	//goMoon.setLocalPos(vec3(-1, 0, -1));
-	//goJupiter.setLocalPos(vec3(-3, 0, 4));
-	//goJupiterMoon[0].setLocalPos(vec3(-4, 0, 5));
-	//goJupiterMoon[1].setLocalPos(vec3(-2, 0, 3));
-	//goSaturn.setLocalPos(vec3(-2, 0, -3));
-	//goSaturnRings.setLocalPos(vec3(-2, 0, -3));
-	//
-	//std::uniform_real_distribution<float> randomPositionX(-100.0f, 100.0f);
-	//std::uniform_real_distribution<float> randomPositionY(-100.0f, 100.0f);
-	//std::uniform_real_distribution<float> randomPositionZ(-100.0f, -10.0f);
-	//std::uniform_real_distribution<float> randomRotation(0.0f, 360.0f);
-	//std::uniform_real_distribution<float> randomScale(0.5f, 4.0f);
-	//std::default_random_engine generator(std::_Random_device());
-	//
-	//for (int i = 0; i < 500; i++)
-	//{
-	//	GameObject *object = new GameObject(&meshSphere, texMoon);
-	//	object->setLocalPos(vec3(randomPositionX(generator), randomPositionY(generator), randomPositionZ(generator)));
-	//	object->setScale(vec3(randomScale(generator)));
-	//	object->setLocalRot(vec3(randomRotation(generator), randomRotation(generator), randomRotation(generator)));
-	//	object->setShaderProgram(&shaderGbuffer);
-	//	ResourceManager::addEntity(object);
-	//	goPlanets.push_back(object);
-	//}
-	//
-	//goStan.setScale(2.0f);
-	//goSun.setScale(1.50f);
-	//goEarth.setScale(0.50f);
-	//goEarthPlane.setScale(100.50f);
-	//goMoon.setScale(0.25f);
-	//goJupiter.setScale(1.00f);
-	//goJupiterMoon[0].setScale(0.25f);
-	//goJupiterMoon[1].setScale(0.20f);
-	//goSaturn.setScale(1.0f);
-	//goSaturnRings.setScale(2.0f);
-	//goSaturnRings.setLocalRotZ(-20.0f);
-	//
-	//goTV			.setShaderProgram(&shaderGbuffer);
-	//goStan			.setShaderProgram(&shaderGbuffer);
-	//goSun			.setShaderProgram(&shaderGbuffer);
-	//goEarth			.setShaderProgram(&shaderGbuffer);
-	//goEarthPlane	.setShaderProgram(&shaderGbuffer);
-	//goMoon			.setShaderProgram(&shaderGbuffer);
-	//goJupiter		.setShaderProgram(&shaderGbuffer);
-	//goJupiterMoon[0].setShaderProgram(&shaderGbuffer);
-	//goJupiterMoon[1].setShaderProgram(&shaderGbuffer);
-	//goSaturn		.setShaderProgram(&shaderGbuffer);
-	//goSaturnRings	.setShaderProgram(&shaderGbuffer);
-	   	 
-	// These Render flags can be set once at the start (No reason to waste time calling these functions every frame).
-	// Tells OpenGL to respect the depth of the scene. Fragments will not render when they are behind other geometry.
 	glEnable(GL_DEPTH_TEST); 
 	glBlendFunc(GL_ONE, GL_ONE);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	   
-	// Setup our main scene objects...
-	aspect = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
-	//camera.perspective(90.0f, aspect, 0.05f, 1000.0f);
-	//camera.setLocalPos(vec3(0.0f, 4.0f, 4.0f));
-	//camera.setLocalRotX(-15.0f);
-	//camera.attachFrameBuffer(&gbuffer);
-	//camera.m_pClearFlag = ClearFlag::SolidColor;
-	//camera.setRenderList(ResourceManager::Transforms);
-	//
-	//camera2.perspective(90.0f, aspect, 0.05f, 1000.0f);
-	////camera2.setLocalPos();
-	//camera2.setLocalRotX(-15.0f);
-	//camera2.setLocalRotY(180.0f);
-	//camera2.attachFrameBuffer(&framebufferTV);
-	//camera2.m_pClearFlag = ClearFlag::Skybox;
-	//camera2.setRenderList(ResourceManager::Transforms);
-	//
-	//testBuffer = new UniformBuffer(32);
-	//testBuffer->bind(6);
-	//testBuffer->sendVector(vec4(0.0f, 0.25f, 0.5f, 0.75f), 1);
 
-	for (int i = 0; i < 4; i++)
-	{
-		if (_INPUT.controllerConnected(i))
-			controllers.push_back(_INPUT.getController(i));
-		else
-			controllers.push_back(nullptr);
-	}
-	Stick s;
-	for (int i = 0; i < 8; i++)
-		playerInput.push_back(s);
-	Triggers t;
-	for (int i = 0; i < 4; i++)
-		playerTriggers.push_back(t);
+	aspect = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 
 	updateTimer->tick();
+	deltaTime = updateTimer->getElapsedTimeSeconds();
+
+
+	for (unsigned int i = 0; i < 256; i++)
+	{
+		setKeysDown(false, (unsigned char)i);
+	}
+
+	_GS = GS_BEGINNING;
 }
 
 void Game::update()
@@ -351,250 +110,44 @@ void Game::update()
 	UITextShip.clear();
 	textShip.clear();
 
-	//for (int i = 0; i < 100; i++)
-	//{
-	//	Weapon* _W = ResourceManager::getCloneOfWeapon("MINE");
-	//	ResourceManager::destroyObjectINGAME(_W);
-	//}
-	//std::cout << ResourceManager::allWeaponsINGAME.size() << ", " << ResourceManager::TransformsINGAME.size() << std::endl;
-	//lightShip.push_back(SUN);
-	//lightShip.push_back(getLight("HEADLIGHT"));
-
-	//aspect = aspect;
-	// update our clock so we have the delta time since the last update
 	updateTimer->tick();
 	//gameCheckTimer->tick();
 	//std::cout << ";   INITIAL: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
 
 	deltaTime = updateTimer->getElapsedTimeSeconds();
-	TotalGameTime += deltaTime;
-
-
 
 	frameTimeSamples[frameTimeCurrSample] = min(deltaTime, 0.1f);
 	frameTimeCurrSample = (frameTimeCurrSample + 1) % frameTimeNumSamples;
 	frameTimeSamples[frameTimeCurrSample] = 1.0f;
 
-	uniformBufferTime.sendFloat(TotalGameTime, 0);
-
-
-	protectedLightShip(SUN);
-	//SUN->rotateBy(deltaTime * 0.1f, normalize(vec3(1, 0, 1)));
-	//SUN->intensity = pow(max(dot(normalize(mat3(SUN->getLocalToWorld()) * vec3(SUN->direction)), vec3(0, -1.f, 0)), 0.f), 0.6f);
-	//SUN->update(deltaTime);
-
-	//Light* lit = dynamic_cast<Light*>(players[0]->getChildren().at(0)->getChildren().at(0));
-	//std::cout << lit->position << std::endl;
-
-	for (unsigned int i = 0; i < players.size(); i++)
+	switch (_GS)
 	{
-		Player* P = players[i];
-
-		bool pUP;
-		bool pLEFT;
-		bool pDOWN;
-		bool pRIGHT;
-		bool pATTACK;
-
-		if (controllers[i])
-		{
-			controllers[i]->getSticks(&playerInput[2 * i], &playerInput[2 * i + 1]);
-			controllers[i]->getTriggers(&playerTriggers[i]);
-
-			pUP = (playerTriggers[i].RT > 0.5f);
-			pLEFT = (playerInput[2 * i].x < -0.3f);
-			pDOWN = (playerTriggers[i].LT > 0.5f);
-			pRIGHT = (playerInput[2 * i].x > 0.3f);
-			pATTACK = (controllers[i]->isButtonPressed(A));
-
-			P->steeringMultiplier = abs(playerInput[2 * i].x);
-		}
-		else
-		{
-			pUP = (keysDown['w'] || keysDown['W']);
-			pLEFT = (keysDown['a'] || keysDown['A']);
-			pDOWN = (keysDown['s'] || keysDown['S']);
-			pRIGHT = (keysDown['d'] || keysDown['D']);
-			pATTACK = (keysDown[' ']);
-		}
-		//bool pATTACK = (keysDown[' ']);
-
-		P->sendInput(pUP, Player::PLAYER_IN::UP);
-		//std::cout << "--1" << std::endl;
-		P->sendInput(pLEFT, Player::PLAYER_IN::LEFT);
-		//std::cout << "--2" << std::endl;
-		P->sendInput(pDOWN, Player::PLAYER_IN::DOWN);
-		//std::cout << "--3" << std::endl;
-		P->sendInput(pRIGHT, Player::PLAYER_IN::RIGHT);
-		//std::cout << "--4" << std::endl;
-		P->sendInput(pATTACK, Player::PLAYER_IN::ATTACK);
-		//std::cout << "--5" << std::endl;
-
-		if (P->sendATTACK)
-		{
-			generateATTACK(P);
-		}
-
-		//std::cout << players[i]->getLocalPos() << std::endl;
-		//std::cout << players[i]->getPhysicsBody()->getVelocity() << std::endl;
-		//std::cout << players[i]->getPhysicsBody()->getAcceleration() << std::endl;
-		//
-		//std::cout << PlayerCam->getLocalPos() << std::endl;
+	case GS_BEGINNING:
+		beginningUpdate(deltaTime);
+		break;
+	case GS_STARTING:
+		startingUpdate(deltaTime);
+		break;
+	case GS_RUNNING:
+		runningUpdate(deltaTime);
+		break;
+	case GS_PAUSED:
+		pausedUpdate(deltaTime);
+		break;
+	case GS_ENDED:
+		endedUpdate(deltaTime);
+		break;
+	case GS_EXITING:
+		exitingUpdate(deltaTime);
+		break;
 	}
 
-	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
-
-	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
-	{
-		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
-		{
-			if (i >= 0 && i < 100 && j >= 0 && j < 100)
-			{
-				drawChildren(theMap->grid[j][i], true);
-				int sectObj = theMap->fieldObjects[j][i].size();
-				for (int k = 0; k < sectObj; k++)
-				{
-					drawChildren(theMap->fieldObjects[j][i][k], true);
-					protectedUpdateShip(theMap->fieldObjects[j][i][k]);
-					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
-					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
-				}
-			}
-		}
-	}
-	
-	performUpdates(deltaTime);
-
-	staticCollisionShip.push_back(LEFT_WALL);
-	staticCollisionShip.push_back(RIGHT_WALL);
-	staticCollisionShip.push_back(UPPER_WALL);
-	staticCollisionShip.push_back(LOWER_WALL);
-
-	for (Player* P : players)
-	{
-		addToCollisions(P, true);
-		for (int i = -1 + P->mapX; i <= 1 + P->mapX; i++)
-		{
-			for (int j = -1 + P->mapY; j <= 1 + P->mapY; j++)
-			{
-				if (j >= 0 && j < 100 && i >= 0 && i < 100)
-				{
-					unsigned int amnt = theMap->fieldObjects[i][j].size();
-					for (unsigned int k = 0; k < amnt; k++)
-						if (theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB() && !theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB()->dynamic)
-							addToCollisions(theMap->fieldObjects[i][j][k], false);
-				}
-			}
-		}
-	}
-
-	for (int i = pTotals.size() - 1; i >= 0; --i)
-	{
-		pFloats[i] -= deltaTime;
-		if (pFloats[i] <= 0.f)
-		{
-			pFloats.erase(pFloats.begin() + i);
-			rm::destroyObjectINGAME(pTotals[i]);
-			pTotals.erase(pTotals.begin() + i);
-		}
-		else
-		{
-			textShip.push_back(pTotals[i]);
-
-			pTotals[i]->setLocalPos(pTotals[i]->getLocalPos() + vec3(0, deltaTime * 2.f, 0));
-			pTotals[i]->aS = vec3(pow(pFloats[i] * (pMax - pFloats[i]) / pMax / pMax, 0.1f)) * 1.f;
-			for (unsigned int j = 0; j < pTotals[i]->messageSize(); j++)
-			{
-				pTotals[i]->colorShift[j] = pow(vec3(cos(pFloats[i] * 6.f), cos(pFloats[i] * 6.f), 1), 2);
-			}
-		}
-	}
-
-	seconds -= deltaTime;
-
-	while (seconds < 0.f)
-	{
-		minutes--;
-		seconds += 60.f;
-	}
-	
-	timeString = std::to_string((int)seconds);
-	for (unsigned int i = 0; i < TIMER->messageSize(); i++)
-	{
-		TIMER->posOffset[i] = vec3(0.f);
-		TIMER2->posOffset[i] = vec3(0.f);
-	}
-	if (timeString.size() < 2)
-	{
-		timeString = std::to_string(minutes) + ":0" + std::to_string((int)seconds);
-	}
-	else
-	{
-		timeString = std::to_string(minutes) + ":" + std::to_string((int)seconds);
-	}
-
-	if (minutes < 0 || minutes == 0 && seconds == 0)
-	{
-		timeString = "TIME";
-	}
-
-	TIMER2->baseColor = vec3(180.f, 60.f * minutes + seconds, 60.f * minutes + seconds) / 180.f;
-	TIMER->setMessage(timeString);
-	TIMER2->setMessage(timeString);
-
-	if (minutes == 0 && seconds > 0)
-	{
-		for (unsigned int i = 0; i < TIMER->messageSize(); i++)
-		{
-			TIMER->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
-			TIMER2->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
-		}
-	}
-
-	UITextShip.push_back(TIMER);
-	UITextShip.push_back(TIMER2);
-
-	UITextShip.push_back(TUI);
-	UITextShip.push_back(TUI2);
-
-	if (players[0]->POINT_TOTAL != players[0]->LERP_TOTAL)
-	{
-		players[0]->LERP_TOTAL = lerp(players[0]->LERP_TOTAL, players[0]->POINT_TOTAL + 5, 1.f - pow(0.8f, deltaTime * 60.f));
-		if (players[0]->LERP_TOTAL > players[0]->POINT_TOTAL)
-			players[0]->LERP_TOTAL = players[0]->POINT_TOTAL;
-		TUI->setMessage(std::to_string(players[0]->LERP_TOTAL));
-		TUI2->setMessage(std::to_string(players[0]->LERP_TOTAL));
-
-		TUI->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
-		TUI2->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
-
-		TUI->setLocalPos(vec3(39 - TUI->wordLength * TUI->aS.x * 0.5f, 39, 0));
-		TUI2->setLocalPos(vec3(40 - TUI2->wordLength * TUI2->aS.x * 0.5f, 40, 0));
-	}
-	for (unsigned int i = 0; i < textShip.size(); i++)
-	{
-		textShip[i]->update(deltaTime);
-		drawChildren(textShip[i], true);
-	}
-
-	for (unsigned int i = 0; i < UITextShip.size(); i++)
-	{
-		UITextShip[i]->update(deltaTime);
-		UIDrawChildren(UITextShip[i]);
-	}
-
-	radialBlur += abs(players[0]->getAngularVelocity().y * 0.001f) * deltaTime;
-	radialBlur = lerp(0.f, radialBlur, pow(0.90f, 60.f * deltaTime));
-
-	updateExternals(deltaTime);
-	updateAttacks(deltaTime);
-	staticCollisions();
-
+	TotalTime += deltaTime;
 
 	uniqueKeyPresses();
 
-	mouseHandler();
-	keyHandler();
+	//mouseHandler();
+	//keyHandler();
 
 	if (getTime)
 	{
@@ -735,29 +288,6 @@ void Game::draw()
 	sceneCapture->unbindTexture(0);
 	tRamp->unbind(31);
 
-	//sceneCapture->bindColorAsTexture(2, 0);
-	//OUTPUT->bind();
-	//RADIAL_POST_PROC.drawToPost();
-	//
-	//float emissiveBloom = 1.f;
-	//for (int i = 0; i < 5; i++)
-	//{
-	//	HORIZONTAL_BLUR->bind();
-	//	HORIZONTAL_BLUR->sendUniform("uSpread", emissiveBloom);
-	//	HORIZONTAL_BLUR->sendUniform("ASPECT", vec2(1.f / (float)windowWidth, 1.f / (float) windowHeight));
-	//	RADIAL_POST_PROC.draw();
-	//
-	//	VERTICAL_BLUR->bind();
-	//	VERTICAL_BLUR->sendUniform("uSpread", emissiveBloom);
-	//	VERTICAL_BLUR->sendUniform("ASPECT", vec2(1.f / (float)windowWidth, 1.f / (float)windowHeight));
-	//	RADIAL_POST_PROC.draw();
-	//}
-	//
-	////sceneCapture->bind();
-	//BLUR_OUTPUT->bind();
-	//RADIAL_POST_PROC.drawToFB(sceneCapture);
-	////sceneCapture->unbind();
-
 	sceneCapture->bindColorAsTexture(0, 0);
 	sceneCapture->bindColorAsTexture(2, 1);
 	sceneCapture->bindColorAsTexture(3, 2);
@@ -810,11 +340,28 @@ void Game::draw()
 		RADIAL_POST_PROC.draw();
 	}
 	OUTPUT->bind();
-	RADIAL_POST_PROC.drawToScreen();
+	RADIAL_POST_PROC.drawToFB(transition);
 	glDisable(GL_DEPTH_TEST);
+	//glEnable(GL_BLEND);
 	UIcam->sendUBO();
-	UIcam->render(false);
+	UIcam->renderToFB(transition, false);
 	glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_BLEND);
+
+	transition->bindColorAsTexture(0, 0);
+	tSwitch->bind(1);
+	tFade->bind(2);
+	transOver->bind(3);
+	TRANSITION_SHADER->bind();
+	TRANSITION_SHADER->sendUniform("tTime", tTime);
+
+	Framebuffer::drawFSQ();
+
+	TRANSITION_SHADER->unbind();
+	transOver->unbind(3);
+	tFade->unbind(2);
+	tSwitch->unbind(1);
+	transition->unbindTexture(0);
 
 	ShaderProgram::unbind();
 
@@ -861,37 +408,591 @@ void Game::GUI()
 	}
 	ImGui::End();
 
-	static float grayscaleAmount = 1.0f;
-	//if (ImGui::SliderInt("radialAmount", &radialLoops, 0, 10))
-	//{
-	////	shaderGrayscale.bind();
-	////	shaderGrayscale.sendUniform("uAmount", grayscaleAmount);
-	////	shaderGrayscale.unbind();
-	//}
-	//
-	//if (ImGui::Checkbox("Toon Shading Active", &toonActive))
-	//{
-	//	uniformBufferToon.sendUInt(toonActive, 0);
-	//}
-	//if (ImGui::SliderInt("Toon Ramp Selection", &activeToonRamp, 0, (int)textureToonRamp.size() - 1))
-	//{
-	//	//activeToonRamp = clamp(activeToonRamp, 0, (int)textureToonRamp.size() - 1);
-	//}
-
-	//static vec3 lightPosition = goSun.getLocalPos();
-	//if (ImGui::DragFloat3("Light Position", &lightPosition[0], 0.5f))
-	//{
-	//	goSun.setLocalPos(lightPosition);
-	//}
-	//
-	//if (ImGui::SliderFloat3("Attenuation", &light.constantAtten, 0.0f, 1.0f, "%.8f", 6.0f))
-	//{
-	//	
-	//}
-
-	//ImGui::Text("Radius: %f", light.radius);
-
 	UI::End();
+}
+
+void Game::releaseScene()
+{
+	delete theMap;
+	rm::order66();
+
+	players.clear();
+	renderShip.clear();
+	UIRenderShip.clear();
+	updateShip.clear();
+	externalUpdateShip.clear();
+	dynamicCollisionShip.clear();
+	staticCollisionShip.clear();
+	RE_SPAWN.clear();
+	lightShip.clear();
+	shadowShip.clear();
+	dynamicBatchShip.clear();
+	weaponShip.clear();
+	textShip.clear();
+	UITextShip.clear();
+	pTotals.clear();
+	pFloats.clear();
+}
+
+void Game::beginningUpdate(float dt)
+{
+	tTime -= deltaTime * 1.f;
+	//std::cout << tTime << std::endl;
+	if (tTime < 0.f)
+	{
+		_GS = GS_STARTING;
+		tTime = 0.f;
+	}
+
+	TotalGameTime += deltaTime;
+
+	uniformBufferTime.sendFloat(TotalGameTime, 0);
+
+	//_GS = GS_STARTING;
+	protectedEntityShip(&lightShip, SUN);
+
+	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
+					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
+					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
+				}
+			}
+		}
+	}
+
+	timeString = std::to_string((int)seconds);
+	for (unsigned int i = 0; i < TIMER->messageSize(); i++)
+	{
+		TIMER->posOffset[i] = vec3(0.f);
+		TIMER2->posOffset[i] = vec3(0.f);
+	}
+	if (timeString.size() < 2)
+	{
+		timeString = std::to_string(minutes) + ":0" + std::to_string((int)seconds);
+	}
+	else
+	{
+		timeString = std::to_string(minutes) + ":" + std::to_string((int)seconds);
+	}
+
+	if (minutes < 0 || minutes == 0 && seconds == 0)
+	{
+		timeString = "TIME";
+	}
+
+	TIMER2->baseColor = vec3(180.f, 60.f * minutes + seconds, 60.f * minutes + seconds) / 180.f;
+	TIMER->setMessage(timeString);
+	TIMER2->setMessage(timeString);
+
+	if (minutes == 0 && seconds > 0)
+	{
+		for (unsigned int i = 0; i < TIMER->messageSize(); i++)
+		{
+			TIMER->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
+			TIMER2->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
+		}
+	}
+
+	for (int i = pTotals.size() - 1; i >= 0; --i)
+	{
+		if (pFloats[i] <= 0.f)
+		{
+			pFloats.erase(pFloats.begin() + i);
+			rm::destroyObjectINGAME(pTotals[i]);
+			pTotals.erase(pTotals.begin() + i);
+		}
+		else
+		{
+			textShip.push_back(pTotals[i]);
+		}
+	}
+
+	UITextShip.push_back(TIMER);
+	UITextShip.push_back(TIMER2);
+
+	UITextShip.push_back(TUI);
+	UITextShip.push_back(TUI2);
+
+	if (players[0]->POINT_TOTAL != players[0]->LERP_TOTAL)
+	{
+		players[0]->LERP_TOTAL = lerp(players[0]->LERP_TOTAL, players[0]->POINT_TOTAL + 5, 1.f - pow(0.8f, deltaTime * 60.f));
+		if (players[0]->LERP_TOTAL > players[0]->POINT_TOTAL)
+			players[0]->LERP_TOTAL = players[0]->POINT_TOTAL;
+		TUI->setMessage(std::to_string(players[0]->LERP_TOTAL));
+		TUI2->setMessage(std::to_string(players[0]->LERP_TOTAL));
+
+		TUI->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
+		TUI2->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
+
+		TUI->setLocalPos(vec3(39 - TUI->wordLength * TUI->aS.x * 0.5f, 39, 0));
+		TUI2->setLocalPos(vec3(40 - TUI2->wordLength * TUI2->aS.x * 0.5f, 40, 0));
+	}
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		textShip[i]->update(deltaTime);
+		drawChildren(&renderShip, &lightShip, textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShip.size(); i++)
+	{
+		UITextShip[i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+	}
+}
+
+void Game::startingUpdate(float dt)
+{
+	TotalGameTime += deltaTime;
+
+	uniformBufferTime.sendFloat(TotalGameTime, 0);
+
+	_GS = GS_RUNNING;
+	protectedEntityShip(&lightShip, SUN);
+
+	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
+					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
+					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
+				}
+			}
+		}
+	}
+
+	for (int i = pTotals.size() - 1; i >= 0; --i)
+	{
+		if (pFloats[i] <= 0.f)
+		{
+			pFloats.erase(pFloats.begin() + i);
+			rm::destroyObjectINGAME(pTotals[i]);
+			pTotals.erase(pTotals.begin() + i);
+		}
+		else
+		{
+			textShip.push_back(pTotals[i]);
+		}
+	}
+
+	UITextShip.push_back(TIMER);
+	UITextShip.push_back(TIMER2);
+
+	UITextShip.push_back(TUI);
+	UITextShip.push_back(TUI2);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		//textShip[i]->update(deltaTime);
+		drawChildren(&renderShip, &lightShip, textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShip.size(); i++)
+	{
+		//UITextShip[i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+	}
+}
+
+void Game::runningUpdate(float dt)
+{
+	TotalGameTime += deltaTime;
+
+	uniformBufferTime.sendFloat(TotalGameTime, 0);
+
+	protectedEntityShip(&lightShip, SUN);
+	//SUN->rotateBy(deltaTime * 9.f, normalize(vec3(1, 0, 1)));
+	//SUN->intensity = pow(max(dot(normalize(mat3(SUN->getLocalToWorld()) * vec3(SUN->direction)), vec3(0, -1.f, 0)), 0.f), 0.6f);
+	//SUN->update(deltaTime);
+
+	for (unsigned int i = 0; i < players.size(); i++)
+	{
+		Player* P = players[i];
+
+
+		//std::cout << P->getWeapon() << std::endl;
+
+		bool pUP;
+		bool pLEFT;
+		bool pDOWN;
+		bool pRIGHT;
+		bool pATTACK;
+
+		if (controllers[i])
+		{
+			controllers[i]->getSticks(&playerInput[2 * i], &playerInput[2 * i + 1]);
+			controllers[i]->getTriggers(&playerTriggers[i]);
+
+			pUP = (playerTriggers[i].RT > 0.5f);
+			pLEFT = (playerInput[2 * i].x < -0.2f);
+			pDOWN = (playerTriggers[i].LT > 0.5f);
+			pRIGHT = (playerInput[2 * i].x > 0.2f);
+			pATTACK = (controllers[i]->isButtonPressed(A));
+
+			P->steeringMultiplier = abs(playerInput[2 * i].x);
+		}
+		else
+		{
+			pUP = (keysDown['w'] || keysDown['W']);
+			pLEFT = (keysDown['a'] || keysDown['A']);
+			pDOWN = (keysDown['s'] || keysDown['S']);
+			pRIGHT = (keysDown['d'] || keysDown['D']);
+			pATTACK = (keysDown[' ']);
+		}
+		//bool pATTACK = (keysDown[' ']);
+
+		P->sendInput(pUP, Player::PLAYER_IN::UP);
+		//std::cout << "--1" << std::endl;
+		P->sendInput(pLEFT, Player::PLAYER_IN::LEFT);
+		//std::cout << "--2" << std::endl;
+		P->sendInput(pDOWN, Player::PLAYER_IN::DOWN);
+		//std::cout << "--3" << std::endl;
+		P->sendInput(pRIGHT, Player::PLAYER_IN::RIGHT);
+		//std::cout << "--4" << std::endl;
+		P->sendInput(pATTACK, Player::PLAYER_IN::ATTACK);
+		//std::cout << "--5" << std::endl;
+
+		if (P->sendATTACK)
+		{
+			generateATTACK(P);
+		}
+
+		//std::cout << players[i]->getLocalPos() << std::endl;
+		//std::cout << players[i]->getPhysicsBody()->getVelocity() << std::endl;
+		//std::cout << players[i]->getPhysicsBody()->getAcceleration() << std::endl;
+		//
+		//std::cout << PlayerCam->getLocalPos() << std::endl;
+	}
+
+	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
+					protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
+					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
+				}
+			}
+		}
+	}
+
+	performUpdates(deltaTime);
+
+	staticCollisionShip.push_back(LEFT_WALL);
+	staticCollisionShip.push_back(RIGHT_WALL);
+	staticCollisionShip.push_back(UPPER_WALL);
+	staticCollisionShip.push_back(LOWER_WALL);
+
+	for (Player* P : players)
+	{
+		addToCollisions(P, true);
+		for (int i = -1 + P->mapX; i <= 1 + P->mapX; i++)
+		{
+			for (int j = -1 + P->mapY; j <= 1 + P->mapY; j++)
+			{
+				if (j >= 0 && j < 100 && i >= 0 && i < 100)
+				{
+					unsigned int amnt = theMap->fieldObjects[i][j].size();
+					for (unsigned int k = 0; k < amnt; k++)
+						if (theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB() && !theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB()->dynamic)
+							addToCollisions(theMap->fieldObjects[i][j][k], false);
+				}
+			}
+		}
+	}
+
+	for (int i = pTotals.size() - 1; i >= 0; --i)
+	{
+		pFloats[i] -= deltaTime;
+		if (pFloats[i] <= 0.f)
+		{
+			pFloats.erase(pFloats.begin() + i);
+			rm::destroyObjectINGAME(pTotals[i]);
+			pTotals.erase(pTotals.begin() + i);
+		}
+		else
+		{
+			textShip.push_back(pTotals[i]);
+
+			pTotals[i]->setLocalPos(pTotals[i]->getLocalPos() + vec3(0, deltaTime * 2.f, 0));
+			pTotals[i]->aS = vec3(pow(pFloats[i] * (pMax - pFloats[i]) / pMax / pMax, 0.1f)) * 1.f;
+			for (unsigned int j = 0; j < pTotals[i]->messageSize(); j++)
+			{
+				pTotals[i]->colorShift[j] = pow(vec3(cos(pFloats[i] * 6.f), cos(pFloats[i] * 6.f), 1), 2);
+			}
+		}
+	}
+
+	seconds -= deltaTime;
+
+	while (seconds < 0.f)
+	{
+		minutes--;
+		seconds += 60.f;
+	}
+
+	timeString = std::to_string((int)seconds);
+	for (unsigned int i = 0; i < TIMER->messageSize(); i++)
+	{
+		TIMER->posOffset[i] = vec3(0.f);
+		TIMER2->posOffset[i] = vec3(0.f);
+	}
+	if (timeString.size() < 2)
+	{
+		timeString = std::to_string(minutes) + ":0" + std::to_string((int)seconds);
+	}
+	else
+	{
+		timeString = std::to_string(minutes) + ":" + std::to_string((int)seconds);
+	}
+
+	if (minutes < 0 || minutes == 0 && seconds == 0)
+	{
+		timeString = "TIME";
+		_GS = GS_ENDED;
+	}
+
+	TIMER2->baseColor = vec3(180.f, 60.f * minutes + seconds, 60.f * minutes + seconds) / 180.f;
+	TIMER->setMessage(timeString);
+	TIMER2->setMessage(timeString);
+
+	if (minutes == 0 && seconds > 0)
+	{
+		for (unsigned int i = 0; i < TIMER->messageSize(); i++)
+		{
+			TIMER->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
+			TIMER2->posOffset[i] = vec3(sin(TotalGameTime * 34.5f + i), cos(TotalGameTime * 38.3f + i), 0.f) * 0.07f;
+		}
+	}
+
+	UITextShip.push_back(TIMER);
+	UITextShip.push_back(TIMER2);
+
+	UITextShip.push_back(TUI);
+	UITextShip.push_back(TUI2);
+
+	if (players[0]->POINT_TOTAL != players[0]->LERP_TOTAL)
+	{
+		players[0]->LERP_TOTAL = lerp(players[0]->LERP_TOTAL, players[0]->POINT_TOTAL + 5, 1.f - pow(0.8f, deltaTime * 60.f));
+		if (players[0]->LERP_TOTAL > players[0]->POINT_TOTAL)
+			players[0]->LERP_TOTAL = players[0]->POINT_TOTAL;
+		TUI->setMessage(std::to_string(players[0]->LERP_TOTAL));
+		TUI2->setMessage(std::to_string(players[0]->LERP_TOTAL));
+
+		TUI->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
+		TUI2->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
+
+		TUI->setLocalPos(vec3(39 - TUI->wordLength * TUI->aS.x * 0.5f, 39, 0));
+		TUI2->setLocalPos(vec3(40 - TUI2->wordLength * TUI2->aS.x * 0.5f, 40, 0));
+	}
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		textShip[i]->update(deltaTime);
+		drawChildren(&renderShip, &lightShip, textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShip.size(); i++)
+	{
+		UITextShip[i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+	}
+
+	radialBlur += abs(players[0]->getAngularVelocity().y * 0.001f) * deltaTime;
+	radialBlur = lerp(0.f, radialBlur, pow(0.90f, 60.f * deltaTime));
+
+	updateExternals(deltaTime);
+	updateAttacks(deltaTime);
+	staticCollisions();
+}
+
+void Game::pausedUpdate(float dt)
+{
+	protectedEntityShip(&lightShip, SUN);
+
+	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
+					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
+					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
+				}
+			}
+		}
+	}
+
+	for (int i = pTotals.size() - 1; i >= 0; --i)
+	{
+		if (pFloats[i] <= 0.f)
+		{
+			pFloats.erase(pFloats.begin() + i);
+			rm::destroyObjectINGAME(pTotals[i]);
+			pTotals.erase(pTotals.begin() + i);
+		}
+		else
+		{
+			textShip.push_back(pTotals[i]);
+		}
+	}
+
+	UITextShip.push_back(TIMER);
+	UITextShip.push_back(TIMER2);
+
+	UITextShip.push_back(TUI);
+	UITextShip.push_back(TUI2);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		//textShip[i]->update(deltaTime);
+		drawChildren(&renderShip, &lightShip, textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShip.size(); i++)
+	{
+		//UITextShip[i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+	}
+
+	updateExternals(0);
+	updateAttacks(0);
+}
+
+void Game::endedUpdate(float dt)
+{
+	TotalGameTime += deltaTime;
+
+	uniformBufferTime.sendFloat(TotalGameTime, 0);
+
+	//_GS = GS_RUNNING;
+	protectedEntityShip(&lightShip, SUN);
+
+	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
+					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
+					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
+				}
+			}
+		}
+	}
+
+	for (int i = pTotals.size() - 1; i >= 0; --i)
+	{
+		if (pFloats[i] <= 0.f)
+		{
+			pFloats.erase(pFloats.begin() + i);
+			rm::destroyObjectINGAME(pTotals[i]);
+			pTotals.erase(pTotals.begin() + i);
+		}
+		else
+		{
+			textShip.push_back(pTotals[i]);
+		}
+	}
+
+	UITextShip.push_back(TIMER);
+	UITextShip.push_back(TIMER2);
+
+	UITextShip.push_back(TUI);
+	UITextShip.push_back(TUI2);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		//textShip[i]->update(deltaTime);
+		drawChildren(&renderShip, &lightShip, textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShip.size(); i++)
+	{
+		//UITextShip[i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+	}
+
+	updateExternals(0);
+	updateAttacks(0);
+
+	dropOffTimer += deltaTime;
+	if (dropOffTimer > 1.f)
+	{
+		dropOffTimer = 1.f;
+		_GS = GS_EXITING;
+		tTime = 0.f;
+
+		tSwitch = rm::getTexture("SCENE_GAME_END");
+		tFade = rm::getTexture("defaultWhite");
+	}
+}
+
+void Game::exitingUpdate(float dt)
+{
+	if (tTime < 1.0001f)
+	{
+		tTime += deltaTime * 0.7f;
+	}
+	else
+	{
+		tTime = 1.f;
+		for (int i = 0; i < 4; i++)
+		{
+			if (EPD::playerActive[i])
+			{
+				EPD::playerScores[i] = (float)players[i]->POINT_TOTAL;
+				//EPD::
+			}
+		}
+		readyToTerminate = true;
+		nextScene = "VICTORY";
+	}
 }
 
 void Game::keyboardDown(unsigned char key, int mouseX, int mouseY)
@@ -919,62 +1020,6 @@ void Game::keyboardDown(unsigned char key, int mouseX, int mouseY)
 			break;
 		}
 	}
-
-	//switch(key)
-	//{
-	//case 27: // the escape key
-	//	break;
-	//case 'w':
-	//case 'W':
-	//case 'w' - 96:
-	//	input.moveForward = true;
-	//	break;
-	//case 's':
-	//case 'S':
-	//case 's' - 96:
-	//	input.moveBackward = true;
-	//	break;
-	//case 'd':
-	//case 'D':
-	//case 'd' - 96:
-	//	input.moveRight = true;
-	//	break;
-	//case 'a':
-	//case 'A':
-	//case 'a' - 96:
-	//	input.moveLeft = true;
-	//	break;
-	//case 'e':
-	//case 'E':
-	//case 'e' - 96:
-	//	input.moveUp = true;
-	//	break;
-	//case 'q':
-	//case 'Q':
-	//case 'q' - 96:
-	//	input.moveDown = true;
-	//	break;
-	//case 'l':
-	//case 'L':
-	//case 'l' - 96:
-	//	input.rotateRight = true;
-	//	break;
-	//case 'j':
-	//case 'J':
-	//case 'j' - 96:
-	//	input.rotateLeft = true;
-	//	break;
-	//case 'i':
-	//case 'I':
-	//case 'i' - 96:
-	//	input.rotateUp = true;
-	//	break;
-	//case 'k':
-	//case 'K':
-	//case 'k' - 96:
-	//	input.rotateDown = true;
-	//	break;
-	//}
 }	
 
 void Game::keyboardUp(unsigned char key, int mouseX, int mouseY)
@@ -1008,65 +1053,6 @@ void Game::keyboardUp(unsigned char key, int mouseX, int mouseY)
 
 	if (key == 27)
 		exit(1);
-	//switch(key)
-	//{
-	//case 32: // the space bar
-	//	camera.cullingActive = !camera.cullingActive;
-	//	break;
-	//case 27: // the escape key
-	//	exit(1);
-	//	break;
-	//case 'w':
-	//case 'W':
-	//case 'w' - 96:
-	//	input.moveForward = false;
-	//	break;
-	//case 's':
-	//case 'S':
-	//case 's' - 96:
-	//	input.moveBackward = false;
-	//	break;
-	//case 'd':
-	//case 'D':
-	//case 'd' - 96:
-	//	input.moveRight = false;
-	//	break;
-	//case 'a':
-	//case 'A':
-	//case 'a' - 96:
-	//	input.moveLeft = false;
-	//	break;
-	//case 'e':
-	//case 'E':
-	//case 'e' - 96:
-	//	input.moveUp = false;
-	//	break;
-	//case 'q':
-	//case 'Q':
-	//case 'q' - 96:
-	//	input.moveDown = false;
-	//	break;
-	//case 'l':
-	//case 'L':
-	//case 'l' - 96:
-	//	input.rotateRight = false;
-	//	break;
-	//case 'j':
-	//case 'J':
-	//case 'j' - 96:
-	//	input.rotateLeft = false;
-	//	break;
-	//case 'i':
-	//case 'I':
-	//case 'i' - 96:
-	//	input.rotateUp = false;
-	//	break;
-	//case 'k':
-	//case 'K':
-	//case 'k' - 96:
-	//	input.rotateDown = false;
-	//	break;
-	//}
 }
 
 void Game::keyboardSpecialDown(int key, int mouseX, int mouseY)
@@ -1075,17 +1061,6 @@ void Game::keyboardSpecialDown(int key, int mouseX, int mouseY)
 	{
 	case GLUT_KEY_F1:
 		guiEnabled = !guiEnabled;
-		//if (guiEnabled)
-		//{
-		//	glutWarpPointer((int)input.mousePosGUI.x, (int)input.mousePosGUI.y);
-		//	glutSetCursor(GLUT_CURSOR_INHERIT);
-		//}
-		//else 
-		//{
-		//	input.f11 = true;
-		//	glutWarpPointer(windowWidth / 2, windowHeight / 2);
-		//	glutSetCursor(GLUT_CURSOR_NONE);
-		//}
 		if (!UI::isInit)
 		{
 			UI::InitImGUI();
@@ -1292,204 +1267,9 @@ void Game::reshapeWindow(int w, int h)
 	//std::cout << "PHASE 1" << std::endl;
 	RADIAL_POST_PROC.reshape(w, h);
 	//std::cout << "PHASE 2" << std::endl;
-}
 
-void Game::setKeysDown(bool down, unsigned char key)
-{
-	keysDown[key] = down;
-}
-
-void Game::keyHandler()
-{
-	for (int i = 0; i < 256; i++)
-		backCheckKeysDown[i] = keysDown[i];
-}
-
-void Game::mouseHandler()
-{
-	for (int i = 0; i < 10; i++)
-		backCheckMouseDown[i] = mouseDown[i];
-}
-
-void Game::triggerHandler()
-{
-}
-
-void Game::drawChildren(Transform * TF, bool doLights)
-{
-	if (!TF->HIDE)
-	{
-		bool keepLight = doLights;
-		if (TF->destroying)
-		{
-			keepLight = false;
-		}
-		switch (TF->TT)
-		{
-		case Transform::TransformType::TYPE_GameObject:
-		case Transform::TransformType::TYPE_BasePlate:
-		case Transform::TransformType::TYPE_Destructable:
-		case Transform::TransformType::TYPE_Player:
-		case Transform::TransformType::TYPE_Text:
-		case Transform::TransformType::TYPE_Mine:
-		case Transform::TransformType::TYPE_Hammer:
-			renderShip.push_back(TF);
-			break;
-		case Transform::TransformType::TYPE_Light:
-			if (keepLight)
-			{
-				Light* LIT = dynamic_cast<Light*>(TF);
-				//lightShip.push_back(LIT);
-				protectedLightShip(LIT);
-			}
-			break;
-		}
-
-		for (Transform* TF2 : TF->getChildren())
-		{
-			//std::cout << TF->getChildren().size() << std::endl;
-			drawChildren(TF2, keepLight);
-		}
-	}
-}
-
-void Game::UIDrawChildren(Transform* TF)
-{
-	if (!TF->HIDE)
-	{
-		switch (TF->TT)
-		{
-		case Transform::TransformType::TYPE_GameObject:
-		case Transform::TransformType::TYPE_BasePlate:
-		case Transform::TransformType::TYPE_Destructable:
-		case Transform::TransformType::TYPE_Player:
-		case Transform::TransformType::TYPE_Text:
-		case Transform::TransformType::TYPE_Mine:
-		case Transform::TransformType::TYPE_Hammer:
-			UIRenderShip.push_back(TF);
-			break;
-		}
-
-		for (Transform* TF2 : TF->getChildren())
-		{
-			//std::cout << TF->getChildren().size() << std::endl;
-			UIDrawChildren(TF2);
-		}
-	}
-}
-
-void Game::protectedUpdateShip(GameObject * GO)
-{
-	//if (GO == players[0])
-	//	std::cout << "PLAYER BE SHIPPED!" << std::endl;
-	if (updateShip.size() > 0)
-		protectedAddUpdate(GO, 0, updateShip.size() - 1);
-	else
-		updateShip.push_back(GO);
-}
-
-void Game::protectedExternalUpdateShip(GameObject * GO)
-{
-	if (GO->needsUpdate && !GO->hasBeenUpdated)
-	{
-		if (externalUpdateShip.size() > 0)
-			protectedAddExternalUpdate(GO, 0, externalUpdateShip.size() - 1);
-		else
-			externalUpdateShip.push_back(GO);
-	}
-}
-
-void Game::protectedAddUpdate(GameObject * _GO, unsigned int front, unsigned int back)
-{
-	unsigned int mid = (front + back) / 2;
-	if (updateShip[mid] == _GO)
-	{
-		//allGameObjects.insert(allGameObjects.begin() + mid, ELEM);
-		//std::cout << "ILLEGAL UPDATE SHIP" << std::endl;
-	}
-	else if (back - front <= 1)
-	{
-		if (updateShip[front] > _GO)
-			updateShip.insert(updateShip.begin() + front, _GO);
-		else if (updateShip[back] > _GO)
-			updateShip.insert(updateShip.begin() + back, _GO);
-		else
-			updateShip.insert(updateShip.begin() + back + 1, _GO);
-		//if (_GO == players[0])
-		//	std::cout << "PLAYER SHIP RECEIVED!" << std::endl;
-	}
-	else if (updateShip[mid] > _GO)
-	{
-		protectedAddUpdate(_GO, front, mid);
-	}
-	else
-	{
-		protectedAddUpdate(_GO, mid, back);
-	}
-}
-
-void Game::protectedAddExternalUpdate(GameObject * _GO, unsigned int front, unsigned int back)
-{
-	unsigned int mid = (front + back) / 2;
-	if (externalUpdateShip[mid] == _GO)
-	{
-		//allGameObjects.insert(allGameObjects.begin() + mid, ELEM);
-	}
-	else if (back - front <= 1)
-	{
-		if (externalUpdateShip[front] > _GO)
-			externalUpdateShip.insert(externalUpdateShip.begin() + front, _GO);
-		else if (externalUpdateShip[back] > _GO)
-			externalUpdateShip.insert(externalUpdateShip.begin() + back, _GO);
-		else
-			externalUpdateShip.insert(externalUpdateShip.begin() + back + 1, _GO);
-		//if (_GO == players[0])
-		//	std::cout << "PLAYER SHIP RECEIVED!" << std::endl;
-		_GO->hasBeenUpdated = true;
-	}
-	else if (externalUpdateShip[mid] > _GO)
-	{
-		protectedAddExternalUpdate(_GO, front, mid);
-	}
-	else
-	{
-		protectedAddExternalUpdate(_GO, mid, back);
-	}
-}
-
-void Game::protectedLightShip(Light* LIT) 
-{
-	if (lightShip.size() > 0)
-		protectedAddLight(LIT, 0, lightShip.size() - 1);
-	else
-		lightShip.push_back(LIT);
-}
-
-void Game::protectedAddLight(Light* LIT, unsigned int front, unsigned int back)
-{
-	unsigned int mid = (front + back) / 2;
-	if (lightShip[mid] == LIT)
-	{
-		//allGameObjects.insert(allGameObjects.begin() + mid, ELEM);
-		//std::cout << "ILLEGAL LIGHT CALL" << std::endl;
-	}
-	else if (back - front <= 1)
-	{
-		if (lightShip[front] > LIT)
-			lightShip.insert(lightShip.begin() + front, LIT);
-		else if (lightShip[back] > LIT)
-			lightShip.insert(lightShip.begin() + back, LIT);
-		else
-			lightShip.insert(lightShip.begin() + back + 1, LIT);
-	}
-	else if (lightShip[mid] > LIT)
-	{
-		protectedAddLight(LIT, front, mid);
-	}
-	else
-	{
-		protectedAddLight(LIT, mid, back);
-	}
+	//std::cout << UIcam->getProjection() << std::endl;
+	//std::cout << PlayerCam->getProjection() << std::endl;
 }
 
 void Game::updateExternals(float dt)
@@ -1498,11 +1278,39 @@ void Game::updateExternals(float dt)
 
 	for (int i = externalUpdateShip.size() - 1; i >= 0; --i)
 	{
-		protectedUpdateShip(externalUpdateShip[i]);
-		if (!externalUpdateShip[i]->needsUpdate)
+		if (externalUpdateShip[i]->TT == Transform::TransformType::TYPE_Powerup && externalUpdateShip[i]->destroying)
 		{
-			externalUpdateShip[i]->hasBeenUpdated = false;
+			for (int j = (int)renderShip.size() - 1; j >= 0; --j)
+			{
+				if (renderShip[j] == externalUpdateShip[i])
+					renderShip.erase(renderShip.begin() + j);
+			}
+
+			GameObject* _O = nullptr;
+			for (int k = (int)theMap->fieldObjects[externalUpdateShip[i]->mapX][externalUpdateShip[i]->mapY].size() - 1; k >= 0; --k)
+			{
+				_O = theMap->fieldObjects[externalUpdateShip[i]->mapX][externalUpdateShip[i]->mapY][k];
+				if (_O == externalUpdateShip[i])
+					theMap->removeObj(_O->mapX, _O->mapY, _O);
+			}
+
+			//for (int j = (int)updateShip.size() - 1; j >= 0; --j)
+			//{
+			//	if (updateShip[j] == externalUpdateShip[i])
+			//		updateShip.erase(updateShip.begin() + j);
+			//}
+
+			rm::destroyObjectINGAME(externalUpdateShip[i]);
 			externalUpdateShip.erase(externalUpdateShip.begin() + i);
+		}
+		else
+		{
+			protectedEntityShip(&updateShip, externalUpdateShip[i]);
+			if (!externalUpdateShip[i]->needsUpdate)
+			{
+				externalUpdateShip[i]->hasBeenUpdated = false;
+				externalUpdateShip.erase(externalUpdateShip.begin() + i);
+			}
 		}
 	}
 }
@@ -1586,7 +1394,62 @@ void Game::staticCollisions()
 	{
 		for (int j = 0; j < sA; ++j)
 		{
+			vec3 curPos = staticCollisionShip[j]->getLocalPos();
+			bool desting = staticCollisionShip[j]->destroying;
 			dynamicCollisionShip[i]->doCollision(staticCollisionShip[j]);
+			if (!desting && staticCollisionShip[j]->destroying)
+			{
+				//std::cout << "YES!" << std::endl;
+				if (staticCollisionShip[j]->destrPoints > rand() % 200)
+				{
+					//std::cout << "PUT ONE UP!" << std::endl;
+					Powerup* _PUP = rm::getCloneOfPowerup("POWERUP");
+					int I = rand() % 3;
+					if (I == 0)
+					{
+						_PUP->setPower(Powerup::pType::MINE);
+					}
+					else if (I == 1)
+					{
+						_PUP->setPower(Powerup::pType::HAMMER);
+					}
+					else if (I == 2)
+					{
+						_PUP->setPower(Powerup::pType::AXE);
+					}
+					_PUP->setLocalPos(curPos);
+					int xPos = clamp((int)(_PUP->getLocalPos().x / tileSize + 0.5f), 0, 99);
+					int yPos = clamp((int)(_PUP->getLocalPos().z / tileSize + 0.5f), 0, 99);
+					//std::cout << _PUP->getLocalPos() << std::endl;
+					theMap->fieldObjects[xPos][yPos].push_back(_PUP);
+				}
+			
+				if (staticCollisionShip[j]->TT == Transform::TransformType::TYPE_Powerup)
+				{
+					if (Player* _P = dynamic_cast<Player*>(dynamicCollisionShip[i]))
+					{
+						if (staticCollisionShip[j]->getChildren().at(0)->getName() == "MINE_MODEL")
+						{
+							_P->attachWeapon(rm::getWeapon("MINE"));
+							//std::cout << "SHIFTED TO MINE" << std::endl;
+						}
+						else if (staticCollisionShip[j]->getChildren().at(0)->getName() == "HAMMER_MODEL")
+						{
+							_P->attachWeapon(rm::getWeapon("HAMMER"));
+							//std::cout << "SHIFTED TO HAMMER" << std::endl;
+						}
+						else if (staticCollisionShip[j]->getChildren().at(0)->getName() == "AXE_MODEL")
+						{
+							_P->attachWeapon(rm::getWeapon("AXE"));
+							//std::cout << "SHIFTED TO AXE" << std::endl;
+						}
+			
+						int xPos = clamp((int)(staticCollisionShip[j]->getLocalPos().x / tileSize + 0.5f), 0, 99);
+						int yPos = clamp((int)(staticCollisionShip[j]->getLocalPos().z / tileSize + 0.5f), 0, 99);
+						theMap->removeObj(xPos, yPos, staticCollisionShip[j]);
+					}
+				}
+			}
 		}
 	}
 
@@ -1594,7 +1457,7 @@ void Game::staticCollisions()
 	{
 		if (staticCollisionShip[i]->needsUpdate)
 		{
-			protectedExternalUpdateShip(staticCollisionShip[i]);
+			protectedEntityShip(&externalUpdateShip, staticCollisionShip[i]);
 			//std::cout << "HAHA!" << std::endl;
 		}
 	}
@@ -1603,7 +1466,7 @@ void Game::staticCollisions()
 	{
 		if (dynamicCollisionShip[i]->needsUpdate)
 		{
-			protectedExternalUpdateShip(dynamicCollisionShip[i]);
+			protectedEntityShip(&externalUpdateShip, dynamicCollisionShip[i]);
 		}
 	}
 }
@@ -1699,11 +1562,53 @@ void Game::protectedAddWeapon(Weapon* _W, unsigned int front, unsigned int back)
 
 void Game::generateATTACK(Player * P)
 {
-	Weapon* W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
-	W->ownedPlayer = P->playerNumber;
-	W->worldLocation = P->getLocalToWorld();
+	//std::cout << P->getWeapon()->getName() << std::endl;
+	if (P->getWeapon())
+	{
+		//std::cout << "ATTTAAAAAAAACK" << std::endl;
+		if (P->getWeapon()->TT == Transform::TransformType::TYPE_Mine)
+		{
+			Weapon* W;
+			W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W->ownedPlayer = P->playerNumber;
+			W->worldLocation = P->getLocalToWorld();
 
-	protectedWeaponShip(W);
+			protectedWeaponShip(W);
+		}
+		else if (P->getWeapon()->TT == Transform::TransformType::TYPE_Hammer)
+		{
+			Weapon* W, *W2;
+			W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W2 = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W->ownedPlayer = P->playerNumber;
+			W2->ownedPlayer = P->playerNumber;
+			W->worldLocation = P->getLocalToWorld();
+			W2->worldLocation = P->getLocalToWorld() * mat4::rotatey(degrees(180.f));
+
+			protectedWeaponShip(W);
+			protectedWeaponShip(W2);
+		}
+		if (P->getWeapon()->TT == Transform::TransformType::TYPE_Axe)
+		{
+			//std::cout << "READY!?" << std::endl;
+			Weapon* W, *W2, *W3;
+			W = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W->ownedPlayer = P->playerNumber;
+			W->worldLocation = P->getLocalToWorld();
+
+			W2 = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W2->ownedPlayer = P->playerNumber;
+			W2->worldLocation = P->getLocalToWorld() * mat4::rotatey(degrees(15.f));
+
+			W3 = ResourceManager::getCloneOfWeapon(P->getWeapon()->getName());
+			W3->ownedPlayer = P->playerNumber;
+			W3->worldLocation = P->getLocalToWorld() * mat4::rotatey(degrees(-15.f));
+
+			protectedWeaponShip(W);
+			protectedWeaponShip(W2);
+			protectedWeaponShip(W3);
+		}
+	}
 }
 
 void Game::updateAttacks(float dt)
@@ -1720,10 +1625,11 @@ void Game::updateAttacks(float dt)
 		{
 			ResourceManager::destroyObjectINGAME(weaponShip[i]);
 			weaponShip.erase(weaponShip.begin() + i);
+			//std::cout << "SHE GONE" << std::endl;
 		}
 		else
 		{
-			drawChildren(weaponShip[i], true);
+			drawChildren(&renderShip, &lightShip, weaponShip[i], true);
 		}
 	}
 }
@@ -1734,7 +1640,13 @@ void Game::attackHIT(unsigned int index)
 	float SCALE = 9.f;
 	int IS = (int)(SCALE / 6.f) + 1;
 	
-	vec2 pW = weaponShip[index]->getLocalToWorld().translation().xz / tileSize + vec2(0.5);
+	//vec2 pW = (weaponShip[index]->getLocalToWorld().translation().xz + (mat3(weaponShip[index]->getLocalToWorld()) * weaponShip[index]->hitboxOffset).xz) / tileSize + vec2(0.5);
+	//mat4 weapLoc = weaponShip[index]->getLocalToWorld() * mat4::rotatey(degrees(weaponShip[index]->getLocalEuler().y)) * mat4(mat3::identity(), weaponShip[index]->hitboxOffset);
+	vec2 pW = (weaponShip[index]->getLocalToWorld() * mat4::rotatey(degrees(weaponShip[index]->getLocalEuler().y))
+		* vec4(weaponShip[index]->hitboxOffset, 1.f)).xz  / tileSize + vec2(0.5);
+	//std::cout << players[0]->getWorldPos() << std::endl;
+	//std::cout << (weaponShip[index]->getLocalToWorld() * mat4::rotatey(degrees(weaponShip[index]->getLocalEuler().y))
+	//	* vec4(weaponShip[index]->hitboxOffset, 1.f)).xz << std::endl;
 	int pWX = (int)pW.x;
 	int pWY = (int)pW.y;
 
@@ -1750,6 +1662,7 @@ void Game::attackHIT(unsigned int index)
 
 					if (!_GO->destroying && !_GO->destroyed)
 					{
+						vec3 curPos = _GO->getLocalPos();
 						if (weaponShip[index]->tailoredCollision(_GO))
 						{
 							//_GO->getPhysicsBody()->getHB()->enabled = false;
@@ -1757,7 +1670,31 @@ void Game::attackHIT(unsigned int index)
 							//players[weaponShip[index]->ownedPlayer]->POINT_TOTAL += _GO->destrPoints;
 							//std::cout << players[weaponShip[index]->ownedPlayer]->POINT_TOTAL << std::endl;
 							_GO->needsUpdate = true;
-							protectedExternalUpdateShip(_GO);
+							protectedEntityShip(&externalUpdateShip, _GO);
+
+							if (_GO->destrPoints > rand() % 600)
+							{
+								//std::cout << "PUT ONE UP!" << std::endl;
+								Powerup* _PUP = rm::getCloneOfPowerup("POWERUP");
+								int I = rand() % 3;
+								if (I == 0)
+								{
+									_PUP->setPower(Powerup::pType::MINE);
+								}
+								else if (I == 1)
+								{
+									_PUP->setPower(Powerup::pType::HAMMER);
+								}
+								else if (I == 2)
+								{
+									_PUP->setPower(Powerup::pType::AXE);
+								}
+								_PUP->setLocalPos(curPos);
+								int xPos = clamp((int)(_PUP->getLocalPos().x / tileSize + 0.5f), 0, 99);
+								int yPos = clamp((int)(_PUP->getLocalPos().z / tileSize + 0.5f), 0, 99);
+								//std::cout << _PUP->getLocalPos() << std::endl;
+								theMap->fieldObjects[xPos][yPos].push_back(_PUP);
+							}
 
 							//std::cout << "GOTTEM" << std::endl;
 						}
@@ -1768,642 +1705,8 @@ void Game::attackHIT(unsigned int index)
 	}
 }
 
-void Game::loadAllTextures(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/textures/" + fileName + ".txt");
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		Texture* tex = new Texture;
-		if (!tex->load(temp + ".png"))
-		{
-			std::cout << temp << " texture could not load!" << std::endl;
-			delete tex;
-			tex = nullptr;
-		}
-		else
-		{
-			tex->setName(temp);
-			ResourceManager::addTexture(tex);
-		}
-	}
-	masterFile.close();
-}
-
-void Game::loadAllMeshes(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/models/" + fileName + ".txt");
-	std::string temp, dataparse;
-	unsigned int instancing;
-	while (std::getline(masterFile, temp))
-	{
-		std::getline(masterFile, dataparse);
-		instancing = std::stoi(dataparse);
-		Mesh* m = new Mesh;
-		if (!m->LoadFromObj(temp + ".obj", instancing))
-		{
-			std::cout << temp << " model could not load!" << std::endl;
-			delete m;
-			m = nullptr;
-		}
-		else
-		{
-			m->setName(temp);
-			//std::cout << temp << std::endl;
-			ResourceManager::addMesh(m);
-		}
-	}
-	masterFile.close();
-}
-
-void Game::loadAllObjects(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/Objects/" + fileName + ".txt");
-	std::ifstream objectFiles;
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		createChild(temp, nullptr);
-	}
-	masterFile.close();
-
-	std::string fetch = "_PLAYER_MASTER_LIST";
-	loadAllPlayerObjects(fetch);
-}
-
-void Game::loadAllUIElements(std::string & fileName)
-{
-}
-
-void Game::loadAllLights(std::string & filename)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/Lights/" + filename + ".txt");
-	std::string temp;
-	std::ifstream lightFiles;
-	std::string dataHolder;
-	vec4 dir;
-	vec4 pos;
-	vec4 dse;
-	vec4 clq;
-	vec4 col;
-	dir.w = 0;
-	pos.w = 1;
-	dse.w = 0;
-	col.w = 1;
-
-	//SAT_DEBUG_LOG(filename.c_str());
-	//unsigned int lightType = 0;
-	while (std::getline(masterFile, temp))
-	{
-		//SAT_DEBUG_LOG(temp.c_str());
-
-		Light* lot = new Light;
-		lot->setName(temp);
-		lightFiles.open("../assets/Lights/" + temp + ".txt");
-		std::getline(lightFiles, dataHolder);
-		if (dataHolder == "DIRECTIONAL")
-			lot->type = Light::LightType::Directional;
-		else if (dataHolder == "POINT")
-			lot->type = Light::LightType::Point;
-		else if (dataHolder == "SPOT")
-			lot->type = Light::LightType::Spotlight;
-
-		std::getline(lightFiles, dataHolder);
-		dir.x = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		dir.y = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		dir.z = std::stof(dataHolder);
-
-		std::getline(lightFiles, dataHolder);
-		pos.x = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		pos.y = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		pos.z = std::stof(dataHolder);
-
-		std::getline(lightFiles, dataHolder);
-		dse.x = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		dse.y = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		dse.z = std::stof(dataHolder);
-
-		std::getline(lightFiles, dataHolder);
-		clq.x = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		clq.y = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		clq.z = std::stof(dataHolder);
-
-		std::getline(lightFiles, dataHolder);
-		col.x = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		col.y = std::stof(dataHolder);
-		std::getline(lightFiles, dataHolder);
-		col.z = std::stof(dataHolder);
-
-		std::getline(lightFiles, dataHolder);
-		col.w = std::stof(dataHolder);
-
-		//Light* lot = new Light;// (dir, pos, dse, clq, col, temp, lightType);
-		lot->color = col;
-		lot->position = pos;
-		lot->direction = dir;
-		lot->constantAtten = clq.x;
-		lot->linearAtten = clq.y;
-		lot->quadAtten = clq.z;
-
-		std::getline(lightFiles, dataHolder);
-		if (dataHolder == "EMPTY")
-		{
-			lot->LIGHT_MESH = nullptr;
-		}
-		else
-		{
-			Mesh* _M = ResourceManager::getMesh(dataHolder);
-			lot->LIGHT_MESH = _M;
-		}
-
-		ResourceManager::addEntity(lot);
-		lightFiles.close();
-	}
-	masterFile.close();
-}
-
-void Game::loadAllHitboxes(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/Hitboxes/" + fileName + ".txt");
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		Hitbox2D* HB = new Hitbox2D;
-		HB->name = temp;
-		std::string DATBOI = "../assets/Hitboxes/" + temp + ".obj";
-		HB->loadFromFile(DATBOI);
-		ResourceManager::addHitbox(HB);
-	}
-	masterFile.close();
-}
-
-void Game::loadAllPlayerObjects(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/Objects/" + fileName + ".txt");
-	std::ifstream objectFiles;
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		createChild(temp, nullptr);
-	}
-	masterFile.close();
-}
-
-void Game::loadAllMorphTargs(std::string & fileName)
-{
-}
-
-void Game::loadAllShaders(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/shaders/" + fileName + ".txt");
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		ShaderProgram* SP = new ShaderProgram;
-		SP->setName(temp);
-		//SAT_DEBUG_LOG(temp.c_str());
-		std::string vertF, fragF;
-		std::getline(masterFile, vertF);
-		std::getline(masterFile, fragF);
-		SP->load(vertF, fragF);
-		ResourceManager::addShader(SP);
-	}
-	masterFile.close();
-}
-
-void Game::loadAllFramebuffers(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/Framebuffers/" + fileName + ".txt");
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		Framebuffer* _FB = new Framebuffer;
-		_FB->setName(temp);
-		std::ifstream fbFile;
-		std::string dataparse;
-		fbFile.open("../assets/Framebuffers/" + temp + ".fb");
-		while (std::getline(fbFile, dataparse))
-		{
-			if (dataparse == "COLOR")
-			{
-				_FB->addColorTarget(GL_RGB8);
-			}
-			else if (dataparse == "DEPTH")
-			{
-				_FB->addDepthTarget();
-			}
-			//else if (dataparse == "DIMENSIONS")
-			//{
-			//	vec4 holder;
-			//
-			//	std::getline(fbFile, dataparse);
-			//	holder.x = std::stof(dataparse);
-			//	std::getline(fbFile, dataparse);
-			//	holder.y = std::stof(dataparse);
-			//	std::getline(fbFile, dataparse);
-			//	holder.z = std::stof(dataparse);
-			//	std::getline(fbFile, dataparse);
-			//	holder.w = std::stof(dataparse);
-			//
-			//	_FB->setDimensions(holder);
-			//}
-		}
-
-		_FB->init(windowWidth, windowHeight);
-		ResourceManager::addFramebuffer(_FB);
-
-		fbFile.close();
-	}
-	masterFile.close();
-}
-
-void Game::loadAllCameras(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/Cameras/" + fileName + ".txt");
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		Camera* _cam = new Camera;
-		_cam->setName(temp);
-		std::ifstream camFile;
-		std::string dataparse;
-		camFile.open("../assets/Cameras/" + temp + ".cam");
-
-		std::getline(camFile, dataparse);
-		if (dataparse == "PERSPECTIVE")
-		{
-			vec4 VP;
-
-			std::getline(camFile, dataparse);
-			VP.x = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			if (dataparse == "WINDOW")
-				VP.y = aspect;
-			else
-				VP.y = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			VP.z = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			VP.w = std::stof(dataparse);
-
-			_cam->perspective(VP.x, VP.y, VP.z, VP.w);
-		}
-		else
-		{
-			vec3 VO, VR;
-
-			std::getline(camFile, dataparse);
-			VO.x = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			if (dataparse == "WINDOW")
-				VO.y = VO.x / aspect;
-			else
-				VO.y = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			VO.z = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			VR.x = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			if (dataparse == "WINDOW")
-				VR.y = VR.x / aspect;
-			else
-				VR.y = std::stof(dataparse);
-
-			std::getline(camFile, dataparse);
-			VR.z = std::stof(dataparse);
-
-			_cam->orthographic(VO.x, VR.x, VO.y, VR.y, VO.z, VR.z);
-		}
-
-		std::getline(camFile, dataparse);
-		Framebuffer* FB_TARG = ResourceManager::getFramebuffer(dataparse);
-		if (FB_TARG)
-			_cam->attachFrameBuffer(FB_TARG);
-
-		ResourceManager::addEntity(_cam);
-		camFile.close();
-	}
-	masterFile.close();
-}
-
-void Game::loadAllMaterials(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/materials/" + fileName + ".txt");
-	std::string temp;
-	while (std::getline(masterFile, temp))
-	{
-		Material* mat = new Material(temp);
-		mat->setName(temp);
-		ResourceManager::addMaterial(mat);
-	}
-	masterFile.close();
-}
-
-void Game::loadAllFonts(std::string & fileName)
-{
-	std::ifstream masterFile;
-	masterFile.open("../assets/GameText/" + fileName + ".txt");
-	std::string temp, temp2, temp3;
-	//std::cout << fileName << std::endl;
-	while (std::getline(masterFile, temp))
-	{
-		//std::cout << temp << std::endl;
-		std::getline(masterFile, temp2);
-		std::getline(masterFile, temp3);
-
-		Text* _T = new Text;
-		if (temp3 == "p")
-			_T->init(temp, temp2, "TEXT_SHADER");
-		else
-			_T->init(temp, temp2, "TEXT_UI");
-		_T->setName(temp);
-
-		//std::cout << temp3 << std::endl;
-
-		ResourceManager::addEntity(_T);
-	}
-	masterFile.close();
-}
-
-void Game::createChild(std::string & fileName, Transform * parent)
-{
-	std::ifstream objectFiles;
-	objectFiles.open("../assets/Objects/" + fileName + ".txt");
-	std::string meshName, textureName, BRSTR, objType;
-	std::string dataparse;
-	float boundRadius;
-	std::getline(objectFiles, meshName);
-	std::getline(objectFiles, textureName);
-	std::getline(objectFiles, objType);
-	std::getline(objectFiles, BRSTR);
-	//std::cout << fileName << std::endl;
-	boundRadius = std::stof(BRSTR);
-	bool hasTex = false, hasMesh = false;
-
-	GameObject* obj; //= new GameObject;
-	obj = ResourceManager::searchForGameObject(fileName);
-	bool exists = false;
-
-	if (obj)
-	{
-		exists = true;
-	}
-
-	if (!exists)
-	{
-		if (objType == "BASE_PLATE")
-		{
-			obj = new BasePlate;
-		}
-		else if (objType == "PLAYER")
-		{
-			obj = new Player;
-		}
-		else if (objType == "BOUNDARY")
-		{
-			obj = new Boundary;
-		}
-		else if (objType == "DESTRUCTABLE")
-		{
-			obj = new Destructable;
-		}
-		else
-		{
-			obj = new GameObject;
-		}
-
-		//switch (obj->TT)
-		//{
-		//case Transform::TransformType::TYPE_Player:
-		//case Transform::TransformType::TYPE_Destructable:
-		//	obj->setShaderProgram(getShader("BOBBING_SETUP"));
-		//	break;
-		//default:
-		//	obj->setShaderProgram(getShader("COMIC_SETUP"));
-		//	break;
-		//}
-
-		//std::cout << COMIC_SETUP << "_!" << std::endl;
-
-		if (textureName == "EMPTY")
-		{
-			obj->setMaterial(nullptr);
-			hasTex = true;
-		}
-		else
-		{
-			Material* _MAT = rm::getMaterial(textureName);
-			//std::cout << _MAT << std::endl;
-			if (_MAT)
-			{
-				obj->setMaterial(_MAT);
-				hasTex = true;
-			}
-		}
-		if (meshName == "EMPTY")
-		{
-			obj->setMesh(nullptr);
-			hasMesh = true;
-		}
-		else
-		{
-			Mesh* _MESH = getMesh(meshName);
-			if (_MESH)
-			{
-				obj->setMesh(_MESH);
-				hasMesh = true;
-			}
-		}
-
-
-		switch (obj->TT)
-		{
-		case Transform::TransformType::TYPE_Player:
-		case Transform::TransformType::TYPE_Destructable:
-			obj->setShaderProgram(getShader("BOBBING_SETUP"));
-			break;
-		default:
-			obj->setShaderProgram(getShader("COMIC_SETUP"));
-			break;
-		}
-
-		obj->setBoundingRadius(boundRadius);
-		if (!hasTex || !hasMesh)
-		{
-			std::cout << fileName << " game object could not load!" << std::endl;
-			if (!hasTex)
-				std::cout << "Material not found!" << std::endl;
-			if (!hasMesh)
-				std::cout << "Mesh not found!" << std::endl;
-			delete obj;
-			obj = nullptr;
-		}
-		else
-		{
-			obj->setName(fileName);
-			ResourceManager::addEntity(obj);
-			while (std::getline(objectFiles, dataparse))
-			{
-				if (dataparse == "OBJECT")
-				{
-					std::getline(objectFiles, dataparse);
-
-					createChild(dataparse, obj);
-					Transform* _GO = obj->getChildren().at(obj->getChildren().size() - 1);
-					std::string popOut;
-
-					vec3 nPos;
-					vec3 nRot;
-					float nScale;
-
-					std::getline(objectFiles, popOut);
-					nPos.x = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nPos.y = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nPos.z = std::stof(popOut);
-
-					std::getline(objectFiles, popOut);
-					nRot.x = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nRot.y = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nRot.z = std::stof(popOut);
-
-					std::getline(objectFiles, popOut);
-					nScale = std::stof(popOut);
-
-					_GO->setLocalPos(nPos);
-					_GO->setLocalRot(nRot);
-					_GO->setScale(nScale);
-				}
-				else if (dataparse == "LIGHT")
-				{
-					std::getline(objectFiles, dataparse);
-
-					Light* LIT = getCloneOfLight(dataparse);
-					if (LIT)
-					{
-						obj->addChild(LIT);
-					}
-				}
-				else if(dataparse == "CAMERA")
-				{
-					std::getline(objectFiles, dataparse);
-
-					Camera* CAM = getCloneOfCamera(dataparse);
-
-					std::string popOut;
-
-					vec3 nPos;
-					vec3 nRot;
-					float nScale;
-
-					std::getline(objectFiles, popOut);
-					nPos.x = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nPos.y = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nPos.z = std::stof(popOut);
-
-					std::getline(objectFiles, popOut);
-					nRot.x = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nRot.y = std::stof(popOut);
-					std::getline(objectFiles, popOut);
-					nRot.z = std::stof(popOut);
-
-					std::getline(objectFiles, popOut);
-					nScale = std::stof(popOut);
-
-					CAM->setLocalPos(nPos);
-					CAM->setLocalRot(nRot);
-					CAM->setScale(nScale);
-				}
-				else if (dataparse == "PHYS")
-				{
-					std::getline(objectFiles, dataparse);
-					Hitbox2D* _HB = ResourceManager::searchForHitbox(dataparse);
-					if (_HB)
-					{
-						PhysicsBody _PB(_HB);
-						obj->setPhysicsBody(_PB);
-					}
-					std::getline(objectFiles, dataparse);
-					if (dataparse == "true")
-						obj->getPhysicsBody()->getHB()->dynamic = true;
-					else
-						obj->getPhysicsBody()->getHB()->dynamic = false;
-					if (dataparse == "grass")
-						obj->getPhysicsBody()->getHB()->grass = true;
-					if (dataparse == "INF")
-						obj->getPhysicsBody()->getHB()->unbreakable = true;
-				}
-				else if (dataparse == "TEXTURE")
-				{
-					std::getline(objectFiles, dataparse);
-					Texture* _TEX = ResourceManager::searchForTexture(dataparse);
-					if (_TEX)
-					{
-						obj->addTexture(_TEX);
-					}
-				}
-				else if (dataparse == "POINTS")
-				{
-					std::getline(objectFiles, dataparse);
-					obj->destrPoints = std::stoi(dataparse);
-					//std::cout << dataparse << std::endl;
-				}
-			}
-		}
-	}
-	objectFiles.close();
-	if (parent)
-		parent->addChild(obj);
-}
-
 void Game::allSetup()
 {
-	uniformBufferTime.allocateMemory(sizeof(float));
-	uniformBufferTime.bind(1);
-
-	uRes.allocateMemory(sizeof(vec4));
-	uRes.bind(4);
-
-	GameObject::initGameObjects();
-
-	tRamp = getTexture("Game Toon Ramp");
-	tDiffuse = getTexture("Diffuse Toon");
-	tDiffuse->setWrapParameters(GL_CLAMP_TO_EDGE);
-	tDiffuse->sendTexParameters();
-	difOver = getTexture("Diffuse Overlay");
-
 	setBaseAndBoundaries();
 	setShaders();
 	setFramebuffers();
@@ -2413,96 +1716,63 @@ void Game::allSetup()
 
 void Game::setBaseAndBoundaries()
 {
-	UPPER_WALL = getCloneOfBoundary("TOP_AND_BOT_COLLIDER");
-	LOWER_WALL = getCloneOfBoundary("TOP_AND_BOT_COLLIDER");
-	LEFT_WALL = getCloneOfBoundary("LEFT_AND_RIGHT_COLLIDER");
-	RIGHT_WALL = getCloneOfBoundary("LEFT_AND_RIGHT_COLLIDER");
+	UPPER_WALL = rm::getCloneOfBoundary("TOP_AND_BOT_COLLIDER");
+	LOWER_WALL = rm::getCloneOfBoundary("TOP_AND_BOT_COLLIDER");
+	LEFT_WALL = rm::getCloneOfBoundary("LEFT_AND_RIGHT_COLLIDER");
+	RIGHT_WALL = rm::getCloneOfBoundary("LEFT_AND_RIGHT_COLLIDER");
 
 	UPPER_WALL->setLocalPos(vec3(297.f, 0, -9.f));
 	LOWER_WALL->setLocalPos(vec3(297.f, 0, 603.f));
 	LEFT_WALL->setLocalPos(vec3(-9.f, 0, 297.f));
 	RIGHT_WALL->setLocalPos(vec3(603.f, 0, 297.f));
-	SUN = getLight("SUNLIGHT");
+	SUN = rm::getLight("SUNLIGHT");
 
-	overlay = getTexture("Medium shading");
-	//FIELD_SAND
-	//	FIELD_ROAD_T
-	//	FIELD_ROAD_STRAIGHT
-	//	FIELD_ROAD_CORNER
-	//	FIELD_ROAD_4WAY
-	//	FIELD_GRASS
-	//	FIELD_DIRT
-	//	FIELD_CONCRETE
-	BASE_PLATE_SAND = getBasePlate("FIELD_SAND");
-	BASE_PLATE_T = getBasePlate("FIELD_ROAD_T");
-	BASE_PLATE_ROAD = getBasePlate("FIELD_ROAD_STRAIGHT");
-	BASE_PLATE_CORNER = getBasePlate("FIELD_ROAD_CORNER");
-	BASE_PLATE_4WAY = getBasePlate("FIELD_ROAD_4WAY");
-	BASE_PLATE_GRASS = getBasePlate("FIELD_GRASS");
-	BASE_PLATE_DIRT = getBasePlate("FIELD_DIRT");
-	BASE_PLATE_CONCRETE = getBasePlate("FIELD_CONCRETE");
+	BASE_PLATE_SAND = rm::getBasePlate("FIELD_SAND");
+	BASE_PLATE_T = rm::getBasePlate("FIELD_ROAD_T");
+	BASE_PLATE_ROAD = rm::getBasePlate("FIELD_ROAD_STRAIGHT");
+	BASE_PLATE_CORNER = rm::getBasePlate("FIELD_ROAD_CORNER");
+	BASE_PLATE_4WAY = rm::getBasePlate("FIELD_ROAD_4WAY");
+	BASE_PLATE_GRASS = rm::getBasePlate("FIELD_GRASS");
+	BASE_PLATE_DIRT = rm::getBasePlate("FIELD_DIRT");
+	BASE_PLATE_CONCRETE = rm::getBasePlate("FIELD_CONCRETE");
 }
 
 void Game::setShaders()
 {
 	//PassThrough = getShader("MAIN_RENDER");
-	EXPLOSIONSHADER = getShader("EXPLOSION");
-	MINESHADER = getShader("MINES");
-	COMIC_MINE = getShader("COMIC_MINE");
-	COMIC_EXPLOSION = getShader("COMIC_EXPLOSION");
-	COMIC_SETUP = getShader("COMIC_SETUP");
-	COMIC_EXECUTION = getShader("COMIC_EXECUTION");
-	COMIC_DEFERRED_DIRECTIONAL = getShader("COMIC_DEFERRED_DIRECTIONAL");
-	COMIC_DEFERRED_POINT = getShader("COMIC_DEFERRED_POINT");
-	COMIC_DEFERRED_SPOTLIGHT = getShader("COMIC_DEFERRED_SPOTLIGHT");
-	MESHLIGHT_DEFERRED_DIRECTIONAL = getShader("LIGHTMESH_DEFERRED_DIRECTIONAL");
-	MESHLIGHT_DEFERRED_POINT = getShader("LIGHTMESH_DEFERRED_POINT");
-	MESHLIGHT_DEFERRED_SPOTLIGHT = getShader("LIGHTMESH_DEFERRED_SPOTLIGHT");
-	OUTPUT = getShader("JUST_OUTPUT");
-	BOUNCE_SETUP = getShader("BOBBING_SETUP");
-	COMBINED_DRAW = getShader("COMBINED_DRAW_SHADER");
-	RADIAL_BLUR = getShader("RADIAL_BLUR");
-	HORIZONTAL_BLUR = getShader("BLUR_HORIZONTAL");
-	VERTICAL_BLUR = getShader("BLUR_VERTICAL");
-	BLUR_OUTPUT = getShader("BLUR_EMISSIVE_OUTPUT");
-	TEXT_SHADER = getShader("TEXT_SHADER");
-	TEXT_UI = getShader("TEXT_UI");
-	DOUTPUT = getShader("DEPTH_CHECK_OUTPUT");
 }
 
 void Game::setFramebuffers()
 {
-	sceneCapture = getFramebuffer("INITIAL_SCREEN");
-	defLight = getFramebuffer("DEF_LIGHT");
-	defLight2 = getFramebuffer("DEF_LIGHT_2");
-	UI_SCREEN = getFramebuffer("UI_SCREEN");
-	collect = getFramebuffer("COLLECT");
+	//std::cout << "HERE?" << std::endl;
 
-	RADIAL_POST_PROC.setFormat(GL_RGB8);
-	RADIAL_POST_PROC.init(windowHeight, windowWidth);
+	RADIAL_POST_PROC.reshape(windowWidth, windowHeight);
+
+	tSwitch = rm::getTexture("SCENE_GAME_TRANSITION");
+	tFade = rm::getTexture("defaultBlack");
+
+	//std::cout << "HERE!" << std::endl;
 }
 
 void Game::setCamerasAndPlayers()
 {
-	//GameObject* playerContainer = new GameObject;
-	//playerContainer->addChild(getPlayer("PLAYER_TRUCK"));
-	//players.push_back(playerContainer);
-
-	Mine::weaponInit();
-
-	PlayerCam = getCloneOfCamera("PLAYER_CAM");
+	//std::cout << "THEN HERE" << std::endl;
+	PlayerCam = rm::getCloneOfCamera("PLAYER_CAM");
+	PlayerCam->giveNewPersRatio(aspect);
+	//std::cout << "AHA!" << std::endl;
 	PlayerCam->setRenderList(renderShip);
 
-	UIcam = getCloneOfCamera("UI_CAM");
-	UIcam->setRenderList(UIRenderShip);
-	//players[0]->attachWeapon(ResourceManager::getWeapon("MINE"));
+	//std::cout << "OR HERE" << std::endl;
 
-	//PlayerCam->attachFrameBuffer(sceneCapture);
-	//PlayerCam->perspective(60.f, aspect, 1.0f, 1000.f);
+	UIcam = rm::getCloneOfCamera("UI_CAM");
+	UIcam->giveNewOrthoRatio(aspect);
+	UIcam->setRenderList(UIRenderShip);
 }
 
 void Game::generateMap()
 {
+	//std::cout << "MAP GENERATIN'" << std::endl;
+
 	std::string MAP_DIRECTORY = "TEST_MAP.txt";
 	theMap = new Field(MAP_DIRECTORY);
 
@@ -2527,10 +1797,18 @@ void Game::generateMap()
 
 	for (Player* PL : players)
 	{
-		PL->playerInit(Player::PLAYER_TYPE::TRUCK);
+		if (PL->getName() == "PLAYER_TRUCK")
+			PL->playerInit(Player::PLAYER_TYPE::TRUCK);
+		else if (PL->getName() == "PLAYER_TANK")
+			PL->playerInit(Player::PLAYER_TYPE::TANK);
+		else if (PL->getName() == "PLAYER_BULLDOZER")
+			PL->playerInit(Player::PLAYER_TYPE::BULLDOZER);
+		else if (PL->getName() == "PLAYER_WRECKINGBALL")
+			PL->playerInit(Player::PLAYER_TYPE::WRECKING_BALL);
 	}
 
 	TUI = rm::getCloneOfText("UISpaces");
+	std::cout << TUI->getMaterial()->getName() << std::endl;
 	TUI->baseColor = vec3(0.0f);
 	TUI->setMessage("0");
 	TUI->setLocalPos(vec3(39, 39, 0));
@@ -2553,7 +1831,6 @@ void Game::generateMap()
 	TIMER2->setMessage("3:00");
 	TIMER2->setLocalPos(vec3(-35, 40, 0));
 	TIMER2->aS = vec3(6.f);
-	//std::cout << TUI2->material->shader->getName() << std::endl;
 
 	UITextShip.push_back(TUI);
 	UITextShip.push_back(TUI2);
@@ -2666,328 +1943,6 @@ void Game::updateSingle(float dt, GameObject* _T)
 	}
 }
 
-Boundary * Game::getBoundary(std::string _NAME)
-{
-	GameObject* passing = ResourceManager::searchForGameObject(_NAME);
-	if (Boundary* SUB = dynamic_cast<Boundary*>(passing))
-	{
-		return SUB;
-	}
-	else
-	{
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-		return nullptr;
-	}
-}
-
-Destructable * Game::getDestructable(std::string _NAME)
-{
-	GameObject* passing = ResourceManager::searchForGameObject(_NAME);
-	if (Destructable* SUB = dynamic_cast<Destructable*>(passing))
-	{
-		return SUB;
-	}
-	else
-	{
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-		return nullptr;
-	}
-}
-
-Player * Game::getPlayer(std::string _NAME)
-{
-	GameObject* passing = ResourceManager::searchForGameObject(_NAME);
-	if (Player* SUB = dynamic_cast<Player*>(passing))
-	{
-		return SUB;
-	}
-	else
-	{
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-		return nullptr;
-	}
-}
-
-BasePlate * Game::getBasePlate(std::string _NAME)
-{
-	GameObject* passing = ResourceManager::searchForGameObject(_NAME);
-	if (BasePlate* SUB = dynamic_cast<BasePlate*>(passing))
-	{
-		return SUB;
-	}
-	else
-	{
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-		return nullptr;
-	}
-}
-
-Light * Game::getLight(std::string _NAME)
-{
-	Light* SUB = ResourceManager::searchForLight(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-Hitbox2D * Game::getHitbox(std::string _NAME)
-{
-	Hitbox2D* SUB = ResourceManager::searchForHitbox(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-Mesh * Game::getMesh(std::string _NAME)
-{
-	Mesh* SUB = ResourceManager::searchForMesh(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-Texture * Game::getTexture(std::string _NAME)
-{
-	Texture* SUB = ResourceManager::searchForTexture(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-Camera * Game::getCamera(std::string _NAME)
-{
-	Camera* SUB = ResourceManager::searchForCamera(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-Transform * Game::getEntity(std::string _NAME)
-{
-	Transform* SUB = ResourceManager::searchForTransform(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-ShaderProgram * Game::getShader(std::string _NAME)
-{
-	ShaderProgram* SUB = ResourceManager::searchForShader(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-GameObject * Game::getObject(std::string _NAME)
-{
-	GameObject* SUB = ResourceManager::searchForGameObject(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-Framebuffer * Game::getFramebuffer(std::string _NAME)
-{
-	Framebuffer* SUB = ResourceManager::searchForFramebuffer(_NAME);
-	if (!SUB)
-		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
-	return SUB;
-}
-
-Boundary * Game::getCloneOfBoundary(std::string _NAME)
-{
-	Boundary* SUB = getBoundary(_NAME);
-	if (SUB)
-	{
-		Boundary* SUB2 = new Boundary;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-Destructable * Game::getCloneOfDestructable(std::string _NAME)
-{
-	Destructable* SUB = getDestructable(_NAME);
-	if (SUB)
-	{
-		Destructable* SUB2 = new Destructable;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-Player * Game::getCloneOfPlayer(std::string _NAME)
-{
-	Player* SUB = getPlayer(_NAME);
-	if (SUB)
-	{
-		Player* SUB2 = new Player;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-BasePlate * Game::getCloneOfBasePlate(std::string _NAME)
-{
-	BasePlate* SUB = getBasePlate(_NAME);
-	if (SUB)
-	{
-		BasePlate* SUB2 = new BasePlate;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-Light * Game::getCloneOfLight(std::string _NAME)
-{
-	Light* SUB = getLight(_NAME);
-	if (SUB)
-	{
-		Light* SUB2 = new Light;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-Camera * Game::getCloneOfCamera(std::string _NAME)
-{
-	Camera* SUB = getCamera(_NAME);
-	if (SUB)
-	{
-		Camera* SUB2 = new Camera;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-Transform * Game::getCloneOfEntity(std::string _NAME)
-{
-	Transform* SUB = getEntity(_NAME);
-	if (SUB)
-	{
-		Transform* SUB2 = new Transform;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-GameObject * Game::getCloneOfObject(std::string _NAME)
-{
-	GameObject* SUB = getObject(_NAME);
-	if (SUB)
-	{
-		GameObject* SUB2 = new GameObject;
-		*SUB2 = *SUB;
-
-		ResourceManager::addEntityINGAME(SUB2);
-		cloneChildren(SUB2);
-		return SUB2;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
-void Game::cloneChildren(Transform * _TF)
-{
-	unsigned int TFsize = _TF->getChildren().size();
-	for (unsigned int i = 0; i < TFsize; ++i)
-	{
-		Transform* _TF2 = _TF->getChildren().at(0);
-		_TF->removeChild(_TF->getChildren().at(0));
-		if (Boundary* SUB = dynamic_cast<Boundary*>(_TF2))
-		{
-			SUB = getCloneOfBoundary(_TF2->getName());
-			_TF->addChild(SUB);
-		}
-		else if (BasePlate* SUB1 = dynamic_cast<BasePlate*>(_TF2))
-		{
-			SUB1 = getCloneOfBasePlate(_TF2->getName());
-			_TF->addChild(SUB1);
-		}
-		else if (Destructable* SUB2 = dynamic_cast<Destructable*>(_TF2))
-		{
-			SUB2 = getCloneOfDestructable(_TF2->getName());
-			_TF->addChild(SUB2);
-		}
-		else if (Player* SUB3 = dynamic_cast<Player*>(_TF2))
-		{
-			SUB3 = getCloneOfPlayer(_TF2->getName());
-			_TF->addChild(SUB3);
-		}
-		else if (GameObject* SUB4 = dynamic_cast<GameObject*>(_TF2))
-		{
-			SUB4 = getCloneOfObject(_TF2->getName());
-			_TF->addChild(SUB4);
-		}
-		else if (Light* SUB5 = dynamic_cast<Light*>(_TF2))
-		{
-			SUB5 = getCloneOfLight(_TF2->getName());
-			_TF->addChild(SUB5);
-		}
-		else if (Camera* SUB6 = dynamic_cast<Camera*>(_TF2))
-		{
-			SUB6 = getCloneOfCamera(_TF2->getName());
-			_TF->addChild(SUB6);
-		}
-		else
-		{
-			_TF2 = getCloneOfEntity(_TF2->getName());
-			_TF->addChild(_TF2);
-		}
-	}
-}
-
 void Game::uniqueKeyPresses()
 {
 	if (keysDown['p'] && !backCheckKeysDown['p'])
@@ -3003,19 +1958,83 @@ void Game::uniqueKeyPresses()
 		PlayerCam->cullingActive = !PlayerCam->cullingActive;
 		std::cout << "CULLING TRIGGERED TO " << PlayerCam->cullingActive << std::endl;
 	}
+	if (keysDown['1'] && !backCheckKeysDown['1'])
+	{
+		//std::cout << "MINE EQUIPPED!" << std::endl;
+		players[0]->attachWeapon(rm::getWeapon("MINE"));
+	}
+	if (keysDown['2'] && !backCheckKeysDown['2'])
+	{
+		//std::cout << "HAMMER EQUIPPED!" << std::endl;
+		players[0]->attachWeapon(rm::getWeapon("HAMMER"));
+	}
+	if (keysDown['3'] && !backCheckKeysDown['3'])
+	{
+		//std::cout << "AXE EQUIPPED!" << std::endl;
+		players[0]->attachWeapon(rm::getWeapon("AXE"));
+	}
+	if (keysDown['7'] && !backCheckKeysDown['7'])
+	{
+		players[0]->setMesh(rm::getMesh("PickupTruck"));
+		players[0]->setMaterial(rm::getMaterial("Texture PickupTruck"));
+	}
+	if (keysDown['8'] && !backCheckKeysDown['8'])
+	{
+		players[0]->setMesh(rm::getMesh("tank"));
+		players[0]->setMaterial(rm::getMaterial("Tank_Base_Colours2"));
+	}
+	if (keysDown['9'] && !backCheckKeysDown['9'])
+	{
+		players[0]->setMesh(rm::getMesh("Wrecking_Ball_2"));
+		players[0]->setMaterial(rm::getMaterial("WreckingBall_Base_Color 2"));
+	}
+	if (keysDown['0'] && !backCheckKeysDown['0'])
+	{
+		players[0]->setMesh(rm::getMesh("BullDozer"));
+		players[0]->setMaterial(rm::getMaterial("Bulldozer_Base_Colours 2"));
+	}
+	if (keysDown['/'] && !backCheckKeysDown['/'])
+	{
+		if (_GS == GS_RUNNING)
+		{
+			_GS = GS_PAUSED;
+		}
+		else if (_GS == GS_PAUSED)
+		{
+			_GS = GS_RUNNING;
+		}
+	}
+	if (keysDown['\\'])
+	{
+		minutes = 0;
+		seconds = 0;
+	}
 }
 
 void Game::resetMap()
 {
 	//std::cout << "HAPPENED" << std::endl;
+	std::vector<Transform*> EMPT;
+	for (unsigned int i = 0; i < rm::CamerasINGAME.size(); i++)
+	{
+		rm::CamerasINGAME[i]->setRenderList(EMPT);
+	}
+	renderShip.clear();
 	for (int i = 0; i < 100; ++i)
 	{
 		for (int j = 0; j < 100; ++j)
 		{
 			unsigned int OBS = theMap->fieldObjects[i][j].size();
-			for (unsigned int k = 0; k < OBS; ++k)
+			for (int k = (int)OBS - 1; k >= 0; --k)
 			{
-				if (theMap->fieldObjects[i][j][k]->hasInitial)
+				if (theMap->fieldObjects[i][j][k]->TT == Transform::TransformType::TYPE_Powerup)
+				{
+					GameObject* _O = theMap->fieldObjects[i][j][k];
+					theMap->removeObj(i, j, _O);
+					rm::destroyObjectINGAME(_O);
+					//std::cout << "BEGONE THOT" << std::endl;
+				}
+				else if (theMap->fieldObjects[i][j][k]->hasInitial)
 				{
 					//theMap->fieldObjects[i][j][k]->resetToInitials();
 					////theMap->fieldObjects[i][j][k]->update(0);

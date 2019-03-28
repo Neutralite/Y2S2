@@ -11,6 +11,7 @@ public:
 	vec3 position;
 	vec3 rotationAngles;
 	vec3 scale;
+	vec3 hitboxOffset;
 	float duration; //How long it happens for
 	float timeOf; //When it happens
 	Mesh* weapMesh;
@@ -52,14 +53,16 @@ public:
 	
 	Hitbox2D* Impact;
 	mat4 worldLocation;
+	vec3 hitboxOffset;
 
 	std::vector<float> impactTimes;
 	
 	bool tailoredCollision(GameObject* _GO);
-	virtual wFrame* getFrameBefore(float t) = 0;
-	virtual wFrame* getFrameAt(float t) = 0;
-	virtual wFrame* getFrameAfter(float t) = 0;
-	virtual wFrame* getFrame2After(float t) = 0;
+	virtual std::vector<wFrame>* getFL() = 0;
+	virtual wFrame* getFrameBefore(float t);
+	virtual wFrame* getFrameAt(float t);
+	virtual wFrame* getFrameAfter(float t);
+	virtual wFrame* getFrame2After(float t);
 
 	bool timeToDie = false;
 

@@ -1,0 +1,4 @@
+Hammer
+HAMMER_MODEL
+EMPTY
+0

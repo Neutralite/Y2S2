@@ -21,19 +21,27 @@ bool Weapon::tailoredCollision(GameObject * _GO)
 			{
 
 			}
+			else if (_GO->TT == TYPE_Powerup)
+			{
+
+			}
 			else
 			{
 				//std::cout << "HERE!" << std::endl;
-				if (Impact->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				//std::cout << getLocalScale() << std::endl;
+				mat4 weapLoc = worldLocation * mat4(mat3::identity(), getWorldPos()) * mat4::rotatey(degrees(getLocalEuler().y)) * mat4(mat3::identity(), hitboxOffset);
+				//std::cout << weapLoc.translation() << std::endl;
+				//weapLoc = mat4(mat3(weapLoc), vec3(weapLoc.translation().x, 0, weapLoc.translation().z));
+				if (Impact->collidesWith(_GO->getPhysicsBody()->getHB(), weapLoc, _GO->getLocalToWorld()))
 				{
 					//std::cout << "YO" << std::endl;
-					vec3 centerToCollision = (Impact->closestPoint - getLocalToWorld().translation()) / Impact->maxRad;
+					vec3 centerToCollision = (Impact->closestPoint - weapLoc.translation()) / Impact->maxRad;
 					vec3 outward = normalize(mat3(inverse(_GO->getLocalToWorld())) * Impact->outDir);
 
 					centerToCollision.y = 0.f;
 					outward.y = 0.f;
 
-					_GO->initiateDestruction(0, outward, length(centerToCollision), ownedPlayer);
+					_GO->initiateDestruction(getDest(), outward, length(centerToCollision), ownedPlayer);
 					//_GO->DirOfDestr = outward;
 					//_GO->TypeOfDestr = getDest();
 					//
@@ -44,6 +52,35 @@ bool Weapon::tailoredCollision(GameObject * _GO)
 	}
 
 	return false;
+}
+
+wFrame * Weapon::getFrameBefore(float t)
+{
+	if (currentFrame >= 2)
+		return &getFL()->at(currentFrame - 2);
+	else
+		return nullptr;
+}
+
+wFrame * Weapon::getFrameAt(float t)
+{
+	if (currentFrame >= 1)
+		return &getFL()->at(currentFrame - 1);
+	else
+		return nullptr;
+}
+
+wFrame * Weapon::getFrameAfter(float t)
+{
+	return &getFL()->at(currentFrame);
+}
+
+wFrame * Weapon::getFrame2After(float t)
+{
+	if (currentFrame < getFL()->size() - 1)
+		return &getFL()->at(currentFrame + 1);
+	else
+		return nullptr;
 }
 
 void Weapon::update(float dt)
@@ -119,6 +156,7 @@ void Weapon::update(float dt)
 				SCALE_3 = _W2->scale;
 			}
 
+			//hitboxOffset = _W2->hitboxOffset;
 			float tT = _W2->tFunc((timeActive - _W2->timeOf) / _W2->duration);
 			if (_W2->MT == wFrame::MutationType::LINEAR)
 			{

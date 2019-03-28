@@ -2,5 +2,8 @@ TextSpaces
 Text
 p
 UISpaces
-Text
+TextUI
 o
+TextRot
+TextRot
+r

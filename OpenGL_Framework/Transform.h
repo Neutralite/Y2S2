@@ -26,6 +26,8 @@ public:
 
 	void addChild(Transform* newChild);
 	void removeChild(Transform* ripChild);
+	void removeChild(unsigned int ripChild);
+	void removeChild(std::string ripChild);
 
 	void setLocalPos(vec3 newPosiiton); // Local Position
 	void setLocalRotX(float newAngle); // Local Rotation X
@@ -76,8 +78,11 @@ public:
 		TYPE_Camera,
 		TYPE_Text,
 		TYPE_Weapon,
+		TYPE_Axe,
 		TYPE_Hammer,
-		TYPE_Mine
+		TYPE_Mine,
+		TYPE_Powerup,
+		TYPE_Recolor
 	};
 
 	TransformType TT;

@@ -2,3 +2,4 @@ PBR
 textureEmissive: defaultWhite
 textureRoughness: defaultBlack
 textureMetallic: defaultBlack
+shader: COMIC_SETUP

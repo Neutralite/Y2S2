@@ -52,6 +52,7 @@ Material::Material(const std::string & filename)
 			floatUniforms["uRoughness"] = 1.0f;
 			floatUniforms["uMetallic"] = 1.0f;
 
+			shader = rm::getShader("COMIC_SETUP");
 			//vertShader = "shader.vert"; 
 			//fragShader = "gBuffer.frag";
 		}

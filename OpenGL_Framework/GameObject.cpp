@@ -164,6 +164,14 @@ void GameObject::doCollision(GameObject* _GO)
 			{
 
 			}
+			else if (_GO->TT == TYPE_Powerup)
+			{
+				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
+				{
+					_GO->needsUpdate = true;
+					needsUpdate = true;
+				}
+			}
 			else if (_GO->getPhysicsBody()->getHB()->grass)
 			{
 				if (getPhysicsBody()->getHB()->collidesWith(_GO->getPhysicsBody()->getHB(), getLocalToWorld(), _GO->getLocalToWorld()))
@@ -316,6 +324,11 @@ void GameObject::DestructionSequence(float dt)
 				newScale = vec3(sin((1.f - LORP) * PI * 0.75f) / sin(PI * 0.75f));
 
 				//std::cout << getName() << ": " << newPos << ", " << newRot << ", " << newScale << std::endl;
+			}
+			else if (TypeOfDestr == 1)
+			{
+				float LORP = timeDestroying / maxDestrTime;
+				newScale = vec3(1.f - pow(LORP, 6), 0.1f * (1.f - LORP), 1.f - pow(LORP, 6));
 			}
 
 			mat4 rx = rx.rotatex(degrees(newRot.x));

@@ -22,24 +22,6 @@ float Destructable::getBob()
 
 void Destructable::draw()
 {
-	//if (getMesh() && !HIDE)
-	//{
-	//	getShader()->bind();
-	//	getShader()->sendUniform("uModel", getLocalToWorld() * DestructionMat);
-	//	getShader()->sendUniform("bob", randomBob);
-	//	getShader()->sendUniform("sway", getWorldSwing());
-	//	int i = 0;
-	//	for (Texture* texture : *(getTextures()))
-	//	{
-	//		texture->bind(i++);
-	//	}
-	//	getMesh()->draw();
-	//	for (Texture* texture : *(getTextures()))
-	//	{
-	//		texture->unbind(--i);
-	//	}
-	//}
-
 	if (getMesh() && getMaterial() && !HIDE)
 	{
 		getMaterial()->bind();

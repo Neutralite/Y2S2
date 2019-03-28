@@ -25,9 +25,12 @@ public:
 	float wordLength = 0.f;
 
 	unsigned int messageSize();
-protected:
-	std::vector<vec3> individualPos;
 
+	void setMaterial(Material* _MAT);
+	Material* getMaterial();
+//protected:
+	std::vector<vec3> individualPos;
+//protected:
 	std::vector<vec4> XYWH;
 	Material* material;
 	Mesh* _M_QUAD;

@@ -1,0 +1,4 @@
+PBR
+textureAlbedo: defaultBlack
+textureEmissive: MINE_TEXTURE
+shader: WEAPON_POWERUP

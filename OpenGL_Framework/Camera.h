@@ -53,6 +53,7 @@ public:
 	void sendUBO() const;
 	void draw();
 	void render(bool useFB = true);
+	void renderToFB(Framebuffer* _FB, bool clearIt);
 	void clear();
 
 	void cull();
@@ -64,15 +65,17 @@ public:
 	void setRenderList(std::vector<Transform*> objects);
 	void addToRenderList(std::vector<Transform*> objects);
 
-	bool cullingActive = false;
+	bool cullingActive = true;
 	GameObject* m_pSkybox;
 
 	void giveNewOrthoRatio(float _ASPECT);
+	void giveNewPersRatio(float _ASPECT);
 private:
 	mat4 m_pProjection;
 	mat4 m_pViewMatrix;
-		
+public:
 	vec4 m_pOrthoSize;
+private:
 	vec2 m_pFov;
 	float m_pAspectRatio;
 	float m_pNear;
