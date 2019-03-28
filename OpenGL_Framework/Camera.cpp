@@ -25,7 +25,7 @@ Camera::Camera(ProjectionType projType)
 
 Camera::~Camera()
 {
-	m_pUBO.unload();
+	//m_pUBO.unload();
 }
 
 void Camera::perspective(float fovy, float aspect, float zNear, float zFar)
@@ -131,6 +131,32 @@ void Camera::render(bool useFB)
 	if (m_pFB != nullptr && useFB)
 	{
 		m_pFB->unbind();
+	}
+}
+
+void Camera::renderToFB(Framebuffer * _FB, bool clearIt)
+{
+	SAT_ASSERT(m_pUBO.isInit() == true, "Camera's uniform buffer has not been initialized!");
+	m_pUBO.bind(0);
+
+	if (_FB != nullptr)
+	{
+		_FB->setViewport();
+		_FB->bind();
+		if (clearIt)
+			clear();
+	}
+
+	activeCamera = this;
+	activeCameraPosition = getLocalToWorld().translation();
+	for (Transform* object : cullList)
+	{
+		object->draw();
+	}
+
+	if (_FB != nullptr)
+	{
+		_FB->unbind();
 	}
 }
 
@@ -268,4 +294,9 @@ void Camera::giveNewOrthoRatio(float _ASPECT)
 	m_pOrthoSize.y = m_pOrthoSize.w * _ASPECT;
 
 	orthographic(m_pOrthoSize.x, m_pOrthoSize.y, m_pOrthoSize.z, m_pOrthoSize.w, m_pNear, m_pFar);
+}
+
+void Camera::giveNewPersRatio(float _ASPECT)
+{
+	perspective(m_pFov.y, _ASPECT, m_pNear, m_pFar);
 }

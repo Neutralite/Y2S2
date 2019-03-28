@@ -128,3 +128,13 @@ unsigned int Text::messageSize()
 {
 	return message.size();
 }
+
+void Text::setMaterial(Material * _MAT)
+{
+	material = _MAT;
+}
+
+Material * Text::getMaterial()
+{
+	return material;
+}

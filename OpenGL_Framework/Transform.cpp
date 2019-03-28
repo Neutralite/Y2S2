@@ -29,6 +29,25 @@ void Transform::removeChild(Transform * rip)
 		if (m_pChildren[i] == rip) 
 		{
 			m_pChildren.erase(m_pChildren.begin() + i);
+			--i;
+		}
+	}
+}
+
+void Transform::removeChild(unsigned int ripChild)
+{
+	if (ripChild < m_pChildren.size())
+		m_pChildren.erase(m_pChildren.begin() + ripChild);
+}
+
+void Transform::removeChild(std::string ripChild)
+{
+	for (unsigned int i = 0; i < m_pChildren.size(); ++i)
+	{
+		if (m_pChildren[i]->getName() == ripChild)
+		{
+			m_pChildren.erase(m_pChildren.begin() + i);
+			--i;
 		}
 	}
 }

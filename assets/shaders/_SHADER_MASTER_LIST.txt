@@ -70,3 +70,12 @@ POWERUP_RENDER.frag
 WEAPON_POWERUP
 StaticGeo.vert
 Lighter.frag
+TRANSITION
+GenericPost.vert
+Transition.frag
+TEXT_ROT_SHADER
+TextRot.vert
+TextTexture.frag
+RECOLOR_INITIAL_RENDER
+StaticGeo.vert
+RECOLOR_RENDER.frag

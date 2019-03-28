@@ -51,3 +51,21 @@ AxeBaseColours
 Bulldozer_Base_Colours 2
 Tank_Base_Colours2
 WreckingBall_Base_Color 2
+Arrow
+Back Button
+Exit Button
+Menu Scene
+Play Button
+Ready white version
+Rules Button
+SCENE_BEGIN_MENU
+FADE_BEGIN_MENU
+SCENE_GAME_TRANSITION
+SCENE_MENU_END
+SCENE_VEHICLE_BEGIN
+SelectionSceneTexture
+SCENE_VEHICLE_EXIT
+Downtown_Destruction_New
+SCENE_VICTORY_BEGIN
+SCENE_VICTORY_END
+SCENE_GAME_END

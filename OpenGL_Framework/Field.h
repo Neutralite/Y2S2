@@ -15,6 +15,7 @@ public:
 	std::vector<std::vector<BasePlate*>> grid;
 	std::vector<std::vector<std::vector<GameObject*>>> fieldObjects;
 	std::vector<Player*> players;
+	std::vector<vec2> spawnPoints;
 	unsigned int height = 100, width = 100;
 	float sectHeight = 6.f, sectWidth = 6.f;
 	void loadFromFile(std::string &fileName, std::string &dir);

@@ -29,6 +29,7 @@
 
 #include "Field.h"
 #include "XinputManager.h"
+#include "Scene.h"
 
 #define WINDOW_SCREEN_WIDTH		640
 #define WINDOW_SCREEN_HEIGHT	432
@@ -38,7 +39,7 @@
 
 const int FRAME_DELAY_SPRITE = 1000 / FRAMES_PER_SECOND;
 
-class Game
+class Game : public Scene
 {
 public:
 	Game();
@@ -48,6 +49,14 @@ public:
 	void update();
 	void draw();
 	void GUI();
+	void releaseScene();
+
+	void beginningUpdate(float dt);
+	void startingUpdate(float dt);
+	void runningUpdate(float dt);
+	void pausedUpdate(float dt);
+	void endedUpdate(float dt);
+	void exitingUpdate(float dt);
 
 	/* input callback functions */
 	void keyboardDown(unsigned char key, int mouseX, int mouseY);
@@ -59,19 +68,6 @@ public:
 	void mousePassive(int x, int y);
 	void reshapeWindow(int w, int h);
 
-	void setKeysDown(bool down, unsigned char key);
-	void keyHandler();
-	void mouseHandler();
-	void triggerHandler();
-	void drawChildren(Transform* TF, bool doLights);
-	void UIDrawChildren(Transform* TF);
-
-	void protectedUpdateShip(GameObject* GO);
-	void protectedExternalUpdateShip(GameObject* GO);
-	void protectedAddUpdate(GameObject* _GO, unsigned int front, unsigned int back);
-	void protectedAddExternalUpdate(GameObject* _GO, unsigned int front, unsigned int back);
-	void protectedLightShip(Light* LIT);
-	void protectedAddLight(Light* LIT, unsigned int front, unsigned int back);
 	void updateExternals(float dt);
 	void addToCollisions(GameObject* GO, bool dynamic);
 	void putInStatic(GameObject* _GO, unsigned int front, unsigned int back);
@@ -86,23 +82,6 @@ public:
 	void updateAttacks(float dt);
 	void attackHIT(unsigned int index);
 
-	void loadAllTextures(std::string &fileName);
-	void loadAllMeshes(std::string &fileName);
-	void loadAllObjects(std::string &fileName);
-	void loadAllUIElements(std::string &fileName);
-	void loadAllLights(std::string &filename);
-	void loadAllHitboxes(std::string &fileName);
-	void loadAllPlayerObjects(std::string &fileName);
-	void loadAllMorphTargs(std::string &fileName);
-	void loadAllShaders(std::string &fileName);
-	void loadAllFramebuffers(std::string &fileName);
-	void loadAllCameras(std::string &fileName);
-	void loadAllMaterials(std::string &fileName);
-	void loadAllFonts(std::string &fileName);
-
-	void createChild(std::string &fileName, Transform* parent);
-	//void createUniqueChild(std::string &fileName, Transform* parent);
-
 	void allSetup();
 
 	void setBaseAndBoundaries();
@@ -113,31 +92,6 @@ public:
 
 	void performUpdates(float dt);
 	void updateSingle(float dt, GameObject* _T);
-	
-	Boundary* getBoundary(std::string _NAME);
-	Destructable* getDestructable(std::string _NAME);
-	Player* getPlayer(std::string _NAME);
-	BasePlate* getBasePlate(std::string _NAME);
-	Light* getLight(std::string _NAME);
-	Hitbox2D* getHitbox(std::string _NAME);
-	Mesh* getMesh(std::string _NAME);
-	Texture* getTexture(std::string _NAME);
-	Camera* getCamera(std::string _NAME);
-	Transform* getEntity(std::string _NAME);
-	ShaderProgram* getShader(std::string _NAME);
-	GameObject* getObject(std::string _NAME);
-	Framebuffer* getFramebuffer(std::string _NAME);
-
-	Boundary* getCloneOfBoundary(std::string _NAME);
-	Destructable* getCloneOfDestructable(std::string _NAME);
-	Player* getCloneOfPlayer(std::string _NAME);
-	BasePlate* getCloneOfBasePlate(std::string _NAME);
-	Light* getCloneOfLight(std::string _NAME);
-	Camera* getCloneOfCamera(std::string _NAME);
-	Transform* getCloneOfEntity(std::string _NAME);
-	GameObject* getCloneOfObject(std::string _NAME);
-
-	void cloneChildren(Transform* _TF);
 
 	void uniqueKeyPresses();
 	void resetMap();
@@ -148,10 +102,8 @@ public:
 
 	float TotalGameTime = 0.0f;
 	float maxGameTimer = 180.f;
-	int windowWidth = WINDOW_WIDTH;
-	int windowHeight = WINDOW_HEIGHT;
+	float tTime = 1.0001f;
 
-	bool paused = false;
 	bool getTime = false;
 
 	bool isInScene = false;
@@ -159,18 +111,9 @@ public:
 	unsigned int gameFrame = 0;
 
 	float deltaTime = 0.f;
+	float dropOffTimer = 0.f;
 private:
 	float tileSize = 6.f;
-
-	bool keysDown[256];
-	bool backCheckKeysDown[256];
-	bool mouseDown[10];
-	bool backCheckMouseDown[10];
-
-	vec2 mousePosition, prevMousePosition;
-	vec2 DeltaMousePos;
-
-	float aspect;
 
 	Boundary* RIGHT_WALL;
 	Boundary* LEFT_WALL;
@@ -186,37 +129,6 @@ private:
 	BasePlate* BASE_PLATE_T;
 	BasePlate* BASE_PLATE_CORNER;
 	Light* SUN;
-	Texture* overlay;
-	Texture* tRamp;
-	Texture* tDiffuse;
-	Texture* difOver;
-
-	//ShaderProgram* PassThrough;
-	ShaderProgram* EXPLOSIONSHADER;
-	ShaderProgram* MINESHADER;
-	ShaderProgram* COMIC_MINE;
-	ShaderProgram* COMIC_EXPLOSION;
-	ShaderProgram* COMIC_SETUP;
-	ShaderProgram* COMIC_EXECUTION;
-	ShaderProgram* COMIC_DEFERRED_DIRECTIONAL;
-	ShaderProgram* COMIC_DEFERRED_POINT;
-	ShaderProgram* COMIC_DEFERRED_SPOTLIGHT;
-	ShaderProgram* MESHLIGHT_DEFERRED_DIRECTIONAL;
-	ShaderProgram* MESHLIGHT_DEFERRED_POINT;
-	ShaderProgram* MESHLIGHT_DEFERRED_SPOTLIGHT;
-	ShaderProgram* OUTPUT;
-	ShaderProgram* BOUNCE_SETUP;
-	ShaderProgram* COMBINED_DRAW;
-	ShaderProgram* RADIAL_BLUR;
-	ShaderProgram* HORIZONTAL_BLUR;
-	ShaderProgram* VERTICAL_BLUR;
-	ShaderProgram* BLUR_OUTPUT;
-	ShaderProgram* TEXT_SHADER;
-	ShaderProgram* TEXT_UI;
-	ShaderProgram* DOUTPUT;
-
-	Framebuffer* sceneCapture, *collect;
-	Framebuffer* defLight, *defLight2, *UI_SCREEN;
 
 	Camera* PlayerCam;
 	Camera* UIcam;
@@ -243,14 +155,6 @@ private:
 	Text* TUI;
 	Text* TUI2;
 
-	UniformBuffer uniformBufferTime;
-	UniformBuffer uRes;
-
-	XinputManager _INPUT;
-	std::vector<XinputController*> controllers;
-	std::vector<Stick> playerInput;
-	std::vector<Triggers> playerTriggers;
-
 	PostProcessBuffer RADIAL_POST_PROC;
 
 	bool useFirst = false;
@@ -273,86 +177,18 @@ private:
 	Text* TIMER;
 	Text* TIMER2;
 
-	// Scene Objects.
-	//Camera camera;
-	//Camera camera2;
-	//
-	//Framebuffer framebuffer;
-	//Framebuffer framebufferTV;
-	//GBuffer gbuffer;
-	//
-	//Mesh meshSphere;
-	//Mesh meshSkybox;
-	//Mesh meshLight;
-	//Mesh meshPlane;
-	//Mesh meshCube;
-	//Mesh meshStan;
-	//
-	//GameObject goStan;
-	//GameObject goSun;
-	//GameObject goEarth;
-	//GameObject goEarthPlane;
-	//GameObject goMoon;
-	//GameObject goJupiter;
-	//GameObject goJupiterMoon[2];
-	//GameObject goSaturn;
-	//GameObject goSaturnRings;
-	//GameObject goSkybox;
-	//GameObject goTV;
-	//
-	//GameObject goLight;
-	//
-	//std::vector<GameObject*> goPlanets;
-	//
-	//// OpenGL Handles
-	//ShaderProgram shaderBasic;
-	////ShaderProgram shaderTexture;
-	//ShaderProgram shaderSky;
-	//ShaderProgram shaderTextureAlphaDiscard;
-	//ShaderProgram shaderTextureJupiter;
-	//
-	//ShaderProgram shaderGbuffer;
-	//ShaderProgram shaderPointLight;
-	//
-	//ShaderProgram shaderPassthrough;
-	//ShaderProgram shaderGrayscale;
-	//
-	//UniformBuffer uniformBufferTime;
-	//UniformBuffer uniformBufferLightScene;
-	//UniformBuffer uniformBufferLight;
-	//Light light;
-	//UniformBuffer uniformBufferToon;
-	//std::vector<Texture*> textureToonRamp;
+	Texture* tSwitch = nullptr;
+	Texture* tFade = nullptr;
 
-	bool guiEnabled = true;
+	enum gameState
+	{
+		GS_BEGINNING,
+		GS_STARTING,
+		GS_RUNNING,
+		GS_PAUSED,
+		GS_ENDED,
+		GS_EXITING
+	};
 
-	//struct KeyInput
-	//{
-	//	bool moveLeft = false;
-	//	bool moveRight = false;
-	//	bool moveUp = false;
-	//	bool moveDown = false;
-	//	bool moveForward = false;
-	//	bool moveBackward = false;
-	//
-	//	bool rotateUp = false;
-	//	bool rotateDown = false;
-	//	bool rotateLeft = false;
-	//	bool rotateRight = false;
-	//
-	//
-	//	bool ctrlL = false;
-	//	bool ctrlR = false;
-	//	bool shiftL = false;
-	//	bool shiftR = false;
-	//	bool altL = false;
-	//	bool altR = false;
-	//
-	//	vec2 mouseMovement = vec2(0.0f);
-	//	vec2 mousePos = vec2(0.0f);
-	//	vec2 mousePosOld = vec2(0.0f);
-	//	vec2 mousePosGUI = vec2(10.0f, 20.0f);
-	//	
-	//	bool f11 = false;
-	//} input;
+	gameState _GS = GS_BEGINNING;
 };
