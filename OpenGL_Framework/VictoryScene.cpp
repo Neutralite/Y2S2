@@ -37,6 +37,7 @@ void VictoryScene::initializeGame()
 	scoreLerp.clear();
 	playerScoreBars.clear();
 	playerScores.clear();
+	playerScoresBACK.clear();
 	playerNames.clear();
 	editSlot.clear();
 
@@ -53,6 +54,7 @@ void VictoryScene::initializeGame()
 	scoreLerp.resize(4);
 	playerScoreBars.resize(4);
 	playerScores.resize(4);
+	playerScoresBACK.resize(4);
 	playerNames.resize(4);
 	editSlot.resize(4);
 
@@ -392,11 +394,15 @@ void VictoryScene::startingUpdate(float dt)
 			}
 
 			playerScores[i]->setMessage(std::to_string((int)scoreLerp[i]));
+			playerScoresBACK[i]->setMessage(std::to_string((int)scoreLerp[i]));
 			playerScores[i]->baseColor = vec3(1.f);
+			playerScoresBACK[i]->baseColor = vec3(1.f);
 
 			for (unsigned int j = 0; j < playerScores[i]->messageSize(); j++)
 			{
 				playerScores[i]->colorShift[j] = playerScoreBars[i]->objectColor;
+				playerScoresBACK[i]->colorShift[j] = vec3(1.f);
+				playerScoresBACK[i]->tS[j] = vec3(1.1f);
 			}
 
 			if (EPD::playerScores[i] > 0)
@@ -624,6 +630,13 @@ void VictoryScene::runningUpdate(float dt)
 					preNames[editSlot[enteringPlayer]].at(1) = L2;
 					preNames[editSlot[enteringPlayer]].at(2) = L3;
 
+					preText[editSlot[enteringPlayer]]->setMessage(std::to_string(editSlot[enteringPlayer] + 1) + ". " + preNames[editSlot[enteringPlayer]] + " ======= " + std::to_string((int)EPD::playerScores[enteringPlayer]));
+					preText[editSlot[enteringPlayer]]->baseColor = vec3(1.f);
+					for (unsigned int k = 0; k < preText[editSlot[enteringPlayer]]->messageSize(); k++)
+					{
+						preText[editSlot[enteringPlayer]]->colorShift[k] = playerScoreBars[enteringPlayer]->objectColor;
+					}
+
 					newEnter = true;
 				}
 			}
@@ -654,16 +667,7 @@ void VictoryScene::runningUpdate(float dt)
 			{
 				if (controllers[i]->isButtonPressed(A) && !backCheckButton[2 * i])
 				{
-					if (letterSel < 3)
-						letterSel++;
-					else
-					{
-						preNames[editSlot[enteringPlayer]].at(0) = L1;
-						preNames[editSlot[enteringPlayer]].at(1) = L2;
-						preNames[editSlot[enteringPlayer]].at(2) = L3;
-
-						newEnter = true;
-					}
+					runThrough = true;
 				}
 
 				backCheckButton[2 * i] = controllers[i]->isButtonPressed(A);
@@ -1079,7 +1083,7 @@ void VictoryScene::setUpVictory()
 	for (int i = 0; i < 4; i++)
 	{
 		editSlot[i] = -1;
-		if (EPD::playerActive[i] || i == 0)
+		if (EPD::playerActive[i])// || i == 0)
 			accum++;
 	}
 
@@ -1134,11 +1138,13 @@ void VictoryScene::setUpVictory()
 		playerModels[i] = nullptr;
 		playerScoreBars[i] = nullptr;
 		playerScores[i] = nullptr;
+		playerScoresBACK[i] = nullptr;
 
 		if (EPD::playerActive[i])
 		{
 			playerScoreBars[i] = rm::getCloneOfRecolorObject("CUBE");
 			playerScores[i] = rm::getCloneOfText("TextRot");
+			playerScoresBACK[i] = rm::getCloneOfText("TextRot");
 
 			switch (EPD::playerVehicleChoice[i])
 			{
@@ -1194,9 +1200,17 @@ void VictoryScene::setUpVictory()
 			playerScores[i]->baseColor = vec3(1.f);
 			playerScores[i]->update(0);
 
+			playerScoresBACK[i]->setMessage(playerScores[i]->message);
+			playerScores[i]->addChild(playerScoresBACK[i]);
+			//playerScoresBACK[i]->setScale(1.05f);
+			playerScoresBACK[i]->baseColor = vec3(1.f);
+			playerScoresBACK[i]->update(0);
+
 			for (unsigned int j = 0; j < playerScores[i]->messageSize(); j++)
 			{
 				playerScores[i]->colorShift[j] = playerScoreBars[i]->objectColor;
+				playerScoresBACK[i]->colorShift[j] = vec3(1.f);
+				playerScoresBACK[i]->tS[j] = vec3(1.1f);
 			}
 		}
 	}
@@ -1281,5 +1295,11 @@ void VictoryScene::setUpVictory()
 		{
 			confirmation->colorShift[i] = vec3(0.f, 1.f, 0.f);
 		}
+	}
+
+	for (Framebuffer* FB : ResourceManager::allFramebuffers)
+	{
+		if (!FB->isFixedSize)
+			FB->reshape(windowWidth, windowHeight);
 	}
 }

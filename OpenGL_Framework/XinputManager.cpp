@@ -28,6 +28,14 @@ XinputController * XinputManager::getController(int index)
 	return nullptr;
 }
 
+void XinputManager::setRumble(int index, float lowRumble, float highRumble)
+{
+	if (controllerConnected(index))
+	{
+		XInputSetState(index, controller[index].getVibration());
+	}
+}
+
 void XinputManager::update()
 {
 	for (int i = 0; i < 4; i++)

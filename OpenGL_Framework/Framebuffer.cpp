@@ -160,7 +160,7 @@ void Framebuffer::unbind() const
 void Framebuffer::renderToFSQ() const
 {
 	SAT_ASSERT(_IsInitFrameBuffers, "Full Screen Quad not initialized!");
-	setViewport();
+	//setViewport();
 	bind();
 	FullScreenQuad.draw();
 	unbind();

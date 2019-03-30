@@ -282,7 +282,7 @@ int main(int argc, char **argv)
 	//SceneHandler::replaceScene(vehicleSelection);
 
 	/* start the game */
-	glutFullScreen();
+	//glutFullScreen();
 	glutMainLoop();
 	return 0;
 }

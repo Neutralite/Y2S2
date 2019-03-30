@@ -37,6 +37,8 @@ void Game::initializeGame()
 	TotalTime = 0.f;
 	dropOffTimer = 0.f;
 
+	EPD::bootScreens();
+
 	minutes = 3;
 	seconds = 0;
 
@@ -44,10 +46,63 @@ void Game::initializeGame()
 	lerpScore = 0;
 
 	tTime = 1.0001f;
+
+	players.clear();
+	players.resize(4);
+
+	PlayerCams.clear();
+	PlayerCams.resize(4);
+
+	SUNS.clear();
+	SUNS.resize(4);
+
+	UIcams.clear();
+	UIcams.resize(4);
+
+	TUI.clear();
+	TUI.resize(4);
+	TUI2.clear();
+	TUI2.resize(4);
+
+	smartScale.clear();
+	smartScale.resize(5, vec3());
+
+	renderShips.clear();
+	UITextShips.clear();
+	UIRenderShips.clear();
+	lightShips.clear();
+	shadowShips.clear();
+
+	std::vector<Transform*> subStep;
+	std::vector<Text*> textStep;
+	std::vector<Light*> lightStep;
+	std::vector<GameObject*> shadowStep;
+
+	renderShips.resize(4);
+	UITextShips.resize(4);
+	UIRenderShips.resize(4);
+	lightShips.resize(4);
+	shadowShips.resize(4);
+
+	radialBlur.clear();
+	radialBlur.resize(4, 0.f);
+
 	allSetup();
 
-	PlayerCam->perspective(60.f, aspect, 1, 1000);
-	PlayerCam->update(0);
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			//PlayerCams[i]->perspective(60.f, aspect, 1, 1000);
+			PlayerCams[i]->update(0);
+			UIcams[i]->update(0);
+			renderShips[i] = subStep;
+			UITextShips[i] = textStep;
+			UIRenderShips[i] = subStep;
+			lightShips[i] = lightStep;
+			shadowShips[i] = shadowStep;
+		}
+	}
 
 	glEnable(GL_DEPTH_TEST); 
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -100,15 +155,26 @@ void Game::update()
 	{
 		std::cout << "FRAME: " << gameFrame << std::endl;
 	}
-	renderShip.clear();
-	UIRenderShip.clear();
+
 	updateShip.clear();
 	dynamicCollisionShip.clear();
 	staticCollisionShip.clear();
-	lightShip.clear();
 	dynamicBatchShip.clear();
-	UITextShip.clear();
 	textShip.clear();
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			renderShips[i].clear();
+			UITextShips[i].clear();
+			UIRenderShips[i].clear();
+			lightShips[i].clear();
+			shadowShips[i].clear();
+
+			PlayerCams[i]->setRenderList(renderShips[i]);
+		}
+	}
 
 	updateTimer->tick();
 	//gameCheckTimer->tick();
@@ -158,195 +224,22 @@ void Game::update()
 
 void Game::draw()
 {
+	glViewport(0, 0, windowWidth, windowHeight);
 	//uniformBufferTime.sendFloat(TotalGameTime, 0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	for (Framebuffer* _FB : ResourceManager::allFramebuffers)
 		_FB->clear();
-	RADIAL_POST_PROC.clear();
 
-	//Transform* totBase = nullptr;
-	//for (int i = 0; i < (int)renderShip.size(); i++)
-	//	if (renderShip[i]->TT == Transform::TransformType::TYPE_BasePlate)
-	//		totBase = renderShip[i];
-	//std::cout << totBase->getWorldPos() << std::endl;
 
-	PlayerCam->sendUBO();
-	PlayerCam->setRenderList(renderShip);
-	UIcam->setRenderList(UIRenderShip);
-	PlayerCam->cull();
-	UIcam->cull();
-	//std::cout << "-------------------------\n" << std::endl;
-
-	if (getTime)
+	for (int i = 0; i < 4; i++)
 	{
-		gameCheckTimer->tick();
-		std::cout << ";   CULLING: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
-	}
-
-	PlayerCam->render();
-
-	if (getTime)
-	{
-		gameCheckTimer->tick();
-		std::cout << ";   STATIC-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
-	}
-	//std::cout << renderShip.size() << std::endl;
-
-	glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-
-	COMIC_EXECUTION->bind();
-	sceneCapture->bindColorAsTexture(0, 0);
-	sceneCapture->bindColorAsTexture(1, 1);
-	sceneCapture->bindColorAsTexture(2, 2);
-	sceneCapture->bindColorAsTexture(3, 4);
-	sceneCapture->bindColorAsTexture(4, 4);
-	sceneCapture->bindDepthAsTexture(5);
-	tRamp->bind(31);
-
-	COMIC_EXECUTION->sendUniform("uModel", SUN->getLocalToWorld(), false);
-	defLight->renderToFSQ();
-
-	for (Light* LIT : lightShip)
-	{
-		ShaderProgram* USING = nullptr;
-		LIT->update(0);
-
-		for (Transform* C : LIT->getChildren())
+		if (EPD::playerActive[i])
 		{
-			if (C->TT == Transform::TransformType::TYPE_Camera)
-			{
-				C->setRenderList(renderShip);
-				C->render();
-				C->getFrameBuffer()->bindColorAsTexture(0, 4);
-			}
-		}
-			
-		bool useMesh = false;
-		if (LIT->LIGHT_MESH)
-			useMesh = true;
-
-		switch(LIT->type)
-		{
-		case Light::LightType::Directional:
-			if (useMesh)
-				USING = MESHLIGHT_DEFERRED_DIRECTIONAL;
-			else
-				USING = COMIC_DEFERRED_DIRECTIONAL;
-			break;
-		case Light::LightType::Point:
-			if (useMesh)
-				USING = MESHLIGHT_DEFERRED_POINT;
-			else
-				USING = COMIC_DEFERRED_POINT;
-			break;
-		case Light::LightType::Spotlight:
-			if (useMesh)
-				USING = MESHLIGHT_DEFERRED_SPOTLIGHT;
-			else
-				USING = COMIC_DEFERRED_SPOTLIGHT;
-			break;
-		}
-
-		USING->bind();
-		USING->sendUniform("uModel", LIT->getLocalToWorld(), false);
-		if (useMesh)
-		{
-			defLight->bind();
-			LIT->LIGHT_MESH->draw();
-			defLight->unbind();
-		}
-		else
-		{
-			defLight->renderToFSQ();
-		}
-
-		useFirst = !useFirst;
-
-		for (Transform* C : LIT->getChildren())
-		{
-			if (C->TT == Transform::TransformType::TYPE_Camera)
-			{
-				C->getFrameBuffer()->unbindTexture(4);
-			}
+			pDraw(i);
 		}
 	}
 
-	if (getTime)
-	{
-		gameCheckTimer->tick();
-		std::cout << ";   LIGHT-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
-	}
-
-	ShaderProgram::unbind();
-	sceneCapture->unbindTexture(5);
-	sceneCapture->unbindTexture(4);
-	sceneCapture->unbindTexture(3);
-	sceneCapture->unbindTexture(2);
-	sceneCapture->unbindTexture(1);
-	sceneCapture->unbindTexture(0);
-	tRamp->unbind(31);
-
-	sceneCapture->bindColorAsTexture(0, 0);
-	sceneCapture->bindColorAsTexture(2, 1);
-	sceneCapture->bindColorAsTexture(3, 2);
-	sceneCapture->bindColorAsTexture(4, 3);
-	defLight->bindColorAsTexture(0, 4);
-	defLight->bindColorAsTexture(1, 5);
-	defLight->bindColorAsTexture(2, 6);
-	difOver->bind(30);
-	tDiffuse->bind(31);
-
-	//RADIAL_POST_PROC.reshape((radialHeight * windowWidth) / windowHeight, radialHeight);
-
-	COMBINED_DRAW->bind();
-	COMBINED_DRAW->sendUniform("texRot", 0.4f);
-	COMBINED_DRAW->sendUniform("ASPECT", vec2((float)windowWidth, (float)windowHeight));
-
-	RADIAL_POST_PROC.drawToPost();
-	COMBINED_DRAW->unbind();
-
-	if (getTime)
-	{
-		gameCheckTimer->tick();
-		std::cout << ";   DEFERRED-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
-	}
-
-	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	//if (useFirst)
-	//	defLight->unbindTexture(0);
-	//else
-	//	defLight2->unbindTexture(0);
-
-	tDiffuse->unbind(31);
-	overlay->unbind(30);
-	defLight->unbindTexture(6);
-	defLight->unbindTexture(5);
-	defLight->unbindTexture(4);
-	sceneCapture->unbindTexture(3);
-	sceneCapture->unbindTexture(2);
-	sceneCapture->unbindTexture(1);
-	sceneCapture->unbindTexture(0);
-
-	RADIAL_BLUR->bind();
-	RADIAL_BLUR->sendUniform("uAngle", radialBlur);
-	RADIAL_BLUR->sendUniform("uCenter", vec2(0.5f, 0.5f));
-
-	for (int i = 0; i < radialLoops; i++)
-	{
-		RADIAL_POST_PROC.draw();
-	}
-	OUTPUT->bind();
-	RADIAL_POST_PROC.drawToFB(transition);
-	glDisable(GL_DEPTH_TEST);
-	//glEnable(GL_BLEND);
-	UIcam->sendUBO();
-	UIcam->renderToFB(transition, false);
-	glEnable(GL_DEPTH_TEST);
-	//glDisable(GL_BLEND);
+	glViewport(0, 0, windowWidth, windowHeight);
 
 	transition->bindColorAsTexture(0, 0);
 	tSwitch->bind(1);
@@ -392,6 +285,245 @@ void Game::draw()
 	}
 }
 
+void Game::pDraw(int pNum)
+{
+	//uniformBufferTime.sendFloat(TotalGameTime, 0);
+	//glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	//for (Framebuffer* _FB : ResourceManager::allFramebuffers)
+	//	_FB->clear();
+	vec2 sSize = EPD::screenDims * vec2((float)windowWidth, (float)windowHeight);
+
+	vec4 pS = EPD::screenRats[pNum] *
+		vec4((float)windowWidth, (float)windowHeight,
+		(float)windowWidth, (float)windowHeight);
+
+	sceneCapture->clear();
+	UI_SCREEN->clear();
+	defLight->clear();
+	RADIAL_POST_PROC.clear();
+
+
+	//vec4 RES = vec4((float)windowWidth, (float)windowHeight,
+	//	1.f / (float)windowWidth, 1.f / (float)windowHeight);
+	vec4 RES = vec4(sSize.x, sSize.y, 1.f / sSize.x, 1.f / sSize.y);
+	uRes.sendVector(RES, 0);
+
+	//std::cout << pS << std::endl;
+	//glViewport((unsigned int)pS.x, (unsigned int)pS.y,
+	//	(unsigned int)(pS.z - pS.x), (unsigned int)(pS.w - pS.y));
+	glViewport(0, 0, (unsigned int)sSize.x, (unsigned int)sSize.y);
+
+	//Transform* totBase = nullptr;
+	//for (int i = 0; i < (int)renderShip.size(); i++)
+	//	if (renderShip[i]->TT == Transform::TransformType::TYPE_BasePlate)
+	//		totBase = renderShip[i];
+	//std::cout << totBase->getWorldPos() << std::endl;
+
+	//vec4 RES = vec4((float)w, (float)h, 1.f / (float)w, 1.f / (float)h);
+	//vec2 sSize = EPD::screenDims * vec2((float)windowWidth, (float)windowHeight);
+
+	PlayerCams[pNum]->sendUBO();
+	PlayerCams[pNum]->setRenderList(renderShips[pNum]);
+	UIcams[pNum]->setRenderList(UIRenderShips[pNum]);
+	PlayerCams[pNum]->cull();
+	UIcams[pNum]->cull();
+
+	
+	//std::cout << "-------------------------\n" << std::endl;
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   CULLING: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
+
+	PlayerCams[pNum]->render();
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   STATIC-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
+	//std::cout << renderShip.size() << std::endl;
+
+	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+
+	COMIC_EXECUTION->bind();
+	sceneCapture->bindColorAsTexture(0, 0);
+	sceneCapture->bindColorAsTexture(1, 1);
+	sceneCapture->bindColorAsTexture(2, 2);
+	sceneCapture->bindColorAsTexture(3, 4);
+	sceneCapture->bindColorAsTexture(4, 4);
+	sceneCapture->bindDepthAsTexture(5);
+	tRamp->bind(31);
+
+	COMIC_EXECUTION->sendUniform("uModel", SUNS[pNum]->getLocalToWorld(), false);
+	defLight->renderToFSQ();
+
+	for (Light* LIT : lightShips[pNum])
+	{
+		ShaderProgram* USING = nullptr;
+		LIT->update(0);
+
+		for (Transform* C : LIT->getChildren())
+		{
+			if (C->TT == Transform::TransformType::TYPE_Camera)
+			{
+				C->setRenderList(renderShips[pNum]);
+				C->render();
+				C->getFrameBuffer()->bindColorAsTexture(0, 4);
+			}
+		}
+
+		bool useMesh = false;
+		if (LIT->LIGHT_MESH)
+			useMesh = true;
+
+		switch (LIT->type)
+		{
+		case Light::LightType::Directional:
+			if (useMesh)
+				USING = MESHLIGHT_DEFERRED_DIRECTIONAL;
+			else
+				USING = COMIC_DEFERRED_DIRECTIONAL;
+			break;
+		case Light::LightType::Point:
+			if (useMesh)
+				USING = MESHLIGHT_DEFERRED_POINT;
+			else
+				USING = COMIC_DEFERRED_POINT;
+			break;
+		case Light::LightType::Spotlight:
+			if (useMesh)
+				USING = MESHLIGHT_DEFERRED_SPOTLIGHT;
+			else
+				USING = COMIC_DEFERRED_SPOTLIGHT;
+			break;
+		}
+
+		USING->bind();
+		USING->sendUniform("uModel", LIT->getLocalToWorld(), false);
+		if (useMesh)
+		{
+			defLight->bind();
+			LIT->LIGHT_MESH->draw();
+			defLight->unbind();
+		}
+		else
+		{
+			defLight->renderToFSQ();
+		}
+
+		useFirst = !useFirst;
+
+		for (Transform* C : LIT->getChildren())
+		{
+			if (C->TT == Transform::TransformType::TYPE_Camera)
+			{
+				C->getFrameBuffer()->unbindTexture(4);
+				C->getFrameBuffer()->clear();
+			}
+		}
+	}
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   LIGHT-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
+
+	ShaderProgram::unbind();
+	sceneCapture->unbindTexture(5);
+	sceneCapture->unbindTexture(4);
+	sceneCapture->unbindTexture(3);
+	sceneCapture->unbindTexture(2);
+	sceneCapture->unbindTexture(1);
+	sceneCapture->unbindTexture(0);
+	tRamp->unbind(31);
+
+	sceneCapture->bindColorAsTexture(0, 0);
+	sceneCapture->bindColorAsTexture(2, 1);
+	sceneCapture->bindColorAsTexture(3, 2);
+	sceneCapture->bindColorAsTexture(4, 3);
+	defLight->bindColorAsTexture(0, 4);
+	defLight->bindColorAsTexture(1, 5);
+	defLight->bindColorAsTexture(2, 6);
+	difOver->bind(30);
+	tDiffuse->bind(31);
+
+	//RADIAL_POST_PROC.reshape((radialHeight * windowWidth) / windowHeight, radialHeight);
+	float pseudoAsp = EPD::screenDims.x / EPD::screenDims.y;
+	COMBINED_DRAW->bind();
+	COMBINED_DRAW->sendUniform("texRot", 0.4f);
+	COMBINED_DRAW->sendUniform("ASPECT", vec2(pseudoAsp * (float)windowWidth, (float)windowHeight));
+
+	RADIAL_POST_PROC.drawToPost();
+	COMBINED_DRAW->unbind();
+
+	if (getTime)
+	{
+		gameCheckTimer->tick();
+		std::cout << ";   DEFERRED-DRAW: " << gameCheckTimer->getElapsedTimeSeconds() << std::endl;
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	//if (useFirst)
+	//	defLight->unbindTexture(0);
+	//else
+	//	defLight2->unbindTexture(0);
+
+	tDiffuse->unbind(31);
+	overlay->unbind(30);
+	defLight->unbindTexture(6);
+	defLight->unbindTexture(5);
+	defLight->unbindTexture(4);
+	sceneCapture->unbindTexture(3);
+	sceneCapture->unbindTexture(2);
+	sceneCapture->unbindTexture(1);
+	sceneCapture->unbindTexture(0);
+
+	RADIAL_BLUR->bind();
+	RADIAL_BLUR->sendUniform("uAngle", radialBlur[pNum]);
+	RADIAL_BLUR->sendUniform("uCenter", vec2(0.5f, 0.5f));
+
+	for (int i = 0; i < radialLoops; i++)
+	{
+		RADIAL_POST_PROC.draw();
+	}
+
+	OUTPUT->bind();
+
+	//RES = vec4(sSize.x, sSize.y, 1.f / sSize.x, 1.f / sSize.y);
+	//uRes.sendVector(RES, 0);
+	//glViewport(0, 0, windowWidth, windowHeight);
+
+
+	RES = vec4((float)windowWidth, (float)windowHeight,
+		1.f / (float)windowWidth, 1.f / (float)windowHeight);
+	//vec4 RES = vec4(sSize.x, sSize.y, 1.f / sSize.x, 1.f / sSize.y);
+	uRes.sendVector(RES, 0);
+
+	//std::cout << pS << std::endl;
+	glViewport((unsigned int)pS.x, (unsigned int)pS.y,
+		(unsigned int)(pS.z - pS.x), (unsigned int)(pS.w - pS.y));
+
+	RADIAL_POST_PROC.drawToFB(transition);
+	glDisable(GL_DEPTH_TEST);
+	//glEnable(GL_BLEND);
+	UIcams[pNum]->sendUBO();
+
+
+	UIcams[pNum]->renderToFB(transition, false);
+	glEnable(GL_DEPTH_TEST);
+	//glDisable(GL_BLEND);
+
+	//std::cout << PlayerCams[pNum]->getProjection() << std::endl;
+}
+
 void Game::GUI()
 {
 	UI::Start(windowWidth, windowHeight);
@@ -417,19 +549,19 @@ void Game::releaseScene()
 	rm::order66();
 
 	players.clear();
-	renderShip.clear();
-	UIRenderShip.clear();
+	renderShips.clear();
+	UIRenderShips.clear();
 	updateShip.clear();
 	externalUpdateShip.clear();
 	dynamicCollisionShip.clear();
 	staticCollisionShip.clear();
 	RE_SPAWN.clear();
-	lightShip.clear();
-	shadowShip.clear();
+	lightShips.clear();
+	shadowShips.clear();
 	dynamicBatchShip.clear();
 	weaponShip.clear();
 	textShip.clear();
-	UITextShip.clear();
+	UITextShips.clear();
 	pTotals.clear();
 	pFloats.clear();
 }
@@ -447,30 +579,6 @@ void Game::beginningUpdate(float dt)
 	TotalGameTime += deltaTime;
 
 	uniformBufferTime.sendFloat(TotalGameTime, 0);
-
-	//_GS = GS_STARTING;
-	protectedEntityShip(&lightShip, SUN);
-
-	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
-
-	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
-	{
-		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
-		{
-			if (i >= 0 && i < 100 && j >= 0 && j < 100)
-			{
-				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
-				int sectObj = theMap->fieldObjects[j][i].size();
-				for (int k = 0; k < sectObj; k++)
-				{
-					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
-					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
-					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
-					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
-				}
-			}
-		}
-	}
 
 	timeString = std::to_string((int)seconds);
 	for (unsigned int i = 0; i < TIMER->messageSize(); i++)
@@ -519,36 +627,23 @@ void Game::beginningUpdate(float dt)
 		}
 	}
 
-	UITextShip.push_back(TIMER);
-	UITextShip.push_back(TIMER2);
-
-	UITextShip.push_back(TUI);
-	UITextShip.push_back(TUI2);
-
-	if (players[0]->POINT_TOTAL != players[0]->LERP_TOTAL)
+	for (int i = 0; i < 4; i++)
 	{
-		players[0]->LERP_TOTAL = lerp(players[0]->LERP_TOTAL, players[0]->POINT_TOTAL + 5, 1.f - pow(0.8f, deltaTime * 60.f));
-		if (players[0]->LERP_TOTAL > players[0]->POINT_TOTAL)
-			players[0]->LERP_TOTAL = players[0]->POINT_TOTAL;
-		TUI->setMessage(std::to_string(players[0]->LERP_TOTAL));
-		TUI2->setMessage(std::to_string(players[0]->LERP_TOTAL));
-
-		TUI->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
-		TUI2->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
-
-		TUI->setLocalPos(vec3(39 - TUI->wordLength * TUI->aS.x * 0.5f, 39, 0));
-		TUI2->setLocalPos(vec3(40 - TUI2->wordLength * TUI2->aS.x * 0.5f, 40, 0));
+		UITextShips[i].push_back(TIMER);
+		UITextShips[i].push_back(TIMER2);
 	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			beginningUpdatePlayer(dt, i);
+		}
+	}
+
 	for (unsigned int i = 0; i < textShip.size(); i++)
 	{
 		textShip[i]->update(deltaTime);
-		drawChildren(&renderShip, &lightShip, textShip[i], true);
-	}
-
-	for (unsigned int i = 0; i < UITextShip.size(); i++)
-	{
-		UITextShip[i]->update(deltaTime);
-		UIDrawChildren(&UIRenderShip, UITextShip[i]);
 	}
 }
 
@@ -559,28 +654,7 @@ void Game::startingUpdate(float dt)
 	uniformBufferTime.sendFloat(TotalGameTime, 0);
 
 	_GS = GS_RUNNING;
-	protectedEntityShip(&lightShip, SUN);
 
-	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
-
-	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
-	{
-		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
-		{
-			if (i >= 0 && i < 100 && j >= 0 && j < 100)
-			{
-				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
-				int sectObj = theMap->fieldObjects[j][i].size();
-				for (int k = 0; k < sectObj; k++)
-				{
-					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
-					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
-					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
-					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
-				}
-			}
-		}
-	}
 
 	for (int i = pTotals.size() - 1; i >= 0; --i)
 	{
@@ -596,22 +670,23 @@ void Game::startingUpdate(float dt)
 		}
 	}
 
-	UITextShip.push_back(TIMER);
-	UITextShip.push_back(TIMER2);
+	for (int i = 0; i < 4; i++)
+	{
+		UITextShips[i].push_back(TIMER);
+		UITextShips[i].push_back(TIMER2);
+	}
 
-	UITextShip.push_back(TUI);
-	UITextShip.push_back(TUI2);
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			startingUpdatePlayer(dt, i);
+		}
+	}
 
 	for (unsigned int i = 0; i < textShip.size(); i++)
 	{
-		//textShip[i]->update(deltaTime);
-		drawChildren(&renderShip, &lightShip, textShip[i], true);
-	}
-
-	for (unsigned int i = 0; i < UITextShip.size(); i++)
-	{
-		//UITextShip[i]->update(deltaTime);
-		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+		textShip[i]->update(deltaTime);
 	}
 }
 
@@ -620,116 +695,6 @@ void Game::runningUpdate(float dt)
 	TotalGameTime += deltaTime;
 
 	uniformBufferTime.sendFloat(TotalGameTime, 0);
-
-	protectedEntityShip(&lightShip, SUN);
-	//SUN->rotateBy(deltaTime * 9.f, normalize(vec3(1, 0, 1)));
-	//SUN->intensity = pow(max(dot(normalize(mat3(SUN->getLocalToWorld()) * vec3(SUN->direction)), vec3(0, -1.f, 0)), 0.f), 0.6f);
-	//SUN->update(deltaTime);
-
-	for (unsigned int i = 0; i < players.size(); i++)
-	{
-		Player* P = players[i];
-
-
-		//std::cout << P->getWeapon() << std::endl;
-
-		bool pUP;
-		bool pLEFT;
-		bool pDOWN;
-		bool pRIGHT;
-		bool pATTACK;
-
-		if (controllers[i])
-		{
-			controllers[i]->getSticks(&playerInput[2 * i], &playerInput[2 * i + 1]);
-			controllers[i]->getTriggers(&playerTriggers[i]);
-
-			pUP = (playerTriggers[i].RT > 0.5f);
-			pLEFT = (playerInput[2 * i].x < -0.2f);
-			pDOWN = (playerTriggers[i].LT > 0.5f);
-			pRIGHT = (playerInput[2 * i].x > 0.2f);
-			pATTACK = (controllers[i]->isButtonPressed(A));
-
-			P->steeringMultiplier = abs(playerInput[2 * i].x);
-		}
-		else
-		{
-			pUP = (keysDown['w'] || keysDown['W']);
-			pLEFT = (keysDown['a'] || keysDown['A']);
-			pDOWN = (keysDown['s'] || keysDown['S']);
-			pRIGHT = (keysDown['d'] || keysDown['D']);
-			pATTACK = (keysDown[' ']);
-		}
-		//bool pATTACK = (keysDown[' ']);
-
-		P->sendInput(pUP, Player::PLAYER_IN::UP);
-		//std::cout << "--1" << std::endl;
-		P->sendInput(pLEFT, Player::PLAYER_IN::LEFT);
-		//std::cout << "--2" << std::endl;
-		P->sendInput(pDOWN, Player::PLAYER_IN::DOWN);
-		//std::cout << "--3" << std::endl;
-		P->sendInput(pRIGHT, Player::PLAYER_IN::RIGHT);
-		//std::cout << "--4" << std::endl;
-		P->sendInput(pATTACK, Player::PLAYER_IN::ATTACK);
-		//std::cout << "--5" << std::endl;
-
-		if (P->sendATTACK)
-		{
-			generateATTACK(P);
-		}
-
-		//std::cout << players[i]->getLocalPos() << std::endl;
-		//std::cout << players[i]->getPhysicsBody()->getVelocity() << std::endl;
-		//std::cout << players[i]->getPhysicsBody()->getAcceleration() << std::endl;
-		//
-		//std::cout << PlayerCam->getLocalPos() << std::endl;
-	}
-
-	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
-
-	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
-	{
-		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
-		{
-			if (i >= 0 && i < 100 && j >= 0 && j < 100)
-			{
-				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
-				int sectObj = theMap->fieldObjects[j][i].size();
-				for (int k = 0; k < sectObj; k++)
-				{
-					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
-					protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
-					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
-					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
-				}
-			}
-		}
-	}
-
-	performUpdates(deltaTime);
-
-	staticCollisionShip.push_back(LEFT_WALL);
-	staticCollisionShip.push_back(RIGHT_WALL);
-	staticCollisionShip.push_back(UPPER_WALL);
-	staticCollisionShip.push_back(LOWER_WALL);
-
-	for (Player* P : players)
-	{
-		addToCollisions(P, true);
-		for (int i = -1 + P->mapX; i <= 1 + P->mapX; i++)
-		{
-			for (int j = -1 + P->mapY; j <= 1 + P->mapY; j++)
-			{
-				if (j >= 0 && j < 100 && i >= 0 && i < 100)
-				{
-					unsigned int amnt = theMap->fieldObjects[i][j].size();
-					for (unsigned int k = 0; k < amnt; k++)
-						if (theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB() && !theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB()->dynamic)
-							addToCollisions(theMap->fieldObjects[i][j][k], false);
-				}
-			}
-		}
-	}
 
 	for (int i = pTotals.size() - 1; i >= 0; --i)
 	{
@@ -795,40 +760,28 @@ void Game::runningUpdate(float dt)
 		}
 	}
 
-	UITextShip.push_back(TIMER);
-	UITextShip.push_back(TIMER2);
-
-	UITextShip.push_back(TUI);
-	UITextShip.push_back(TUI2);
-
-	if (players[0]->POINT_TOTAL != players[0]->LERP_TOTAL)
+	for (int i = 0; i < 4; i++)
 	{
-		players[0]->LERP_TOTAL = lerp(players[0]->LERP_TOTAL, players[0]->POINT_TOTAL + 5, 1.f - pow(0.8f, deltaTime * 60.f));
-		if (players[0]->LERP_TOTAL > players[0]->POINT_TOTAL)
-			players[0]->LERP_TOTAL = players[0]->POINT_TOTAL;
-		TUI->setMessage(std::to_string(players[0]->LERP_TOTAL));
-		TUI2->setMessage(std::to_string(players[0]->LERP_TOTAL));
-
-		TUI->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
-		TUI2->aS = vec3(lerp(4.f, 8.f, 1.f - pow(0.99f, (float)(players[0]->POINT_TOTAL - players[0]->LERP_TOTAL))));
-
-		TUI->setLocalPos(vec3(39 - TUI->wordLength * TUI->aS.x * 0.5f, 39, 0));
-		TUI2->setLocalPos(vec3(40 - TUI2->wordLength * TUI2->aS.x * 0.5f, 40, 0));
+		if (EPD::playerActive[i])
+		{
+			UITextShips[i].push_back(TIMER);
+			UITextShips[i].push_back(TIMER2);
+		}
 	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			runningUpdatePlayer(dt, i);
+		}
+	}
+	performUpdates(deltaTime);
+
 	for (unsigned int i = 0; i < textShip.size(); i++)
 	{
 		textShip[i]->update(deltaTime);
-		drawChildren(&renderShip, &lightShip, textShip[i], true);
 	}
-
-	for (unsigned int i = 0; i < UITextShip.size(); i++)
-	{
-		UITextShip[i]->update(deltaTime);
-		UIDrawChildren(&UIRenderShip, UITextShip[i]);
-	}
-
-	radialBlur += abs(players[0]->getAngularVelocity().y * 0.001f) * deltaTime;
-	radialBlur = lerp(0.f, radialBlur, pow(0.90f, 60.f * deltaTime));
 
 	updateExternals(deltaTime);
 	updateAttacks(deltaTime);
@@ -837,29 +790,6 @@ void Game::runningUpdate(float dt)
 
 void Game::pausedUpdate(float dt)
 {
-	protectedEntityShip(&lightShip, SUN);
-
-	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
-
-	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
-	{
-		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
-		{
-			if (i >= 0 && i < 100 && j >= 0 && j < 100)
-			{
-				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
-				int sectObj = theMap->fieldObjects[j][i].size();
-				for (int k = 0; k < sectObj; k++)
-				{
-					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
-					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
-					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
-					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
-				}
-			}
-		}
-	}
-
 	for (int i = pTotals.size() - 1; i >= 0; --i)
 	{
 		if (pFloats[i] <= 0.f)
@@ -874,22 +804,18 @@ void Game::pausedUpdate(float dt)
 		}
 	}
 
-	UITextShip.push_back(TIMER);
-	UITextShip.push_back(TIMER2);
-
-	UITextShip.push_back(TUI);
-	UITextShip.push_back(TUI2);
-
-	for (unsigned int i = 0; i < textShip.size(); i++)
+	for (int i = 0; i < 4; i++)
 	{
-		//textShip[i]->update(deltaTime);
-		drawChildren(&renderShip, &lightShip, textShip[i], true);
+		UITextShips[i].push_back(TIMER);
+		UITextShips[i].push_back(TIMER2);
 	}
 
-	for (unsigned int i = 0; i < UITextShip.size(); i++)
+	for (int i = 0; i < 4; i++)
 	{
-		//UITextShip[i]->update(deltaTime);
-		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+		if (EPD::playerActive[i])
+		{
+			pausedUpdatePlayer(dt, i);
+		}
 	}
 
 	updateExternals(0);
@@ -902,30 +828,6 @@ void Game::endedUpdate(float dt)
 
 	uniformBufferTime.sendFloat(TotalGameTime, 0);
 
-	//_GS = GS_RUNNING;
-	protectedEntityShip(&lightShip, SUN);
-
-	vec2 CPOSU = vec2(players[0]->getWorldPos().x, players[0]->getWorldPos().z) / tileSize;
-
-	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
-	{
-		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
-		{
-			if (i >= 0 && i < 100 && j >= 0 && j < 100)
-			{
-				drawChildren(&renderShip, &lightShip, theMap->grid[j][i], true);
-				int sectObj = theMap->fieldObjects[j][i].size();
-				for (int k = 0; k < sectObj; k++)
-				{
-					drawChildren(&renderShip, &lightShip, theMap->fieldObjects[j][i][k], true);
-					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
-					//if (theMap->fieldObjects[j][i][k]->TT == Transform::TransformType::TYPE_Player)
-					//	std::cout << "HERE HE BE SENT! " << i << ", " << j << std::endl;
-				}
-			}
-		}
-	}
-
 	for (int i = pTotals.size() - 1; i >= 0; --i)
 	{
 		if (pFloats[i] <= 0.f)
@@ -940,22 +842,23 @@ void Game::endedUpdate(float dt)
 		}
 	}
 
-	UITextShip.push_back(TIMER);
-	UITextShip.push_back(TIMER2);
+	for (int i = 0; i < 4; i++)
+	{
+		UITextShips[i].push_back(TIMER);
+		UITextShips[i].push_back(TIMER2);
+	}
 
-	UITextShip.push_back(TUI);
-	UITextShip.push_back(TUI2);
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			endedUpdatePlayer(dt, i);
+		}
+	}
 
 	for (unsigned int i = 0; i < textShip.size(); i++)
 	{
-		//textShip[i]->update(deltaTime);
-		drawChildren(&renderShip, &lightShip, textShip[i], true);
-	}
-
-	for (unsigned int i = 0; i < UITextShip.size(); i++)
-	{
-		//UITextShip[i]->update(deltaTime);
-		UIDrawChildren(&UIRenderShip, UITextShip[i]);
+		textShip[i]->update(deltaTime);
 	}
 
 	updateExternals(0);
@@ -975,6 +878,39 @@ void Game::endedUpdate(float dt)
 
 void Game::exitingUpdate(float dt)
 {
+	for (int i = pTotals.size() - 1; i >= 0; --i)
+	{
+		if (pFloats[i] <= 0.f)
+		{
+			pFloats.erase(pFloats.begin() + i);
+			rm::destroyObjectINGAME(pTotals[i]);
+			pTotals.erase(pTotals.begin() + i);
+		}
+		else
+		{
+			textShip.push_back(pTotals[i]);
+		}
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		UITextShips[i].push_back(TIMER);
+		UITextShips[i].push_back(TIMER2);
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			exitingUpdatePlayer(dt, i);
+		}
+	}
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		textShip[i]->update(deltaTime);
+	}
+
 	if (tTime < 1.0001f)
 	{
 		tTime += deltaTime * 0.7f;
@@ -992,6 +928,368 @@ void Game::exitingUpdate(float dt)
 		}
 		readyToTerminate = true;
 		nextScene = "VICTORY";
+	}
+}
+
+void Game::beginningUpdatePlayer(float dt, int pNum)
+{
+	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
+
+	vec2 CPOSU = vec2(players[pNum]->getWorldPos().x, players[pNum]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->fieldObjects[j][i][k], true);
+					protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+				}
+			}
+		}
+	}
+
+	UITextShips[pNum].push_back(TUI[pNum]);
+	UITextShips[pNum].push_back(TUI2[pNum]);
+
+	scoreLerp(deltaTime, pNum);
+
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		drawChildren(&renderShips[pNum], &lightShips[pNum], textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShips[pNum].size(); i++)
+	{
+		UITextShips[pNum][i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShips[pNum], UITextShips[pNum][i]);
+	}
+}
+
+void Game::startingUpdatePlayer(float dt, int pNum)
+{
+	_GS = GS_RUNNING;
+	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
+
+	vec2 CPOSU = vec2(players[pNum]->getWorldPos().x, players[pNum]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->fieldObjects[j][i][k], true);
+					protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+				}
+			}
+		}
+	}
+
+	UITextShips[pNum].push_back(TUI[pNum]);
+	UITextShips[pNum].push_back(TUI2[pNum]);
+
+	scoreLerp(deltaTime, pNum);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		drawChildren(&renderShips[pNum], &lightShips[pNum], textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShips[pNum].size(); i++)
+	{
+		UITextShips[pNum][i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShips[pNum], UITextShips[pNum][i]);
+	}
+
+}
+
+void Game::runningUpdatePlayer(float dt, int pNum)
+{
+	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
+	//SUN->rotateBy(deltaTime * 9.f, normalize(vec3(1, 0, 1)));
+	//SUN->intensity = pow(max(dot(normalize(mat3(SUN->getLocalToWorld()) * vec3(SUN->direction)), vec3(0, -1.f, 0)), 0.f), 0.6f);
+	//SUN->update(deltaTime);
+
+	Player* P = players[pNum];
+
+
+	//std::cout << P->getWeapon() << std::endl;
+
+	bool pUP;
+	bool pLEFT;
+	bool pDOWN;
+	bool pRIGHT;
+	bool pATTACK;
+
+	if (controllers[pNum])
+	{
+		controllers[pNum]->getSticks(&playerInput[2 * pNum], &playerInput[2 * pNum + 1]);
+		controllers[pNum]->getTriggers(&playerTriggers[pNum]);
+
+		float cDist = sqrt(pow(playerInput[2 * pNum].y, 2) + pow(playerInput[2 * pNum].x, 2));
+
+		pUP = (playerTriggers[pNum].RT > 0.5f || (playerInput[2 * pNum].y > 0.f && cDist > 0.2f
+			&& !(playerTriggers[pNum].RT > 0.5f) && !(playerTriggers[pNum].LT > 0.5f)));
+		pLEFT = (playerInput[2 * pNum].x < -0.2f);
+		pDOWN = (playerTriggers[pNum].LT > 0.5f || (playerInput[2 * pNum].y < -0.1f && cDist > 0.2f
+			&& !(playerTriggers[pNum].RT > 0.5f) && !(playerTriggers[pNum].LT > 0.5f)));
+		pRIGHT = (playerInput[2 * pNum].x > 0.2f);
+		pATTACK = (controllers[pNum]->isButtonPressed(A));
+
+		P->steeringMultiplier = abs(playerInput[2 * pNum].x);
+	}
+	else
+	{
+		pUP = (keysDown['w'] || keysDown['W']);
+		pLEFT = (keysDown['a'] || keysDown['A']);
+		pDOWN = (keysDown['s'] || keysDown['S']);
+		pRIGHT = (keysDown['d'] || keysDown['D']);
+		pATTACK = (keysDown[' ']);
+	}
+	//bool pATTACK = (keysDown[' ']);
+
+	P->sendInput(pUP, Player::PLAYER_IN::UP);
+	//std::cout << "--1" << std::endl;
+	P->sendInput(pLEFT, Player::PLAYER_IN::LEFT);
+	//std::cout << "--2" << std::endl;
+	P->sendInput(pDOWN, Player::PLAYER_IN::DOWN);
+	//std::cout << "--3" << std::endl;
+	P->sendInput(pRIGHT, Player::PLAYER_IN::RIGHT);
+	//std::cout << "--4" << std::endl;
+	P->sendInput(pATTACK, Player::PLAYER_IN::ATTACK);
+	//std::cout << "--5" << std::endl;
+
+	if (P->sendATTACK)
+	{
+		generateATTACK(P);
+	}
+
+	//std::cout << players[i]->getLocalPos() << std::endl;
+	//std::cout << players[i]->getPhysicsBody()->getVelocity() << std::endl;
+	//std::cout << players[i]->getPhysicsBody()->getAcceleration() << std::endl;
+	//
+	//std::cout << PlayerCam->getLocalPos() << std::endl;
+
+	vec2 CPOSU = vec2(players[pNum]->getWorldPos().x, players[pNum]->getWorldPos().z) / tileSize;
+
+	//std::cout << CPOSU << std::endl;
+	//std::cout << players[pNum]->mapX << ", " << players[pNum]->mapY << std::endl;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->fieldObjects[j][i][k], true);
+					protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+				}
+			}
+		}
+	}
+
+	//std::cout << updateShip.size() << std::endl;
+	//std::cout << "TEST1" << std::endl;
+	//performUpdates(deltaTime);
+	//std::cout << "____PASS!" << std::endl;
+
+	staticCollisionShip.push_back(LEFT_WALL);
+	staticCollisionShip.push_back(RIGHT_WALL);
+	staticCollisionShip.push_back(UPPER_WALL);
+	staticCollisionShip.push_back(LOWER_WALL);
+
+	addToCollisions(P, true);
+	for (int i = -1 + P->mapX; i <= 1 + P->mapX; i++)
+	{
+		for (int j = -1 + P->mapY; j <= 1 + P->mapY; j++)
+		{
+			if (j >= 0 && j < 100 && i >= 0 && i < 100)
+			{
+				unsigned int amnt = theMap->fieldObjects[i][j].size();
+				for (unsigned int k = 0; k < amnt; k++)
+					if (theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB() && !theMap->fieldObjects[i][j][k]->getPhysicsBody()->getHB()->dynamic)
+						addToCollisions(theMap->fieldObjects[i][j][k], false);
+			}
+		}
+	}
+
+	UITextShips[pNum].push_back(TUI[pNum]);
+	UITextShips[pNum].push_back(TUI2[pNum]);
+
+	scoreLerp(deltaTime, pNum);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		//if (i == textShip.size() - 1)
+		//	std::cout << textShip[i]->getLocalPos() << std::endl;
+		drawChildren(&renderShips[pNum], &lightShips[pNum], textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShips[pNum].size(); i++)
+	{
+		UITextShips[pNum][i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShips[pNum], UITextShips[pNum][i]);
+	}
+
+	radialBlur[pNum] += abs(P->getAngularVelocity().y * 0.001f) * deltaTime;
+	radialBlur[pNum] = lerp(0.f, radialBlur[pNum], pow(0.90f, 60.f * deltaTime));
+}
+
+void Game::pausedUpdatePlayer(float dt, int pNum)
+{
+	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
+
+	Player* P = players[pNum];
+
+	vec2 CPOSU = vec2(P->getWorldPos().x, P->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->fieldObjects[j][i][k], true);
+					//protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+				}
+			}
+		}
+	}
+
+	UITextShips[pNum].push_back(TUI[pNum]);
+	UITextShips[pNum].push_back(TUI2[pNum]);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		//textShip[i]->update(deltaTime);
+		drawChildren(&renderShips[pNum], &lightShips[pNum], textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShips[pNum].size(); i++)
+	{
+		//UITextShip[i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShips[pNum], UITextShips[pNum][i]);
+	}
+}
+
+void Game::endedUpdatePlayer(float dt, int pNum)
+{
+	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
+
+	Player* P = players[pNum];
+
+	vec2 CPOSU = vec2(P->getWorldPos().x, P->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->fieldObjects[j][i][k], true);
+					protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+				}
+			}
+		}
+	}
+
+	UITextShips[pNum].push_back(TUI[pNum]);
+	UITextShips[pNum].push_back(TUI2[pNum]);
+
+	scoreLerp(deltaTime, pNum);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		//textShip[i]->update(deltaTime);
+		drawChildren(&renderShips[pNum], &lightShips[pNum], textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShips[pNum].size(); i++)
+	{
+		//UITextShip[i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShips[pNum], UITextShips[pNum][i]);
+	}
+}
+
+void Game::exitingUpdatePlayer(float dt, int pNum)
+{
+	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
+
+	vec2 CPOSU = vec2(players[pNum]->getWorldPos().x, players[pNum]->getWorldPos().z) / tileSize;
+
+	for (int i = (int)(-7 + CPOSU.y); i < 8 + CPOSU.y; i++ /*int i = -3 + camPosUnit.y; i < 1 + camPosUnit.y; i++*/)
+	{
+		for (int j = (int)(-7 + CPOSU.x); j < 8 + CPOSU.x; j++)
+		{
+			if (i >= 0 && i < 100 && j >= 0 && j < 100)
+			{
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				int sectObj = theMap->fieldObjects[j][i].size();
+				for (int k = 0; k < sectObj; k++)
+				{
+					drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->fieldObjects[j][i][k], true);
+					protectedEntityShip(&updateShip, theMap->fieldObjects[j][i][k]);
+				}
+			}
+		}
+	}
+
+	UITextShips[pNum].push_back(TUI[pNum]);
+	UITextShips[pNum].push_back(TUI2[pNum]);
+
+	scoreLerp(deltaTime, pNum);
+
+	for (unsigned int i = 0; i < textShip.size(); i++)
+	{
+		drawChildren(&renderShips[pNum], &lightShips[pNum], textShip[i], true);
+	}
+
+	for (unsigned int i = 0; i < UITextShips[pNum].size(); i++)
+	{
+		UITextShips[pNum][i]->update(deltaTime);
+		UIDrawChildren(&UIRenderShips[pNum], UITextShips[pNum][i]);
+	}
+}
+
+void Game::scoreLerp(float dt, int pNum)
+{
+	if (players[pNum]->POINT_TOTAL != players[pNum]->LERP_TOTAL)
+	{
+		float PS = smartScale[pNum].x;
+		players[pNum]->LERP_TOTAL = lerp(players[pNum]->LERP_TOTAL, players[pNum]->POINT_TOTAL + 5, 1.f - pow(0.8f, deltaTime * 60.f));
+		if (players[pNum]->LERP_TOTAL > players[pNum]->POINT_TOTAL)
+			players[pNum]->LERP_TOTAL = players[pNum]->POINT_TOTAL;
+		TUI[pNum]->setMessage(std::to_string(players[pNum]->LERP_TOTAL));
+		TUI2[pNum]->setMessage(std::to_string(players[pNum]->LERP_TOTAL));
+
+		TUI[pNum]->aS = vec3(lerp(PS, 2.f * PS, 1.f - pow(0.99f, (float)(players[pNum]->POINT_TOTAL - players[pNum]->LERP_TOTAL))));
+		TUI2[pNum]->aS = TUI[pNum]->aS;
+
+		TUI[pNum]->setLocalPos(vec3(UIcams[pNum]->m_pOrthoSize.y, UIcams[pNum]->m_pOrthoSize.w, 0) + vec3(-1 - TUI[pNum]->wordLength * 0.5f, -1, 0) * TUI[pNum]->aS);
+		TUI2[pNum]->setLocalPos(TUI[pNum]->getLocalPos() + vec3(0.1f, 0.1f, 0) * TUI2[pNum]->aS);
 	}
 }
 
@@ -1247,16 +1545,40 @@ void Game::reshapeWindow(int w, int h)
 	windowHeight = h;
 
 	aspect = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
-	PlayerCam->perspective(60.f, aspect, 1, 1000);
-	UIcam->giveNewOrthoRatio(aspect);
-	PlayerCam->update(0);
-	UIcam->update(0);
+
+	vec2 sSize = EPD::screenDims * vec2((float)windowWidth, (float)windowHeight);
+	float pseudoAsp = EPD::screenDims.x / EPD::screenDims.y;
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			PlayerCams[i]->perspective(60.f, aspect * pseudoAsp, 1, 1000);
+			UIcams[i]->giveNewOrthoRatio(aspect * pseudoAsp);
+			PlayerCams[i]->update(0);
+			UIcams[i]->update(0);
+		}
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			TIMER->setLocalPos(vec3(UIcams[i]->m_pOrthoSize.x, UIcams[i]->m_pOrthoSize.w, 0) + vec3(1 + TIMER->wordLength * 0.5f, -1, 0) * smartScale[4]);
+
+			TUI[i]->setLocalPos(vec3(UIcams[i]->m_pOrthoSize.y, UIcams[i]->m_pOrthoSize.w, 0) + vec3(-1 - TUI[i]->wordLength * 0.5f, -1, 0) * smartScale[i]);
+			TUI2[i]->setLocalPos(TUI[i]->getLocalPos() + vec3(0.1f, 0.1f, 0) * smartScale[i]);
+		}
+	}
+
+	TIMER2->setLocalPos(TIMER->getLocalPos() + vec3(0.1f, 0.1f, 0) * smartScale[4]);
 
 	radialHeight = windowHeight / 4;
 	bloomHeight = windowHeight / 4;
 
 	//camera.perspective(90.0f, aspect, 0.05f, 1000.0f);
 	vec4 RES = vec4((float)w, (float)h, 1.f / (float)w, 1.f / (float)h);
+	//RES = vec4(sSize.x, sSize.y, 1.f / sSize.x, 1.f / sSize.y);
 	uRes.sendVector(RES, 0);
 	glViewport(0, 0, w, h);
 	for (Framebuffer* FB : ResourceManager::allFramebuffers)
@@ -1264,8 +1586,13 @@ void Game::reshapeWindow(int w, int h)
 		if (!FB->isFixedSize)
 			FB->reshape(w, h);
 	}
+
+	sceneCapture->reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
+	defLight->reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
+	UI_SCREEN->reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
+
 	//std::cout << "PHASE 1" << std::endl;
-	RADIAL_POST_PROC.reshape(w, h);
+	RADIAL_POST_PROC.reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
 	//std::cout << "PHASE 2" << std::endl;
 
 	//std::cout << UIcam->getProjection() << std::endl;
@@ -1280,10 +1607,13 @@ void Game::updateExternals(float dt)
 	{
 		if (externalUpdateShip[i]->TT == Transform::TransformType::TYPE_Powerup && externalUpdateShip[i]->destroying)
 		{
-			for (int j = (int)renderShip.size() - 1; j >= 0; --j)
+			for (int p = 0; p < 4; p++)
 			{
-				if (renderShip[j] == externalUpdateShip[i])
-					renderShip.erase(renderShip.begin() + j);
+				for (int j = (int)renderShips[p].size() - 1; j >= 0; --j)
+				{
+					if (renderShips[p][j] == externalUpdateShip[i])
+						renderShips[p].erase(renderShips[p].begin() + j);
+				}
 			}
 
 			GameObject* _O = nullptr;
@@ -1399,6 +1729,8 @@ void Game::staticCollisions()
 			dynamicCollisionShip[i]->doCollision(staticCollisionShip[j]);
 			if (!desting && staticCollisionShip[j]->destroying)
 			{
+				//staticCollisionShip[j]->needsUpdate = true;
+				//protectedEntityShip(&externalUpdateShip, staticCollisionShip[j]);
 				//std::cout << "YES!" << std::endl;
 				if (staticCollisionShip[j]->destrPoints > rand() % 200)
 				{
@@ -1629,7 +1961,7 @@ void Game::updateAttacks(float dt)
 		}
 		else
 		{
-			drawChildren(&renderShip, &lightShip, weaponShip[i], true);
+			drawChildren(&renderShips[weaponShip[i]->ownedPlayer], &lightShips[weaponShip[i]->ownedPlayer], weaponShip[i], true);
 		}
 	}
 }
@@ -1656,11 +1988,12 @@ void Game::attackHIT(unsigned int index)
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				for (GameObject* _GO : theMap->fieldObjects[i][j])
+				for (unsigned int k = 0; k < theMap->fieldObjects[i][j].size(); k++)
 				{
+					GameObject* _GO = theMap->fieldObjects[i][j][k];
 					//std::cout << i << ", " << j << std::endl;
 
-					if (!_GO->destroying && !_GO->destroyed)
+					if (_GO && !_GO->destroying && !_GO->destroyed)
 					{
 						vec3 curPos = _GO->getLocalPos();
 						if (weaponShip[index]->tailoredCollision(_GO))
@@ -1699,6 +2032,10 @@ void Game::attackHIT(unsigned int index)
 							//std::cout << "GOTTEM" << std::endl;
 						}
 					}
+					else if (!_GO)
+					{
+						theMap->removeObj(i, j, _GO);
+					}
 				}
 			}
 		}
@@ -1725,7 +2062,14 @@ void Game::setBaseAndBoundaries()
 	LOWER_WALL->setLocalPos(vec3(297.f, 0, 603.f));
 	LEFT_WALL->setLocalPos(vec3(-9.f, 0, 297.f));
 	RIGHT_WALL->setLocalPos(vec3(603.f, 0, 297.f));
-	SUN = rm::getLight("SUNLIGHT");
+	for (int i = 0; i < 4; i++)
+	{
+		SUNS[i] = nullptr;
+		if (EPD::playerActive[i])
+		{
+			SUNS[i] = rm::getLight("SUNLIGHT");
+		}
+	}
 
 	BASE_PLATE_SAND = rm::getBasePlate("FIELD_SAND");
 	BASE_PLATE_T = rm::getBasePlate("FIELD_ROAD_T");
@@ -1746,27 +2090,45 @@ void Game::setFramebuffers()
 {
 	//std::cout << "HERE?" << std::endl;
 
-	RADIAL_POST_PROC.reshape(windowWidth, windowHeight);
+	vec2 sSize = EPD::screenDims * vec2((float)windowWidth, (float)windowHeight);
+	RADIAL_POST_PROC.reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
 
 	tSwitch = rm::getTexture("SCENE_GAME_TRANSITION");
 	tFade = rm::getTexture("defaultBlack");
+
+	sceneCapture->reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
+	defLight->reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
+	UI_SCREEN->reshape((unsigned int)sSize.x, (unsigned int)sSize.y);
 
 	//std::cout << "HERE!" << std::endl;
 }
 
 void Game::setCamerasAndPlayers()
 {
-	//std::cout << "THEN HERE" << std::endl;
-	PlayerCam = rm::getCloneOfCamera("PLAYER_CAM");
-	PlayerCam->giveNewPersRatio(aspect);
-	//std::cout << "AHA!" << std::endl;
-	PlayerCam->setRenderList(renderShip);
+	float pseudoAsp = EPD::screenDims.x / EPD::screenDims.y;
 
-	//std::cout << "OR HERE" << std::endl;
+	//std::cout << pseudoAsp << std::endl;
 
-	UIcam = rm::getCloneOfCamera("UI_CAM");
-	UIcam->giveNewOrthoRatio(aspect);
-	UIcam->setRenderList(UIRenderShip);
+	for (int i = 0; i < 4; i++)
+	{
+		PlayerCams[i] = nullptr;
+		UIcams[i] = nullptr;
+		if (EPD::playerActive[i])
+		{
+			//std::cout << "THEN HERE" << std::endl;
+			PlayerCams[i] = rm::getCloneOfCamera("PLAYER_CAM");
+			PlayerCams[i]->giveNewPersRatio(aspect * pseudoAsp);
+			//std::cout << PlayerCams[i]->getProjection() << std::endl;
+			//std::cout << "AHA!" << std::endl;
+			PlayerCams[i]->setRenderList(renderShips[i]);
+
+			//std::cout << "OR HERE" << std::endl;
+
+			UIcams[i] = rm::getCloneOfCamera("UI_CAM");
+			UIcams[i]->giveNewOrthoRatio(aspect * pseudoAsp);
+			UIcams[i]->setRenderList(UIRenderShips[i]);
+		}
+	}
 }
 
 void Game::generateMap()
@@ -1777,13 +2139,176 @@ void Game::generateMap()
 	theMap = new Field(MAP_DIRECTORY);
 
 	players = theMap->players;
-	players[0]->addChild(PlayerCam);
-	players[0]->attachWeapon(ResourceManager::getWeapon("MINE"));
+	
+	spawnPoints = theMap->spawnPoints;
+	gridPoints = theMap->gridPoints;
 
-	float camHeight = 20.f;
+	float camHeight;
+	if (EPD::numActive == 2)
+	{
+		camHeight = 27.f;
+	}
+	else
+	{
+		camHeight = 20.f;
+	}
 
-	PlayerCam->setLocalPos(vec3(0, camHeight, camHeight / (float)sqrt(3)));
-	PlayerCam->setLocalRot(vec3(-60.f, 0, 0));
+	TIMER = rm::getCloneOfText("UISpaces");
+	TIMER->baseColor = vec3(0.f);
+	TIMER->setMessage("3:00");
+	
+	switch (EPD::numActive)
+	{
+	case 0:
+		std::cout << "Damn son, how the fuck did you play a game with no players?" << std::endl;
+		break;
+	case 1:
+		TIMER->aS = vec3(6.f);
+		smartScale[4] = TIMER->aS;
+		break;
+	case 2:
+		TIMER->aS = vec3(6.f) * 0.7f;
+		smartScale[4] = TIMER->aS;
+		break;
+	case 3:
+		TIMER->aS = vec3(6.f) * 1.2f;
+		smartScale[4] = TIMER->aS;
+		break;
+	case 4:
+		TIMER->aS = vec3(6.f) * 1.2f;
+		smartScale[4] = TIMER->aS;
+		break;
+	}
+
+	//for (unsigned int i = 0; i < spawnPoints.size(); i++)
+	//{
+	//	std::cout << spawnPoints[i] << std::endl;
+	//	std::cout << gridPoints[i] << std::endl;
+	//}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			TIMER->setLocalPos(vec3(UIcams[i]->m_pOrthoSize.x, UIcams[i]->m_pOrthoSize.w, 0) + vec3(1 + TIMER->wordLength * 0.5f, -1, 0) * smartScale[4]);
+		}
+	}
+
+	TIMER2 = rm::getCloneOfText("UISpaces");
+	TIMER2->baseColor = vec3(1.f);
+	TIMER2->setMessage("3:00");
+	//TIMER2->setLocalPos(vec3(-35, 40, 0));
+	TIMER2->setLocalPos(TIMER->getLocalPos() + vec3(0.1f, 0.1f, 0) * smartScale[4]);
+	//TIMER2->aS = vec3(6.f);
+	TIMER2->aS = TIMER->aS;
+
+	for (int i = 0; i < 4; i++)
+	{
+		players[i] = nullptr;
+		if (EPD::playerActive[i])
+		{
+			if (EPD::playerVehicleChoice[i] == 0)
+			{ 
+				players[i] = rm::getCloneOfPlayer("PLAYER_TRUCK");
+			}
+			else if (EPD::playerVehicleChoice[i] == 1)
+			{
+				players[i] = rm::getCloneOfPlayer("PLAYER_TANK");
+			}
+			else if (EPD::playerVehicleChoice[i] == 2)
+			{
+				players[i] = rm::getCloneOfPlayer("PLAYER_BULLDOZER");
+			}
+			else if (EPD::playerVehicleChoice[i] == 3)
+			{
+				players[i] = rm::getCloneOfPlayer("PLAYER_WRECKINGBALL");
+			}
+
+			Player* PL = players[i];
+
+			PL->playerNumber = i;
+			int randomSpawn = rand() % spawnPoints.size();
+
+			PL->setLocalPos(spawnPoints[randomSpawn]);
+			PL->setLocalRot(vec3(0, gridPoints[randomSpawn].z, 0));
+			PL->setScale(vec3(1.f));
+			PL->mapX = (int)gridPoints[randomSpawn].x;
+			PL->mapY = (int)gridPoints[randomSpawn].y;
+			PL->setInitials(PL->getLocalPos(), PL->getLocalEuler(), PL->getLocalScale());
+			PL->setBob(((float)(rand() % 629)) * 0.01f + 6.28f);
+			PL->hasInitial = true;
+
+			spawnPoints.erase(spawnPoints.begin() + randomSpawn);
+			gridPoints.erase(gridPoints.begin() + randomSpawn);
+
+			PL->addChild(PlayerCams[i]);
+			PL->attachWeapon(ResourceManager::getWeapon("MINE"));
+
+			theMap->fieldObjects[PL->mapX][PL->mapY].push_back(PL);
+
+			//std::cout << PL->getLocalPos() << std::endl;
+
+			PlayerCams[i]->setLocalPos(vec3(0, camHeight, camHeight / (float)sqrt(3)));
+			PlayerCams[i]->setLocalRot(vec3(-60.f, 0, 0));
+
+			if (PL->getName() == "PLAYER_TRUCK")
+				PL->playerInit(Player::PLAYER_TYPE::TRUCK);
+			else if (PL->getName() == "PLAYER_TANK")
+				PL->playerInit(Player::PLAYER_TYPE::TANK);
+			else if (PL->getName() == "PLAYER_BULLDOZER")
+				PL->playerInit(Player::PLAYER_TYPE::BULLDOZER);
+			else if (PL->getName() == "PLAYER_WRECKINGBALL")
+				PL->playerInit(Player::PLAYER_TYPE::WRECKING_BALL);
+
+
+			TUI[i] = rm::getCloneOfText("UISpaces");
+			//std::cout << TUI[i]->getMaterial()->getName() << std::endl;
+			TUI[i]->baseColor = vec3(0.0f);
+			TUI[i]->setMessage("0");
+			
+			switch (EPD::numActive)
+			{
+			case 0:
+				std::cout << "No, seriously how THE FUCK?" << std::endl;
+				break;
+			case 1:
+				TUI[i]->aS = vec3(6.f);
+				smartScale[i] = TUI[i]->aS;
+				break;
+			case 2:
+				TUI[i]->aS = vec3(6.f) * 0.7f;
+				smartScale[i] = TUI[i]->aS;
+				break;
+			case 3:
+				TUI[i]->aS = vec3(6.f) * 0.5f;
+				smartScale[i] = TUI[i]->aS;
+				break;
+			case 4:
+				TUI[i]->aS = vec3(6.f) * 0.5f;
+				smartScale[i] = TUI[i]->aS;
+				break;
+			}
+
+			TUI[i]->setLocalPos(vec3(UIcams[i]->m_pOrthoSize.y, UIcams[i]->m_pOrthoSize.w, 0) + vec3(-1 - TUI[i]->wordLength * 0.5f, -1, 0) * smartScale[i]);
+
+			//TUI[i]->setLocalPos(vec3(39, 39, 0));
+			//TUI[i]->aS = vec3(4.0f);
+
+			TUI2[i] = rm::getCloneOfText("UISpaces");
+			TUI2[i]->baseColor = vec3(1.0f);
+			TUI2[i]->setMessage("0");
+			TUI2[i]->setLocalPos(TUI[i]->getLocalPos() + vec3(0.1f, 0.1f, 0) * smartScale[i]);
+			TUI2[i]->aS = TUI[i]->aS;
+
+			UITextShips[i].push_back(TUI[i]);
+			UITextShips[i].push_back(TUI2[i]);
+			UITextShips[i].push_back(TIMER);
+			UITextShips[i].push_back(TIMER2);
+		}
+	}
+
+	spawnPoints = theMap->spawnPoints;
+	gridPoints = theMap->gridPoints;
 
 	for (Transform* object : ResourceManager::Transforms)
 	{
@@ -1794,48 +2319,6 @@ void Game::generateMap()
 	{
 		object->update(0);
 	}
-
-	for (Player* PL : players)
-	{
-		if (PL->getName() == "PLAYER_TRUCK")
-			PL->playerInit(Player::PLAYER_TYPE::TRUCK);
-		else if (PL->getName() == "PLAYER_TANK")
-			PL->playerInit(Player::PLAYER_TYPE::TANK);
-		else if (PL->getName() == "PLAYER_BULLDOZER")
-			PL->playerInit(Player::PLAYER_TYPE::BULLDOZER);
-		else if (PL->getName() == "PLAYER_WRECKINGBALL")
-			PL->playerInit(Player::PLAYER_TYPE::WRECKING_BALL);
-	}
-
-	TUI = rm::getCloneOfText("UISpaces");
-	std::cout << TUI->getMaterial()->getName() << std::endl;
-	TUI->baseColor = vec3(0.0f);
-	TUI->setMessage("0");
-	TUI->setLocalPos(vec3(39, 39, 0));
-	TUI->aS = vec3(4.0f);
-
-	TUI2 = rm::getCloneOfText("UISpaces");
-	TUI2->baseColor = vec3(1.0f);
-	TUI2->setMessage("0");
-	TUI2->setLocalPos(vec3(40, 40, 0));
-	TUI2->aS = vec3(4.0f);
-
-	TIMER = rm::getCloneOfText("UISpaces");
-	TIMER->baseColor = vec3(0.f);
-	TIMER->setMessage("3:00");
-	TIMER->setLocalPos(vec3(-36, 39, 0));
-	TIMER->aS = vec3(6.f);
-
-	TIMER2 = rm::getCloneOfText("UISpaces");
-	TIMER2->baseColor = vec3(1.f);
-	TIMER2->setMessage("3:00");
-	TIMER2->setLocalPos(vec3(-35, 40, 0));
-	TIMER2->aS = vec3(6.f);
-
-	UITextShip.push_back(TUI);
-	UITextShip.push_back(TUI2);
-	UITextShip.push_back(TIMER);
-	UITextShip.push_back(TIMER2);
 }
 
 void Game::performUpdates(float dt)
@@ -1953,46 +2436,7 @@ void Game::uniqueKeyPresses()
 	{
 		resetMap();
 	}
-	if (keysDown['l'] && !backCheckKeysDown['l'])
-	{
-		PlayerCam->cullingActive = !PlayerCam->cullingActive;
-		std::cout << "CULLING TRIGGERED TO " << PlayerCam->cullingActive << std::endl;
-	}
-	if (keysDown['1'] && !backCheckKeysDown['1'])
-	{
-		//std::cout << "MINE EQUIPPED!" << std::endl;
-		players[0]->attachWeapon(rm::getWeapon("MINE"));
-	}
-	if (keysDown['2'] && !backCheckKeysDown['2'])
-	{
-		//std::cout << "HAMMER EQUIPPED!" << std::endl;
-		players[0]->attachWeapon(rm::getWeapon("HAMMER"));
-	}
-	if (keysDown['3'] && !backCheckKeysDown['3'])
-	{
-		//std::cout << "AXE EQUIPPED!" << std::endl;
-		players[0]->attachWeapon(rm::getWeapon("AXE"));
-	}
-	if (keysDown['7'] && !backCheckKeysDown['7'])
-	{
-		players[0]->setMesh(rm::getMesh("PickupTruck"));
-		players[0]->setMaterial(rm::getMaterial("Texture PickupTruck"));
-	}
-	if (keysDown['8'] && !backCheckKeysDown['8'])
-	{
-		players[0]->setMesh(rm::getMesh("tank"));
-		players[0]->setMaterial(rm::getMaterial("Tank_Base_Colours2"));
-	}
-	if (keysDown['9'] && !backCheckKeysDown['9'])
-	{
-		players[0]->setMesh(rm::getMesh("Wrecking_Ball_2"));
-		players[0]->setMaterial(rm::getMaterial("WreckingBall_Base_Color 2"));
-	}
-	if (keysDown['0'] && !backCheckKeysDown['0'])
-	{
-		players[0]->setMesh(rm::getMesh("BullDozer"));
-		players[0]->setMaterial(rm::getMaterial("Bulldozer_Base_Colours 2"));
-	}
+
 	if (keysDown['/'] && !backCheckKeysDown['/'])
 	{
 		if (_GS == GS_RUNNING)
@@ -2019,7 +2463,10 @@ void Game::resetMap()
 	{
 		rm::CamerasINGAME[i]->setRenderList(EMPT);
 	}
-	renderShip.clear();
+	for (int i = 0; i < 4; i++)
+	{
+		renderShips[i].clear();
+	}
 	for (int i = 0; i < 100; ++i)
 	{
 		for (int j = 0; j < 100; ++j)

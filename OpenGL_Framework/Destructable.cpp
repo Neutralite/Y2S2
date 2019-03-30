@@ -56,7 +56,10 @@ void Destructable::update(float dt)
 		swingPoint = vec3();
 
 		swingTime = 0;
+	}
 
+	if (destroyed)
+	{
 		needsUpdate = false;
 	}
 

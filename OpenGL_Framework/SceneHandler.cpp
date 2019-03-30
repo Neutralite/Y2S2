@@ -170,8 +170,8 @@ Scene * SceneHandler::getCurrentScene()
 
 void SceneHandler::update()
 {
-	glutWarpPointer(Scene::windowWidth / 2, Scene::windowHeight / 2);
-	glutSetCursor(GLUT_CURSOR_NONE);
+	//glutWarpPointer(Scene::windowWidth / 2, Scene::windowHeight / 2);
+	//glutSetCursor(GLUT_CURSOR_NONE);
 	if (currentScene->readyToTerminate)
 		replaceScene(searchScenes(currentScene->nextScene));
 	currentScene->update();

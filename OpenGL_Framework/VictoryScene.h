@@ -62,6 +62,7 @@ private:
 	std::vector<RecolorObject*> playerScoreBars;
 	std::vector<Player*> playerModels;
 	std::vector<Text*> playerScores;
+	std::vector<Text*> playerScoresBACK;
 	std::vector<std::string> playerNames;
 
 	std::vector<int> preScores;

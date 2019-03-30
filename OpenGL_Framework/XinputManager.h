@@ -48,6 +48,11 @@ struct Triggers
 	float LT, RT;
 };
 
+//typedef struct _XINPUT_VIBRATION {
+//	WORD wLeftMotorSpeed;
+//	WORD wRightMotorSpeed;
+//} XINPUT_VIBRATION, *PXINPUT_VIBRATION;
+
 class XinputController
 {
 public:
@@ -163,11 +168,35 @@ public:
 		*triggers = Triggers{1 < deadZoneTrigger ? 0:l, r < deadZoneTrigger ? 0:r};
 	}
 
+	void setVibration(float lowRumble, float highRumble)
+	{
+		float _LR = lowRumble;
+		float _HR = highRumble;
+
+		if (_LR > 1.f)
+			_LR = 1.f;
+		if (_LR < 0.f)
+			_LR = 0.f;
+		if (_HR > 1.f)
+			_HR = 1.f;
+		if (_HR < 0.f)
+			_HR = 0.f;
+
+		vibrate.wLeftMotorSpeed = (WORD)(lowRumble * 65535.f);
+		vibrate.wRightMotorSpeed = (WORD)(highRumble * 65535.f);
+	}
+
+	XINPUT_VIBRATION *getVibration()
+	{
+		return &vibrate;
+	}
+
 private:
 	//...
 	float deadZoneStick, deadZoneTrigger;
 	XINPUT_STATE info;
 	int index;
+	XINPUT_VIBRATION vibrate = { 0, 0 };
 };
 
 class XinputManager
@@ -179,6 +208,8 @@ public:
 	static bool controllerConnected(int index);
 
 	static XinputController* getController(int index);
+
+	static void setRumble(int index, float lowRumble, float highRumble);
 
 	static void update();
 private:

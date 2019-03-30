@@ -36,6 +36,7 @@ void VehicleSelection::initializeGame()
 	READY_TIME.clear();
 	backCheckTriggers.clear();
 	backCheckButton.clear();
+	backCheckSticks.clear();
 
 	playerStillModel.resize(4);
 	playerView.resize(4);
@@ -46,6 +47,7 @@ void VehicleSelection::initializeGame()
 	READY_TIME.resize(4);
 	backCheckTriggers.resize(8);
 	backCheckButton.resize(8);
+	backCheckSticks.resize(8);
 
 	setUpVehicleSelect();
 
@@ -421,14 +423,16 @@ void VehicleSelection::runningUpdate(float dt)
 			controllers[i]->getSticks(&playerInput[2 * i], &playerInput[2 * i + 1]);
 			controllers[i]->getTriggers(&playerTriggers[i]);
 
-			if (playerTriggers[i].LT > 0.5f && !(backCheckTriggers[2 * i] > 0.5f) && !playerReady[i])
+			if (((playerTriggers[i].LT > 0.5f && !(backCheckTriggers[2 * i] > 0.5f))
+				|| (playerInput[2 * i].x < -0.2f && !(backCheckSticks[2 * i].x < -0.2f))) && !playerReady[i])
 			{
 				playerSelect[i] = (playerSelect[i] - 1) % 4;
 				while (playerSelect[i] < 0)
 					playerSelect[i] += 4;
 				sceneButtons[2 * i]->setScale(1.6f);
 			}
-			if (playerTriggers[i].RT > 0.5f && !(backCheckTriggers[2 * i + 1] > 0.5f) && !playerReady[i])
+			if (((playerTriggers[i].RT > 0.5f && !(backCheckTriggers[2 * i + 1] > 0.5f))
+				|| (playerInput[2 * i].x > 0.2f && !(backCheckSticks[2 * i].x > 0.2f))) && !playerReady[i])
 			{
 				playerSelect[i] = (playerSelect[i] + 1) % 4;
 				while (playerSelect[i] > 3)
@@ -454,6 +458,8 @@ void VehicleSelection::runningUpdate(float dt)
 			backCheckTriggers[2 * i + 1] = playerTriggers[i].RT;
 			backCheckButton[2 * i] = controllers[i]->isButtonPressed(A);
 			backCheckButton[2 * i + 1] = controllers[i]->isButtonPressed(B);
+			backCheckSticks[2 * i] = playerInput[2 * i];
+			backCheckSticks[2 * i + 1] = playerInput[2 * i + 1];
 		}
 
 		if (playerReady[i])
@@ -515,13 +521,13 @@ void VehicleSelection::runningUpdate(float dt)
 				EPD::playerVehicleChoice[i] = playerSelect[i];
 				playerIter++;
 			}
-			else if (i == 0)
-			{
-				EPD::playerNumbers[i] = playerIter;
-				EPD::playerActive[i] = true;
-				EPD::playerVehicleChoice[i] = playerSelect[i];
-				playerIter++;
-			}
+			//else if (i == 0)
+			//{
+			//	EPD::playerNumbers[i] = playerIter;
+			//	EPD::playerActive[i] = true;
+			//	EPD::playerVehicleChoice[i] = playerSelect[i];
+			//	playerIter++;
+			//}
 		}
 
 		tSwitch = rm::getTexture("SCENE_VEHICLE_EXIT");
@@ -843,25 +849,32 @@ void VehicleSelection::setUpVehicleSelect()
 		backCheckButton[2 * i + 1] = false;
 		playerSelect[i] = i;
 		playerReady[i] = false;
+		backCheckSticks[2 * i] = { 0, 0 };
+		backCheckSticks[2 * i + 1] = { 0, 0 };
 
 		playerStillModel[i].resize(4);
 
 		Player* _P = nullptr;
 		GameObject* _PV = nullptr;
-		switch (i)
+		for (int j = 0; j < 4; j++)
 		{
-		case 0:
-			_P = rm::getCloneOfPlayer("PLAYER_TRUCK");
-			break;
-		case 1:
-			_P = rm::getCloneOfPlayer("PLAYER_TANK");
-			break;
-		case 2:
-			_P = rm::getCloneOfPlayer("PLAYER_BULLDOZER");
-			break;
-		case 3:
-			_P = rm::getCloneOfPlayer("PLAYER_WRECKINGBALL");
-			break;
+			switch (i)
+			{
+			case 0:
+				_P = rm::getCloneOfPlayer("PLAYER_TRUCK");
+				break;
+			case 1:
+				_P = rm::getCloneOfPlayer("PLAYER_TANK");
+				break;
+			case 2:
+				_P = rm::getCloneOfPlayer("PLAYER_BULLDOZER");
+				break;
+			case 3:
+				_P = rm::getCloneOfPlayer("PLAYER_WRECKINGBALL");
+				break;
+			}
+
+			playerStillModel[i][j] = _P;
 		}
 		_PV = rm::getCloneOfObject("PURE_EMPTY");
 
@@ -873,10 +886,7 @@ void VehicleSelection::setUpVehicleSelect()
 		_P->update(0);
 
 		playerView[i] = _PV;
-		for (int j = 0; j < 4; j++)
-		{
-			playerStillModel[i][j] = _P;
-		}
+
 
 
 		vec3 oC;
@@ -962,4 +972,10 @@ void VehicleSelection::setUpVehicleSelect()
 	vehicleSelectCam->setLocalPos(vec3(-0.33f, 1.5f, 5.f));
 	vehicleSelectCam->giveNewPersRatio(aspect);
 	vehicleSelectCam->update(0);
+
+	for (Framebuffer* FB : ResourceManager::allFramebuffers)
+	{
+		if (!FB->isFixedSize)
+			FB->reshape(windowWidth, windowHeight);
+	}
 }

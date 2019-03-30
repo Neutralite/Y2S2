@@ -48,6 +48,7 @@ public:
 	void initializeGame();
 	void update();
 	void draw();
+	void pDraw(int pNum);
 	void GUI();
 	void releaseScene();
 
@@ -57,6 +58,15 @@ public:
 	void pausedUpdate(float dt);
 	void endedUpdate(float dt);
 	void exitingUpdate(float dt);
+
+	void beginningUpdatePlayer(float dt, int pNum);
+	void startingUpdatePlayer(float dt, int pNum);
+	void runningUpdatePlayer(float dt, int pNum);
+	void pausedUpdatePlayer(float dt, int pNum);
+	void endedUpdatePlayer(float dt, int pNum);
+	void exitingUpdatePlayer(float dt, int pNum);
+
+	void scoreLerp(float dt, int pNum);
 
 	/* input callback functions */
 	void keyboardDown(unsigned char key, int mouseX, int mouseY);
@@ -128,37 +138,40 @@ private:
 	BasePlate* BASE_PLATE_4WAY;
 	BasePlate* BASE_PLATE_T;
 	BasePlate* BASE_PLATE_CORNER;
-	Light* SUN;
+	std::vector<Light*> SUNS;
 
-	Camera* PlayerCam;
-	Camera* UIcam;
+	std::vector<Camera*> PlayerCams;
+	std::vector<Camera*> UIcams;
 	std::vector<Player*> players;
 
 	Field* theMap;
-	std::vector<Transform*> renderShip;
-	std::vector<Transform*> UIRenderShip;
+	std::vector<std::vector<Transform*>> renderShips;
+	std::vector<std::vector<Transform*>> UIRenderShips;
 	std::vector<GameObject*> updateShip;
 	std::vector<GameObject*> externalUpdateShip;
 	std::vector<GameObject*> dynamicCollisionShip;
 	std::vector<GameObject*> staticCollisionShip;
 	std::vector<GameObject*> RE_SPAWN;
-	std::vector<Light*> lightShip;
-	std::vector<GameObject*> shadowShip;
+	std::vector<std::vector<Light*>> lightShips;
+	std::vector<std::vector<GameObject*>> shadowShips;
 	std::vector<Mesh*> dynamicBatchShip;
 	std::vector<Weapon*> weaponShip;
 	std::vector<Text*> textShip;
-	std::vector<Text*> UITextShip;
+	std::vector<std::vector<Text*>> UITextShips;
+
+	std::vector<vec3> spawnPoints;
+	std::vector<vec3> gridPoints;
 
 	std::vector<Text*> pTotals;
 	std::vector<float> pFloats;
 	float pMax = 1.0f;
-	Text* TUI;
-	Text* TUI2;
+	std::vector<Text*> TUI;
+	std::vector<Text*> TUI2;
 
 	PostProcessBuffer RADIAL_POST_PROC;
 
 	bool useFirst = false;
-	float radialBlur = 0.f;
+	std::vector<float> radialBlur;
 	int radialLoops = 3;
 
 	int pScore = 0;
@@ -176,6 +189,7 @@ private:
 	std::string timeString;
 	Text* TIMER;
 	Text* TIMER2;
+	std::vector<vec3> smartScale;
 
 	Texture* tSwitch = nullptr;
 	Texture* tFade = nullptr;

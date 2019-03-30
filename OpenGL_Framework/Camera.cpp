@@ -116,7 +116,7 @@ void Camera::render(bool useFB)
 	
 	if (m_pFB != nullptr && useFB)
 	{
-		m_pFB->setViewport();
+		//m_pFB->setViewport();
 		m_pFB->bind();
 		clear();
 	}
@@ -141,7 +141,7 @@ void Camera::renderToFB(Framebuffer * _FB, bool clearIt)
 
 	if (_FB != nullptr)
 	{
-		_FB->setViewport();
+		//_FB->setViewport();
 		_FB->bind();
 		if (clearIt)
 			clear();
@@ -265,7 +265,7 @@ struct
 
 void Camera::sort()
 {
-	std::sort(objectList.begin(), objectList.end(), customSort);
+	//std::sort(objectList.begin(), objectList.end(), customSort);
 }
 
 void Camera::attachFrameBuffer(Framebuffer * fb)

@@ -61,6 +61,7 @@ private:
 	std::vector<float> READY_TIME;
 	std::vector<float> backCheckTriggers;
 	std::vector<bool> backCheckButton;
+	std::vector<Stick> backCheckSticks;
 
 	GameObject* backDrop = nullptr;
 	//RecolorObject* backButton = nullptr;
