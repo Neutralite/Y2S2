@@ -494,6 +494,11 @@ void VictoryScene::runningUpdate(float dt)
 			nameInitials->colorShift[i] = playerScoreBars[enteringPlayer]->objectColor;
 		}
 
+		for (unsigned int i = 0; i < preText[editSlot[enteringPlayer]]->messageSize(); i++)
+		{
+			preText[editSlot[enteringPlayer]]->colorShift[i] = playerScoreBars[enteringPlayer]->objectColor;
+		}
+
 		if (letterSel < 3)
 		{
 			vec3 hAlf = (nameInitials->individualPos[letterSel + 4]) * nameInitials->getLocalScale();
@@ -1248,7 +1253,7 @@ void VictoryScene::setUpVictory()
 				_T->baseColor = vec3(1.f);
 				for (unsigned int k = 0; k < _T->messageSize(); k++)
 				{
-					_T->colorShift[k] = playerScoreBars[i]->objectColor;
+					_T->colorShift[k] = vec3(1.f);
 				}
 
 				for (int k = 0; k < 4; k++)
@@ -1273,14 +1278,8 @@ void VictoryScene::setUpVictory()
 
 				for (int I = j + 1; I < 20; I++)
 				{
-					
 					preText[I]->setLocalPos(vec3(45.f, 4.f - (-4.f + 0.6f * I), 0.f));
 					preText[I]->setMessage(std::to_string(I + 1) + ". " + preNames[I] + " ======= " + std::to_string(preScores[I]));
-					preText[I]->baseColor = vec3(1.f, 1.f, 1.f);
-					for (unsigned int J = 0; J < preText[I]->messageSize(); J++)
-					{
-						preText[I]->colorShift[J] = vec3(1.f);
-					}
 				}
 				j = 20;
 			}

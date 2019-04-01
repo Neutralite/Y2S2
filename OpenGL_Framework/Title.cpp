@@ -899,8 +899,8 @@ void Title::setUpTitle()
 	SUN2->setLocalRotZ(180.f);
 	SUN2->setLocalRotY(90.f);
 	SUN2->update(0);
-	std::cout << SUN->getLocalToWorld() * SUN->direction << std::endl;
-	std::cout << SUN2->getLocalToWorld() * SUN2->direction << std::endl;
+	//std::cout << SUN->getLocalToWorld() * SUN->direction << std::endl;
+	//std::cout << SUN2->getLocalToWorld() * SUN2->direction << std::endl;
 
 	DOWN_TOWN = rm::getCloneOfText("TextRot");
 	DOWN_TOWN->setMessage("DOWN TOWN");

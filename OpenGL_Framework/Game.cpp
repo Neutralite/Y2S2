@@ -383,10 +383,12 @@ void Game::pDraw(int pNum)
 		{
 			for (Transform* C : LIT->getChildren())
 			{
+				
 				//std::cout << "CHILD" << std::endl;
 				//bool FAL = false;
 				if (C->TT == Transform::TransformType::TYPE_Camera)
 				{
+					//std::cout << pNum << std::endl;
 					Camera* CC = dynamic_cast<Camera*>(C);
 					CC->setRenderList(renderShips[pNum]);
 
@@ -395,13 +397,14 @@ void Game::pDraw(int pNum)
 
 					//uRes.sendVector(vec4(1024.f, 1024.f, 1.f / 1024.f, 1.f / 1024.f), 0);
 					glViewport(0, 0, (unsigned int)shadowBufferSize.x, (unsigned int)shadowBufferSize.y);
-					CC->cull();
+					CC->cullGrass();
 					CC->render(true);
 					//std::cout << pNum << ", " << LIT << std::endl;
 					glViewport(0, 0, (unsigned int)sSize.x, (unsigned int)sSize.y);
 					//uRes.sendVector(RES, 0);
 
 					glEnable(GL_BLEND);
+					//std::cout << "SHADOW!" << std::endl;
 					glDisable(GL_DEPTH_TEST);
 
 					CC->getFrameBuffer()->bindDepthAsTexture(30);
