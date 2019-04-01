@@ -67,6 +67,9 @@ public:
 	void exitingUpdatePlayer(float dt, int pNum);
 
 	void scoreLerp(float dt, int pNum);
+	void HPlerp(float dt, int pNum);
+	void attSet(float dt, int pNum);
+	void playerDestructionPattern(float dt, int pNum);
 
 	/* input callback functions */
 	void keyboardDown(unsigned char key, int mouseX, int mouseY);
@@ -83,6 +86,7 @@ public:
 	void putInStatic(GameObject* _GO, unsigned int front, unsigned int back);
 	void putInDynamic(GameObject* _GO, unsigned int front, unsigned int back);
 	void staticCollisions();
+	void dynamicCollisions();
 	void batchMesh(GameObject * _GO, unsigned int front, unsigned int back);
 	void protectedBatch(GameObject* _GO);
 	void protectedWeaponShip(Weapon* _W);
@@ -139,9 +143,11 @@ private:
 	BasePlate* BASE_PLATE_T;
 	BasePlate* BASE_PLATE_CORNER;
 	std::vector<Light*> SUNS;
+	std::vector<Light*> MOONS;
 
 	std::vector<Camera*> PlayerCams;
 	std::vector<Camera*> UIcams;
+	std::vector<Camera*> shadowCams;
 	std::vector<Player*> players;
 
 	Field* theMap;
@@ -167,8 +173,23 @@ private:
 	float pMax = 1.0f;
 	std::vector<Text*> TUI;
 	std::vector<Text*> TUI2;
+	std::vector<Text*> P_HP;
+	std::vector<Text*> P_BHP;
+	std::vector<Text*> P_WEAP;
+	std::vector<std::vector<RecolorObject*>> WEAP_MODEL;
+	std::vector<int> playerWeap;
+	std::vector<vec3> manualOffset;
+	std::vector<std::vector<Text*>> _BOOM;
+	std::vector<float> screenTransitionFloat;
+
+	std::vector<bool> pauseBool;
+
+	Text* GS_TEXT = nullptr;
+	float shortPause = 0.f;
+	float M_LOOP = 0.f;
 
 	PostProcessBuffer RADIAL_POST_PROC;
+	PostProcessBuffer SCREEN_SHIFT;
 
 	bool useFirst = false;
 	std::vector<float> radialBlur;
@@ -184,12 +205,17 @@ private:
 	int bloomHeight;
 	int radialHeight;
 
+	bool shadowView = false;
+	bool cancelShadows = false;
+
 	int minutes = 3;
 	float seconds = 0;
 	std::string timeString;
 	Text* TIMER;
 	Text* TIMER2;
 	std::vector<vec3> smartScale;
+
+	vec2 shadowBufferSize = vec2(0, 0);
 
 	Texture* tSwitch = nullptr;
 	Texture* tFade = nullptr;

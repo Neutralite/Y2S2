@@ -52,6 +52,7 @@ void VehicleSelection::initializeGame()
 	setUpVehicleSelect();
 
 	vehicleSelectCam->update(0);
+	vehicleSelectCam->sendUBO();
 
 	updateTimer->tick();
 	deltaTime = updateTimer->getElapsedTimeSeconds();

@@ -8,6 +8,8 @@ public:
 	~Axe();
 	static bool weaponInit();
 
+	float getDMG() { return 5.f; }
+
 	static std::vector<wFrame> FRAMES;
 
 	std::vector<wFrame>* getFL();

@@ -19,7 +19,12 @@ bool Weapon::tailoredCollision(GameObject * _GO)
 		{
 			if (_GO->getPhysicsBody()->getHB()->dynamic)
 			{
+				mat4 weapLoc = worldLocation * mat4(mat3::identity(), getWorldPos()) * mat4::rotatey(degrees(getLocalEuler().y)) * mat4(mat3::identity(), hitboxOffset);
 
+				if (Impact->collidesWith(_GO->getPhysicsBody()->getHB(), weapLoc, _GO->getLocalToWorld()))
+				{
+					return true;
+				}
 			}
 			else if (_GO->TT == TYPE_Powerup)
 			{

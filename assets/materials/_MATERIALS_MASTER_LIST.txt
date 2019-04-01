@@ -48,3 +48,7 @@ Rules Button
 SelectionSceneTexture
 Cube
 Downtown_Destruction_New
+AXE_RECOLOR
+HAMMER_RECOLOR
+MINE_RECOLOR
+GAME_RULES

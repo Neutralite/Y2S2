@@ -157,6 +157,9 @@
     <ClCompile Include="ExternalPlayerData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RulesScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -351,6 +354,9 @@
     <ClInclude Include="ExternalPlayerData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RulesScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gmtk\LICENSE.md">
@@ -471,6 +477,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\assets\shaders\RECOLOR_RENDER.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\PerPlayerTransition.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -48,6 +48,11 @@ layout (binding = 3) uniform sampler2D uRoughness;
 layout (binding = 4) uniform sampler2D uMetallic;
 layout (binding = 5) uniform sampler2D uDepth;
 
+//layout (binding = 30) uniform sampler2D uTexShadowDepth;
+//
+//uniform int DO_SHADOWS;
+//uniform mat4 uShadowView;
+
 uniform float doubleCheck;
 
 in vec2 texcoord;
@@ -89,13 +94,7 @@ void main()
 	{
 		float NdotHV = max(dot(N, normalize(Ldir + normalize(-pos))), 0.0f);
 
-		//outColor.rgb += NdotL * ATT * texAlb * uLightColor.rgb;
-		//outColor.rgb += pow(NdotHV, specularExp) * ATT * texSpec;
-
-		diffuseLight.rgb += NdotL * ATT * uLightColor.rgb * intensity;
-		specularLight.rgb += pow(NdotHV, specularExp) * ATT * intensity;
-
-		//outColor.rgb += texture(uRamp, vec2(NdotL, 0)).rgb * texAlb * ATT * uLightColor.rgb;
-		//outColor.rgb += pow(texture(uRamp, vec2(NdotHV, 0)).r, specularExp) * ATT * texSpec;
+		diffuseLight.rgb += NdotL * ATT * uLightColor.rgb * intensity;// * shadowMult;
+		specularLight.rgb += pow(NdotHV, specularExp) * ATT * intensity;// * shadowMult;
 	}
 }

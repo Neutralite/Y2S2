@@ -18,6 +18,8 @@ void Title::initializeGame()
 	TotalGameTime = 0.f;
 	flyOut = 0.f;
 
+	menuSelection = 0;
+
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_ONE, GL_ONE);
 	glEnable(GL_CULL_FACE);
@@ -34,6 +36,7 @@ void Title::initializeGame()
 	setUpTitle();
 
 	titleCam->update(0);
+	titleCam->sendUBO();
 
 	updateTimer->tick();
 	deltaTime = updateTimer->getElapsedTimeSeconds();
@@ -561,8 +564,10 @@ void Title::exitingUpdate(float dt)
 	else
 	{
 		readyToTerminate = true;
-		if (menuSelection == 0 || menuSelection == 1)
+		if (menuSelection == 0)
 			nextScene = "VEHICLE_SELECTION";
+		else if (menuSelection == 1)
+			nextScene = "RULES";
 		else
 			exit(1);
 		//for (unsigned int i = 0; i < rm::TransformsINGAME.size(); i++)
@@ -894,6 +899,8 @@ void Title::setUpTitle()
 	SUN2->setLocalRotZ(180.f);
 	SUN2->setLocalRotY(90.f);
 	SUN2->update(0);
+	std::cout << SUN->getLocalToWorld() * SUN->direction << std::endl;
+	std::cout << SUN2->getLocalToWorld() * SUN2->direction << std::endl;
 
 	DOWN_TOWN = rm::getCloneOfText("TextRot");
 	DOWN_TOWN->setMessage("DOWN TOWN");

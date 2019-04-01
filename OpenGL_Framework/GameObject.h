@@ -69,6 +69,10 @@ public:
 	int mapY;
 
 	vec3 pushAgainst;
+	//vec3 playerInterference;
+	std::vector<vec3> dynVels;
+	std::vector<float> dynMass;
+	std::vector<vec3> dynNorm;
 	float repulsionForce = 2000.f;
 
 	bool needsUpdate = false;

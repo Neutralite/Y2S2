@@ -255,6 +255,11 @@ void Camera::cull()
 	}
 }
 
+void Camera::cullGrass()
+{
+
+}
+
 struct
 {
 	bool operator()(Transform* a, Transform* b) const

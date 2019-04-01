@@ -330,7 +330,6 @@ void GameObject::DestructionSequence(float dt)
 				float LORP = timeDestroying / maxDestrTime;
 				newScale = vec3(1.f - pow(LORP, 6), 0.1f * (1.f - LORP), 1.f - pow(LORP, 6));
 			}
-
 			mat4 rx = rx.rotatex(degrees(newRot.x));
 			mat4 ry = ry.rotatey(degrees(newRot.y));
 			mat4 rz = rz.rotatez(degrees(newRot.z));

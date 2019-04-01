@@ -79,3 +79,6 @@ TextTexture.frag
 RECOLOR_INITIAL_RENDER
 StaticGeo.vert
 RECOLOR_RENDER.frag
+PER_PLAYER_TRANS
+GenericPost.vert
+PerPlayerTransition.frag

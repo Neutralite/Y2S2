@@ -45,9 +45,12 @@ public:
 
 	void doCollision(GameObject* _GO);
 
-	void initiateDestruction(int destrType, vec3 directionOutwards);
+	//void initiateDestruction(int destrType, vec3 directionOutwards);
+	void DestructionSequence(float dt);
 
 	void resetToInitials();
+
+	void terminateEngine();
 
 	float Yangle = 0.f;
 	bool sendATTACK = false;
@@ -58,8 +61,14 @@ public:
 
 	float playerHP = 1.f;
 	float maxHP = 1.f;
+	float LERP_HP = 1.f;
+	float respawnTimer = 0.f;
+
+	int AttacksLeft = 0;
 
 	int playerNumber = 0;
+
+	int respawnPoint = 0;
 private:
 	Weapon* attack = nullptr;
 	float attackTimer = 0.f;

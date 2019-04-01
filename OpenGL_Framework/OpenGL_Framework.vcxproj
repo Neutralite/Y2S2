@@ -140,6 +140,7 @@
     <ClCompile Include="Powerup.cpp" />
     <ClCompile Include="RecolorObject.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="RulesScene.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneHandler.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
@@ -206,6 +207,7 @@
     <ClInclude Include="Powerup.h" />
     <ClInclude Include="RecolorObject.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="RulesScene.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneHandler.h" />
     <ClInclude Include="ShaderProgram.h" />
@@ -245,6 +247,7 @@
     <None Include="..\assets\shaders\FINAL_RENDER_SPOTLIGHT.frag" />
     <None Include="..\assets\shaders\Lighter.frag" />
     <None Include="..\assets\shaders\LIGHT_GEO.vert" />
+    <None Include="..\assets\shaders\PerPlayerTransition.frag" />
     <None Include="..\assets\shaders\POST_TEXT.frag" />
     <None Include="..\assets\shaders\POST_TEXT.vert" />
     <None Include="..\assets\shaders\POWERUP_RENDER.frag" />

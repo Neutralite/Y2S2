@@ -57,6 +57,7 @@ public:
 	void clear();
 
 	void cull();
+	void cullGrass();
 	void sort();
 
 	void attachFrameBuffer(Framebuffer* fb);

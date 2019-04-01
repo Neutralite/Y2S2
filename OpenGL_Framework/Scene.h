@@ -45,6 +45,7 @@ public:
 
 	static void drawChildren(std::vector<Transform*> *drawList, std::vector<Light*> *lightList, Transform* TF, bool doLights);
 	static void UIDrawChildren(std::vector<Transform*> *drawList, Transform* TF);
+	static void drawFromLight(std::vector<Transform*> *drawList, Transform* TF);
 
 	template <class T>
 	static void protectedEntityShip(std::vector<T*> *entityList, T* entity);
@@ -116,12 +117,14 @@ protected:
 	static ShaderProgram* TEXT_ROT;
 	static ShaderProgram* TEXT_UI;
 	static ShaderProgram* DOUTPUT;
+	static ShaderProgram* BLACKOUT;
 
 	static Framebuffer* sceneCapture;
 	static Framebuffer* collect;
 	static Framebuffer* defLight;
 	static Framebuffer* transition;
 	static Framebuffer* UI_SCREEN;
+	static Framebuffer* SHADOW_FB;
 
 	static Texture* overlay;
 	static Texture* tRamp;
@@ -149,7 +152,11 @@ inline void Scene::protectedAddEntity(std::vector<T*>* entityList, T * entity, u
 	}
 	else if (back - front <= 1)
 	{
-		if ((*entityList)[front] > entity)
+		if ((*entityList)[front] == entity || (*entityList)[back] == entity)
+		{
+
+		}
+		else if ((*entityList)[front] > entity)
 			entityList->insert(entityList->begin() + front, entity);
 		else if ((*entityList)[back] > entity)
 			entityList->insert(entityList->begin() + back, entity);

@@ -1,0 +1,4 @@
+PBR
+textureAlbedo: defaultWhite
+textureEmissive: defaultWhite
+shader: RECOLOR_INITIAL_RENDER

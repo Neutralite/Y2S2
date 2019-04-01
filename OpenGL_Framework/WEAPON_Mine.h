@@ -8,6 +8,8 @@ public:
 	~Mine();
 	static bool weaponInit();
 
+	float getDMG() { return 25.f; }
+
 	static std::vector<wFrame> FRAMES;
 
 	std::vector<wFrame>* getFL();

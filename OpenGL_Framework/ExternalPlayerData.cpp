@@ -5,6 +5,7 @@ std::vector<int> EPD::playerNumbers;
 std::vector<int> EPD::playerVehicleChoice;
 std::vector<bool> EPD::playerActive;
 std::vector<std::string> EPD::playerNames;
+std::vector<vec3> EPD::playerColors;
 std::vector<vec4> EPD::screenRats;
 vec2 EPD::screenDims;
 int EPD::numActive;
@@ -16,12 +17,14 @@ void ExternalPlayerData::initEPD()
 	playerActive.clear();
 	playerNames.clear();
 	playerVehicleChoice.clear();
+	playerColors.clear();
 
 	playerScores.resize(4);
 	playerNumbers.resize(4);
 	playerActive.resize(4);
 	playerNames.resize(4);
 	playerVehicleChoice.resize(4);
+	playerColors.resize(4);
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -31,6 +34,11 @@ void ExternalPlayerData::initEPD()
 		playerNames[i] = "_NULL";
 		playerVehicleChoice[i] = -1;
 	}
+
+	playerColors[0] = vec3(0.2f, 0.2f, 1.f);
+	playerColors[1] = vec3(1.f, 0.2f, 0.2f);
+	playerColors[2] = vec3(0.2f, 1.f, 0.2f);
+	playerColors[3] = vec3(1.f, 1.f, 0.2f);
 }
 
 void ExternalPlayerData::bootScreens()

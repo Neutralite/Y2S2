@@ -50,12 +50,14 @@ ShaderProgram* Scene::BLUR_OUTPUT;
 ShaderProgram* Scene::TEXT_SHADER;
 ShaderProgram* Scene::TEXT_UI;
 ShaderProgram* Scene::DOUTPUT;
+ShaderProgram* Scene::BLACKOUT;
 
 Framebuffer* Scene::sceneCapture;
 Framebuffer* Scene::collect;
 Framebuffer* Scene::defLight;
 Framebuffer* Scene::transition;
 Framebuffer* Scene::UI_SCREEN;
+Framebuffer* Scene::SHADOW_FB;
 
 Texture* Scene::overlay;
 Texture* Scene::tRamp;
@@ -97,12 +99,17 @@ void Scene::setDefaults()
 	TEXT_ROT = rm::getShader("TEXT_ROT_SHADER");
 	TEXT_UI = rm::getShader("TEXT_UI");
 	DOUTPUT = rm::getShader("DEPTH_CHECK_OUTPUT");
+	BLACKOUT = rm::getShader("PER_PLAYER_TRANS");
 
 	sceneCapture = rm::getFramebuffer("INITIAL_SCREEN");
 	defLight = rm::getFramebuffer("DEF_LIGHT");
 	transition = rm::getFramebuffer("TRANSITION");
 	UI_SCREEN = rm::getFramebuffer("UI_SCREEN");
 	collect = rm::getFramebuffer("COLLECT");
+	SHADOW_FB = rm::getFramebuffer("SHADOW_FB");
+
+	SHADOW_FB->reshape(1024, 1024);
+	SHADOW_FB->isFixedSize = true;
 
 	overlay = rm::getTexture("Medium shading");
 	tRamp = rm::getTexture("Game Toon Ramp");
@@ -183,6 +190,7 @@ void Scene::UIDrawChildren(std::vector<Transform*>* drawList, Transform * TF)
 	{
 		switch (TF->TT)
 		{
+		case Transform::TransformType::TYPE_Powerup:
 		case Transform::TransformType::TYPE_GameObject:
 		case Transform::TransformType::TYPE_BasePlate:
 		case Transform::TransformType::TYPE_Destructable:
@@ -190,6 +198,33 @@ void Scene::UIDrawChildren(std::vector<Transform*>* drawList, Transform * TF)
 		case Transform::TransformType::TYPE_Text:
 		case Transform::TransformType::TYPE_Mine:
 		case Transform::TransformType::TYPE_Hammer:
+		case Transform::TransformType::TYPE_Axe:
+		case Transform::TransformType::TYPE_Recolor:
+			drawList->push_back(TF);
+			break;
+		}
+
+		for (Transform* TF2 : TF->getChildren())
+		{
+			//std::cout << TF->getChildren().size() << std::endl;
+			UIDrawChildren(drawList, TF2);
+		}
+	}
+}
+
+void Scene::drawFromLight(std::vector<Transform*>* drawList, Transform * TF)
+{
+	if (!TF->HIDE)
+	{
+		switch (TF->TT)
+		{
+		case Transform::TransformType::TYPE_GameObject:
+		case Transform::TransformType::TYPE_BasePlate:
+		case Transform::TransformType::TYPE_Destructable:
+		case Transform::TransformType::TYPE_Player:
+		case Transform::TransformType::TYPE_Mine:
+		case Transform::TransformType::TYPE_Hammer:
+		case Transform::TransformType::TYPE_Axe:
 		case Transform::TransformType::TYPE_Recolor:
 			drawList->push_back(TF);
 			break;

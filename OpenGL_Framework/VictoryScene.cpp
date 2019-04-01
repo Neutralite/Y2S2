@@ -73,6 +73,7 @@ void VictoryScene::initializeGame()
 	setUpVictory();
 
 	victoryCam->update(0);
+	victoryCam->sendUBO();
 
 	updateTimer->tick();
 	deltaTime = updateTimer->getElapsedTimeSeconds();

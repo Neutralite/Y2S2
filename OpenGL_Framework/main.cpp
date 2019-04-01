@@ -8,6 +8,7 @@
 #include "Title.h"
 #include "VictoryScene.h"
 #include "VehicleSelection.h"
+#include "RulesScene.h"
 #include "ExternalPlayerData.h"
 #include <cstdlib>
 #include <ctime>
@@ -18,6 +19,7 @@ Scene *theGame;
 Scene *titleScreen;
 Scene* vehicleSelection;
 Scene* victoryScreen;
+Scene* rulesScene;
 
 /* function DisplayCallbackFunction(void)
  * Description:
@@ -270,6 +272,10 @@ int main(int argc, char **argv)
 	victoryScreen = new VictoryScene();
 	victoryScreen->setName("VICTORY");
 	SceneHandler::addScene(victoryScreen);
+
+	rulesScene = new Rules();
+	rulesScene->setName("RULES");
+	SceneHandler::addScene(rulesScene);
 
 	EPD::initEPD();
 

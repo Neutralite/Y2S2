@@ -325,78 +325,85 @@ Powerup * ResourceManager::searchForPowerup(std::string _NAME)
 void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
 {
 	//destroyChildrenINGAME(_OBJ);
+	if (_OBJ)
+	{
 
-	int iter = protectedFindINGAME(_OBJ, &TransformsINGAME);
-	//std::cout << iter << std::endl;
-	if (iter >= 0)
-	{
-		TransformsINGAME.erase(TransformsINGAME.begin() + iter);
-	}
-	
-	if (Camera* camera = dynamic_cast<Camera*>(_OBJ))
-	{
-		iter = protectedFindINGAME(camera, &CamerasINGAME);
+		int iter = protectedFindINGAME(_OBJ, &TransformsINGAME);
+		//std::cout << iter << std::endl;
 		if (iter >= 0)
 		{
-			CamerasINGAME.erase(CamerasINGAME.begin() + iter);
+			TransformsINGAME.erase(TransformsINGAME.begin() + iter);
 		}
-	}
 
-	if (Light* light = dynamic_cast<Light*>(_OBJ))
-	{
-		iter = protectedFindINGAME(light, &AllLightINGAME);
-		if (iter >= 0)
+		if (Camera* camera = dynamic_cast<Camera*>(_OBJ))
 		{
-			AllLightINGAME.erase(AllLightINGAME.begin() + iter);
+			iter = protectedFindINGAME(camera, &CamerasINGAME);
+			if (iter >= 0)
+			{
+				CamerasINGAME.erase(CamerasINGAME.begin() + iter);
+			}
 		}
-	}
 
-	if (Weapon* _W = dynamic_cast<Weapon*>(_OBJ))
-	{
-		iter = protectedFindINGAME(_W, &allWeaponsINGAME);
-		if (iter >= 0)
+		if (Light* light = dynamic_cast<Light*>(_OBJ))
 		{
-			allWeaponsINGAME.erase(allWeaponsINGAME.begin() + iter);
+			iter = protectedFindINGAME(light, &AllLightINGAME);
+			if (iter >= 0)
+			{
+				AllLightINGAME.erase(AllLightINGAME.begin() + iter);
+			}
 		}
-	}
 
-	if (Powerup* _PUP = dynamic_cast<Powerup*>(_OBJ))
-	{
-		iter = protectedFindINGAME(_PUP, &allPowerupsINGAME);
-		if (iter >= 0)
+		if (Weapon* _W = dynamic_cast<Weapon*>(_OBJ))
 		{
-			allPowerupsINGAME.erase(allPowerupsINGAME.begin() + iter);
+			iter = protectedFindINGAME(_W, &allWeaponsINGAME);
+			if (iter >= 0)
+			{
+				allWeaponsINGAME.erase(allWeaponsINGAME.begin() + iter);
+			}
 		}
-	}
 
-	if (RecolorObject* RECOLOR = dynamic_cast<RecolorObject*>(_OBJ))
-	{
-		iter = protectedFindINGAME(RECOLOR, &allRecolorObjectsINGAME);
-		if (iter >= 0)
+		if (Powerup* _PUP = dynamic_cast<Powerup*>(_OBJ))
 		{
-			allRecolorObjectsINGAME.erase(allRecolorObjectsINGAME.begin() + iter);
+			iter = protectedFindINGAME(_PUP, &allPowerupsINGAME);
+			if (iter >= 0)
+			{
+				allPowerupsINGAME.erase(allPowerupsINGAME.begin() + iter);
+			}
 		}
-	}
 
-	if (GameObject* _GO = dynamic_cast<GameObject*>(_OBJ))
-	{
-		iter = protectedFindINGAME(_GO, &allGameObjectsINGAME);
-		if (iter >= 0)
+		if (RecolorObject* RECOLOR = dynamic_cast<RecolorObject*>(_OBJ))
 		{
-			allGameObjectsINGAME.erase(allGameObjectsINGAME.begin() + iter);
+			iter = protectedFindINGAME(RECOLOR, &allRecolorObjectsINGAME);
+			if (iter >= 0)
+			{
+				allRecolorObjectsINGAME.erase(allRecolorObjectsINGAME.begin() + iter);
+			}
 		}
-	}
 
-	if (Text* _T = dynamic_cast<Text*>(_OBJ))
-	{
-		iter = protectedFindINGAME(_T, &allTextINGAME);
-		if (iter >= 0)
+		if (GameObject* _GO = dynamic_cast<GameObject*>(_OBJ))
 		{
-			allTextINGAME.erase(allTextINGAME.begin() + iter);
+			iter = protectedFindINGAME(_GO, &allGameObjectsINGAME);
+			if (iter >= 0)
+			{
+				allGameObjectsINGAME.erase(allGameObjectsINGAME.begin() + iter);
+			}
 		}
-	}
 
-	delete _OBJ;
+		if (Text* _T = dynamic_cast<Text*>(_OBJ))
+		{
+			iter = protectedFindINGAME(_T, &allTextINGAME);
+			if (iter >= 0)
+			{
+				allTextINGAME.erase(allTextINGAME.begin() + iter);
+			}
+		}
+
+		delete _OBJ;
+	}
+	else
+	{
+		std::cout << "NULL" << std::endl;
+	}
 }
 
 void ResourceManager::destroyChildrenINGAME(Transform * OBJ)

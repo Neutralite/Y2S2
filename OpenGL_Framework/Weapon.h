@@ -50,6 +50,7 @@ public:
 	~Weapon();
 
 	float timeActive = 0.f; //Running Time of Weapon
+	virtual float getDMG() = 0;
 	
 	Hitbox2D* Impact;
 	mat4 worldLocation;

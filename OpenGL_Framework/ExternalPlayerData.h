@@ -12,6 +12,7 @@ public:
 	static std::vector<int> playerVehicleChoice;
 	static std::vector<bool> playerActive;
 	static std::vector<std::string> playerNames;
+	static std::vector<vec3> playerColors;
 
 	static void bootScreens();
 	static std::vector<vec4> screenRats;

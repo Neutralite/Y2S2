@@ -8,6 +8,8 @@ public:
 	~Hammer();
 	static bool weaponInit();
 
+	float getDMG() { return 35.f; }
+
 	static std::vector<wFrame> FRAMES;
 
 	std::vector<wFrame>* getFL();
