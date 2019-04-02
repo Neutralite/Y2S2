@@ -15,6 +15,7 @@
 #include "Text.h"
 #include "Powerup.h"
 #include "RecolorObject.h"
+#include "FModWrapper.h"
 
 class ResourceManager
 {
@@ -22,10 +23,12 @@ public:
 	static void addEntity(Transform* entity);
 	static void addShader(ShaderProgram* shader);
 	static void addTexture(Texture* TEX);
+	static void addLUT(Texture* LUT);
 	static void addMesh(Mesh* MESH);
 	static void addHitbox(Hitbox2D* HB);
 	static void addFramebuffer(Framebuffer* FB);
 	static void addMaterial(Material* _M);
+	static void addSound(Sound* _SOUND);
 
 	static void addEntityINGAME(Transform* entity);
 
@@ -33,9 +36,11 @@ public:
 	static std::vector<Transform*> Transforms;
 	static std::vector<Camera*> Cameras;
 	static std::vector<Material*> Materials;
+	static std::vector<Sound*> allSounds;
 	static std::vector<Text*> Fonts;
 
 	static std::vector<Texture*> allTextures;
+	static std::vector<Texture*> allLUTS;
 	static std::vector<Mesh*> allMeshes;
 	static std::vector<GameObject*> allGameObjects;
 	static std::vector<RecolorObject*> allRecolorObjects;
@@ -68,6 +73,7 @@ public:
 	static int protectedFindINGAME(T* _ADR, std::vector<T*> *LIST);
 
 	static Texture* searchForTexture(std::string _NAME);
+	static Texture* searchForLUT(std::string _NAME);
 	static Mesh* searchForMesh(std::string _NAME);
 	static GameObject* searchForGameObject(std::string _NAME);
 	static RecolorObject* searchForRecolorObject(std::string _NAME);
@@ -81,6 +87,7 @@ public:
 	static Material* searchForMaterial(std::string _NAME);
 	static Text* searchForFont(std::string _NAME);
 	static Powerup* searchForPowerup(std::string _NAME);
+	static Sound* searchForSounds(std::string _NAME);
 
 	static void destroyObjectINGAME(Transform* _OBJ);
 	static void destroyChildrenINGAME(Transform* OBJ);
@@ -93,6 +100,7 @@ public:
 	static Hitbox2D* getHitbox(std::string _NAME);
 	static Mesh* getMesh(std::string _NAME);
 	static Texture* getTexture(std::string _NAME);
+	static Texture* getLUT(std::string _NAME);
 	static Camera* getCamera(std::string _NAME);
 	static Transform* getEntity(std::string _NAME);
 	static ShaderProgram* getShader(std::string _NAME);
@@ -101,6 +109,7 @@ public:
 	static Framebuffer* getFramebuffer(std::string _NAME);
 	static Weapon* getWeapon(std::string _NAME);
 	static Material* getMaterial(std::string _NAME);
+	static Sound* getSound(std::string _NAME);
 	static Text* getFont(std::string _NAME);
 	static Powerup* getPowerup(std::string _NAME);
 

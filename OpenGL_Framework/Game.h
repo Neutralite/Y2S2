@@ -117,8 +117,12 @@ public:
 	float TotalGameTime = 0.0f;
 	float maxGameTimer = 180.f;
 	float tTime = 1.0001f;
+	float splAmnt = 0.2f;
 
 	bool getTime = false;
+
+	bool sunRiseAndSet = true;
+	bool colorSplitShadows = false;
 
 	bool isInScene = false;
 

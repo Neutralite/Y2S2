@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "Framebuffer.h"
+#include "FModWrapper.h"
 
 class Transform
 {
@@ -63,6 +64,8 @@ public:
 	virtual void setRenderList(std::vector<Transform*> objects);
 	virtual void addToRenderList(std::vector<Transform*> objects);
 
+	static FMOD_VECTOR toFV(vec3 _V);
+
 	std::string getName();
 	void setName(std::string _NAME);
 
@@ -108,6 +111,7 @@ public:
 	vec3 drawPoint1;
 	vec3 drawPoint2;
 
+	FMOD::Channel* sound = nullptr;
 protected:
 	// Other Properties
 	std::string name;

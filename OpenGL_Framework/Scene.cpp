@@ -21,6 +21,7 @@ std::vector<Triggers> Scene::playerTriggers;
 UniformBuffer Scene::uniformBufferTime;
 UniformBuffer Scene::uRes;
 
+bool Scene::killTheGPUWithLights;
 
 constexpr int Scene::frameTimeNumSamples;
 int Scene::frameTimeCurrSample;
@@ -51,6 +52,7 @@ ShaderProgram* Scene::TEXT_SHADER;
 ShaderProgram* Scene::TEXT_UI;
 ShaderProgram* Scene::DOUTPUT;
 ShaderProgram* Scene::BLACKOUT;
+ShaderProgram* Scene::LUT;
 
 Framebuffer* Scene::sceneCapture;
 Framebuffer* Scene::collect;
@@ -64,6 +66,10 @@ Texture* Scene::tRamp;
 Texture* Scene::tDiffuse;
 Texture* Scene::difOver;
 Texture* Scene::transOver;
+Texture* Scene::BoringRamp;
+Texture* Scene::SteepRamp;
+Texture* Scene::SuddenRamp;
+Texture* Scene::TwoStopRamp;
 
 Scene::Scene()
 {
@@ -100,6 +106,7 @@ void Scene::setDefaults()
 	TEXT_UI = rm::getShader("TEXT_UI");
 	DOUTPUT = rm::getShader("DEPTH_CHECK_OUTPUT");
 	BLACKOUT = rm::getShader("PER_PLAYER_TRANS");
+	LUT = rm::getShader("LUT");
 
 	sceneCapture = rm::getFramebuffer("INITIAL_SCREEN");
 	defLight = rm::getFramebuffer("DEF_LIGHT");
@@ -116,9 +123,23 @@ void Scene::setDefaults()
 	tDiffuse = rm::getTexture("Diffuse Toon");
 	tDiffuse->setWrapParameters(GL_CLAMP_TO_EDGE);
 	tDiffuse->sendTexParameters();
+	BoringRamp = rm::getTexture("BoringRamp");
+	BoringRamp->setWrapParameters(GL_CLAMP_TO_EDGE);
+	BoringRamp->sendTexParameters();
+	SteepRamp = rm::getTexture("SteepRamp");
+	SteepRamp->setWrapParameters(GL_CLAMP_TO_EDGE);
+	SteepRamp->sendTexParameters();
+	SuddenRamp = rm::getTexture("SuddenDrop");
+	SuddenRamp->setWrapParameters(GL_CLAMP_TO_EDGE);
+	SuddenRamp->sendTexParameters();
+	TwoStopRamp = rm::getTexture("TwoStopRamp");
+	TwoStopRamp->setWrapParameters(GL_CLAMP_TO_EDGE);
+	TwoStopRamp->sendTexParameters();
 	difOver = rm::getTexture("Diffuse Overlay");
 
 	transOver = rm::getTexture("defaultBlack");
+
+	killTheGPUWithLights = false;
 }
 
 void Scene::setName(std::string _NAME)

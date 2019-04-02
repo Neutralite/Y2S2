@@ -47,11 +47,16 @@ layout (binding = 2) uniform sampler2D uEmissive;
 layout (binding = 3) uniform sampler2D uRoughness;
 layout (binding = 4) uniform sampler2D uMetallic;
 layout (binding = 5) uniform sampler2D uDepth;
+layout (binding = 10) uniform sampler2D uSpread;
 
 layout (binding = 30) uniform sampler2D uTexShadowDepth;
 
 uniform int DO_SHADOWS;
+uniform int COLOR_SPLIT_SHADOWS;
+uniform float splitAmount;
 uniform mat4 uShadowView;
+uniform mat4 uShadowCamView;
+uniform mat4 uShadowCamProj;
 
 uniform float doubleCheck;
 
@@ -91,11 +96,45 @@ void main()
 	//NdotL = 0.5f * NdotL + 0.5f;
 	
 	float shadowMult = 1.f;
-	if (DO_SHADOWS == 1)
+
+	vec3 letThrough = vec3(1.f);
+	if (DO_SHADOWS == 1 && COLOR_SPLIT_SHADOWS == 1)
 	{
 		vec4 shadowCoord = uShadowView * Pos;
 		float shadowDepth = texture(uTexShadowDepth, (shadowCoord).xy).r;
-		if (shadowDepth < shadowCoord.z + clamp(tan(acos(dot(N, D))) * 0.0004f, -0.1f, 0.1f))
+
+		float difference = max(shadowCoord.z + clamp(tan(acos(dot(N, D))) * 0.001f, -0.1f, 0.1f) - shadowDepth, 0);
+		vec4 realPos = inverse(uShadowCamProj) * (2.f * vec4(shadowCoord.xy, shadowDepth, 1.f) - 1);
+		realPos /= realPos.w;
+		realPos = vec4(0.5f) + 0.5f * uProj * uView * inverse(uShadowCamView) * realPos;
+
+		vec3 colSplit = 2.f * texture(uSpread, realPos.xy).rgb - 1.f;
+		vec3 newNorm = mat3(uShadowCamView) * inverse(mat3(uView)) * N;
+
+		vec2 tCoorShiftR = vec2(newNorm.y, -newNorm.x) * splitAmount * colSplit.r * difference + shadowCoord.xy;
+		vec2 tCoorShiftG = vec2(newNorm.y, -newNorm.x) * splitAmount * colSplit.g * difference + shadowCoord.xy;
+		vec2 tCoorShiftB = vec2(newNorm.y, -newNorm.x) * splitAmount * colSplit.b * difference + shadowCoord.xy;
+		
+		if (texture(uTexShadowDepth, tCoorShiftR).r < shadowCoord.z + clamp(tan(acos(dot(N, D))) * 0.001f, -0.1f, 0.1f))
+		{
+			letThrough.r = 0.f;
+		}
+
+		if (texture(uTexShadowDepth, tCoorShiftG).r < shadowCoord.z + clamp(tan(acos(dot(N, D))) * 0.001f, -0.1f, 0.1f))
+		{
+			letThrough.g = 0.f;
+		}
+
+		if (texture(uTexShadowDepth, tCoorShiftB).r < shadowCoord.z + clamp(tan(acos(dot(N, D))) * 0.001f, -0.1f, 0.1f))
+		{
+			letThrough.b = 0.f;
+		}
+	}
+	else if (DO_SHADOWS == 1)
+	{
+		vec4 shadowCoord = uShadowView * Pos;
+		float shadowDepth = texture(uTexShadowDepth, (shadowCoord).xy).r;
+		if (shadowDepth < shadowCoord.z + clamp(tan(acos(dot(N, D))) * 0.001f, -0.1f, 0.1f))
 		{
 			shadowMult = 0.f;
 		}
@@ -104,8 +143,8 @@ void main()
 	if (NdotL > 0)
 	{
 		float NdotHV = max(dot(N, normalize(-D + normalize(-pos))), 0.0f);
-
-		diffuseLight.rgb += NdotL * uLightColor.rgb * intensity * shadowMult;
-		specularLight.rgb += pow(NdotHV, specularExp) * intensity * shadowMult;
+		
+		diffuseLight.rgb += NdotL * uLightColor.rgb * intensity * letThrough * shadowMult;
+		specularLight.rgb += pow(NdotHV, specularExp) * intensity * letThrough * shadowMult;
 	}
 }

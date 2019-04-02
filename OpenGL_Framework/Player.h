@@ -69,6 +69,20 @@ public:
 	int playerNumber = 0;
 
 	int respawnPoint = 0;
+
+	bool strikePlayer = false;
+
+	bool throwMetal = false;
+	bool throwMetalDeath = false;
+
+	bool throwWood = false;
+	bool throwWoodDeath = false;
+
+	bool throwGrass = false;
+
+	bool throwConcrete = false;
+	bool throwConcreteDeath = false;
+
 private:
 	Weapon* attack = nullptr;
 	float attackTimer = 0.f;

@@ -44,6 +44,14 @@ bool SceneHandler::initHandler(int windowWidth, int windowHeight)
 	masterFile = "_TEXTURE_MASTER_LIST";
 	loadAllTextures(masterFile);
 
+	SAT_DEBUG_LOG("LUTS");
+	masterFile = "_LUT_MASTER_LIST";
+	loadAllLUTS(masterFile);
+
+	SAT_DEBUG_LOG("SOUNDS");
+	masterFile = "_SOUNDS_MASTER_LIST";
+	loadAllSounds(masterFile);
+
 	SAT_DEBUG_LOG("LIGHTS");
 	masterFile = "_LIGHTS_MASTER_LIST";
 	loadAllLights(masterFile);
@@ -172,6 +180,8 @@ void SceneHandler::update()
 {
 	//glutWarpPointer(Scene::windowWidth / 2, Scene::windowHeight / 2);
 	//glutSetCursor(GLUT_CURSOR_NONE);
+	Sound::engine.Update();
+
 	if (currentScene->readyToTerminate)
 		replaceScene(searchScenes(currentScene->nextScene));
 	currentScene->update();
@@ -410,6 +420,29 @@ void SceneHandler::loadAllTextures(std::string & fileName)
 		{
 			tex->setName(temp);
 			ResourceManager::addTexture(tex);
+		}
+	}
+	masterFile.close();
+}
+
+void SceneHandler::loadAllLUTS(std::string & fileName)
+{
+	std::ifstream masterFile;
+	masterFile.open("../assets/LUTs/" + fileName + ".txt");
+	std::string temp;
+	while (std::getline(masterFile, temp))
+	{
+		Texture* tex = new Texture;
+		if (!tex->load3D(temp + ".cube"))
+		{
+			std::cout << temp << " texture could not load!" << std::endl;
+			delete tex;
+			tex = nullptr;
+		}
+		else
+		{
+			tex->setName(temp);
+			ResourceManager::addLUT(tex);
 		}
 	}
 	masterFile.close();
@@ -786,6 +819,35 @@ void SceneHandler::loadAllFonts(std::string & fileName)
 		//std::cout << _T->getName() << std::endl;
 
 		ResourceManager::addEntity(_T);
+	}
+	masterFile.close();
+}
+
+void SceneHandler::loadAllSounds(std::string & fileName)
+{
+	std::ifstream masterFile;
+	masterFile.open("../assets/Sounds/" + fileName + ".txt");
+	std::string temp, temp2, temp3, temp4;
+	//std::cout << fileName << std::endl;
+	while (std::getline(masterFile, temp))
+	{
+		std::getline(masterFile, temp2);
+		std::getline(masterFile, temp3);
+		std::getline(masterFile, temp4);
+
+		Sound* _S = new Sound;
+		_S->setName(temp);
+
+		bool lop = false;
+		bool itd = false;
+		if (temp3 == "true")
+			lop = true;
+		if (temp4 == "true")
+			itd = true;
+
+		std::string TEMP = "../assets/Sounds/" + temp2 + ".wav";
+		_S->Load(TEMP.c_str(), itd, lop);
+		ResourceManager::addSound(_S);
 	}
 	masterFile.close();
 }

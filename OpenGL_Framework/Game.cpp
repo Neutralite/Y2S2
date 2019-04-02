@@ -103,6 +103,8 @@ void Game::initializeGame()
 
 	shadowView = false;
 	cancelShadows = false;
+	colorSplitShadows = false;
+	splAmnt = 0.2f;
 
 	std::vector<Transform*> subStep;
 	std::vector<Text*> textStep;
@@ -152,6 +154,17 @@ void Game::initializeGame()
 	{
 		setKeysDown(false, (unsigned char)i);
 	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		Sound::engine.listener[i].listening = EPD::playerActive[i];
+		if (EPD::playerActive[i])
+		{
+			PlayerCams[i]->PLAYER = &Sound::engine.listener[i];
+		}
+	}
+
+	sunRiseAndSet = true;
 
 	_GS = GS_BEGINNING;
 }
@@ -357,12 +370,15 @@ void Game::pDraw(int pNum)
 	sceneCapture->bindColorAsTexture(3, 4);
 	sceneCapture->bindColorAsTexture(4, 4);
 	sceneCapture->bindDepthAsTexture(5);
+	sceneCapture->bindColorAsTexture(5, 10);
 	tRamp->bind(31);
 
 	COMIC_EXECUTION->sendUniform("uModel", SUNS[pNum]->getLocalToWorld(), false);
 	defLight->renderToFSQ();
 
 	mat4 shadowMat = mat4::identity();
+	mat4 shadyView = mat4::identity();
+	mat4 shadyProj = mat4::identity();
 
 	mat4 biasMat4 = mat4(
 		0.5f, 0.0f, 0.0f, 0.0f,
@@ -411,6 +427,8 @@ void Game::pDraw(int pNum)
 					applyShadows = true;
 					//Camera* CC = dynamic_cast<Camera*>(C);
 					shadowMat = biasMat4 * CC->getProjection() * CC->getView() * PlayerCams[pNum]->getLocalToWorld();
+					shadyView = CC->getView();
+					shadyProj = CC->getProjection();
 
 					PlayerCams[pNum]->sendUBO();
 					sceneCapture->bindColorAsTexture(0, 0);
@@ -419,6 +437,7 @@ void Game::pDraw(int pNum)
 					sceneCapture->bindColorAsTexture(3, 4);
 					sceneCapture->bindColorAsTexture(4, 4);
 					sceneCapture->bindDepthAsTexture(5);
+					sceneCapture->bindColorAsTexture(5, 10);
 
 					std::vector<Transform*> EMPT;
 					CC->setRenderList(EMPT);
@@ -462,8 +481,11 @@ void Game::pDraw(int pNum)
 		USING->sendUniform("DO_SHADOWS", (int)applyShadows);
 		if (applyShadows)
 		{
+			USING->sendUniform("COLOR_SPLIT_SHADOWS", (int)colorSplitShadows);
+			USING->sendUniform("splitAmount", splAmnt);
 			USING->sendUniform("uShadowView", shadowMat);
-
+			USING->sendUniform("uShadowCamView", shadyView);
+			USING->sendUniform("uShadowCamProj", shadyProj);
 			//std::cout << "IT'S TRYIN'!" << std::endl;
 		}
 
@@ -503,6 +525,7 @@ void Game::pDraw(int pNum)
 	}
 
 	ShaderProgram::unbind();
+	sceneCapture->unbindTexture(10);
 	sceneCapture->unbindTexture(5);
 	sceneCapture->unbindTexture(4);
 	sceneCapture->unbindTexture(3);
@@ -563,6 +586,24 @@ void Game::pDraw(int pNum)
 	BLACKOUT->sendUniform("blackout", screenTransitionFloat[pNum]);
 	RADIAL_POST_PROC.draw();
 
+	if (sunRiseAndSet)
+	{
+		LUT->bind();
+		Texture* _LUT;
+		if (2.f * (60.f * minutes + seconds) - maxGameTimer > 0.f)
+		{
+			_LUT = rm::getLUT("Sunrise");
+		}
+		else
+		{
+			_LUT = rm::getLUT("Sunset");
+		}
+		_LUT->bind(1);
+		LUT->sendUniform("mixVal", 1.f - cos((2.f * (60.f * minutes + seconds) - maxGameTimer) / maxGameTimer * 1.57079f * 0.66f));
+		RADIAL_POST_PROC.draw();
+		_LUT->unbind(1);
+	}
+
 	OUTPUT->bind();
 
 
@@ -606,6 +647,9 @@ void Game::GUI()
 
 		ImGui::PlotHistogram("", frameTimeSamples, frameTimeNumSamples, 0, framerate.c_str(), 0.0f, 0.1f, ImVec2(frameTimeNumSamples, 60));
 	}
+
+	ImGui::SliderFloat("SHADOW_SPLIT_AMOUNT", &splAmnt, 0.f, 1.f, "%.5f");
+
 	ImGui::End();
 
 	UI::End();
@@ -786,6 +830,11 @@ void Game::startingUpdate(float dt)
 
 void Game::runningUpdate(float dt)
 {
+	if (keysDown['9'])
+	{
+		deltaTime *= 8.f;
+	}
+
 	TotalGameTime += deltaTime;
 
 	uniformBufferTime.sendFloat(TotalGameTime, 0);
@@ -852,6 +901,12 @@ void Game::runningUpdate(float dt)
 	{
 		timeString = "TIME";
 		_GS = GS_ENDED;
+
+		Sound* NUM2 = nullptr;
+		NUM2 = rm::getSound("TIME_BLOW");
+		GameObject* EMPTY = rm::getCloneOfObject("EMPTY_OBJECT");
+		EMPTY->sound = NUM2->Play();
+		EMPTY->sound->setVolume(0.7f);
 	}
 
 	TIMER2->baseColor = vec3(180.f, 60.f * minutes + seconds, 60.f * minutes + seconds) / 180.f;
@@ -898,6 +953,68 @@ void Game::runningUpdate(float dt)
 	updateAttacks(deltaTime);
 	staticCollisions();
 	dynamicCollisions();
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (EPD::playerActive[i])
+		{
+			Sound* NUM = nullptr;
+			if (players[i]->throwMetal)
+			{
+				NUM = rm::getSound("POLE_HIT");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setVolume(0.2f);
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			if (players[i]->throwMetalDeath)
+			{
+				NUM = rm::getSound("POLE_DESTROY");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			if (players[i]->throwConcrete)
+			{
+				NUM = rm::getSound("BUILDING_HIT");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			if (players[i]->throwConcreteDeath)
+			{
+				NUM = rm::getSound("BUILDING_DESTROY");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setVolume(3.f);
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			if (players[i]->throwWood)
+			{
+				NUM = rm::getSound("WOOD_HIT");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setVolume(1.5f);
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			if (players[i]->throwWoodDeath)
+			{
+				NUM = rm::getSound("WOOD_DESTROY");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setVolume(0.5f);
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			if (players[i]->throwGrass)
+			{
+				NUM = rm::getSound("GRASS_RUN");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setVolume(8.5f);
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			if (players[i]->strikePlayer)
+			{
+				NUM = rm::getSound("POLE_HIT");
+				players[i]->sound = NUM->Play(Transform::toFV(players[i]->getWorldPos()));
+				players[i]->sound->setVolume(0.2f);
+				players[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+		}
+	}
 }
 
 void Game::pausedUpdate(float dt)
@@ -1075,6 +1192,7 @@ void Game::exitingUpdate(float dt)
 void Game::beginningUpdatePlayer(float dt, int pNum)
 {
 	SUNS[pNum]->setLocalPos(players[pNum]->getLocalPos());
+	SUNS[pNum]->setLocalRotX(90.f + max((2.f * (60.f * minutes + seconds) - maxGameTimer) / maxGameTimer * 60.f, -60.f));
 	SUNS[pNum]->update(deltaTime);
 	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
 
@@ -1086,7 +1204,16 @@ void Game::beginningUpdatePlayer(float dt, int pNum)
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], killTheGPUWithLights);
+				if (killTheGPUWithLights)
+				{
+					for (unsigned int k = 0; k < theMap->grid[j][i]->getChildren().size(); k++)
+					{
+						Transform* TC = theMap->grid[j][i]->getChildren().at(k);
+						TC->setLocalPos(vec3(TC->getLocalPos().x, 0.1f + pow(sin(TotalGameTime), 2), TC->getLocalPos().z));
+						TC->update(0);
+					}
+				}
 				int sectObj = theMap->fieldObjects[j][i].size();
 				for (int k = 0; k < sectObj; k++)
 				{
@@ -1133,6 +1260,7 @@ void Game::startingUpdatePlayer(float dt, int pNum)
 {
 	//_GS = GS_RUNNING;
 	SUNS[pNum]->setLocalPos(players[pNum]->getLocalPos());
+	SUNS[pNum]->setLocalRotX(90.f + max((2.f * (60.f * minutes + seconds) - maxGameTimer) / maxGameTimer * 60.f, -60.f));
 	SUNS[pNum]->update(deltaTime);
 	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
 
@@ -1144,7 +1272,16 @@ void Game::startingUpdatePlayer(float dt, int pNum)
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], killTheGPUWithLights);
+				if (killTheGPUWithLights)
+				{
+					for (unsigned int k = 0; k < theMap->grid[j][i]->getChildren().size(); k++)
+					{
+						Transform* TC = theMap->grid[j][i]->getChildren().at(k);
+						TC->setLocalPos(vec3(TC->getLocalPos().x, 0.1f + pow(sin(TotalGameTime), 2), TC->getLocalPos().z));
+						TC->update(0);
+					}
+				}
 				int sectObj = theMap->fieldObjects[j][i].size();
 				for (int k = 0; k < sectObj; k++)
 				{
@@ -1190,6 +1327,7 @@ void Game::startingUpdatePlayer(float dt, int pNum)
 void Game::runningUpdatePlayer(float dt, int pNum)
 {
 	SUNS[pNum]->setLocalPos(players[pNum]->getLocalPos());
+	SUNS[pNum]->setLocalRotX(90.f + max((2.f * (60.f * minutes + seconds) - maxGameTimer) / maxGameTimer * 60.f, -60.f));
 	SUNS[pNum]->update(deltaTime);
 	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
 	//SUN->rotateBy(deltaTime * 9.f, normalize(vec3(1, 0, 1)));
@@ -1264,7 +1402,16 @@ void Game::runningUpdatePlayer(float dt, int pNum)
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], killTheGPUWithLights);
+				if (killTheGPUWithLights)
+				{
+					for (unsigned int k = 0; k < theMap->grid[j][i]->getChildren().size(); k++)
+					{
+						Transform* TC = theMap->grid[j][i]->getChildren().at(k);
+						TC->setLocalPos(vec3(TC->getLocalPos().x, 0.1f + pow(sin(TotalGameTime), 2), TC->getLocalPos().z));
+						TC->update(0);
+					}
+				}
 				int sectObj = theMap->fieldObjects[j][i].size();
 				for (int k = 0; k < sectObj; k++)
 				{
@@ -1351,6 +1498,7 @@ void Game::runningUpdatePlayer(float dt, int pNum)
 void Game::pausedUpdatePlayer(float dt, int pNum)
 {
 	SUNS[pNum]->setLocalPos(players[pNum]->getLocalPos());
+	SUNS[pNum]->setLocalRotX(90.f + max((2.f * (60.f * minutes + seconds) - maxGameTimer) / maxGameTimer * 60.f, -60.f));
 	SUNS[pNum]->update(deltaTime);
 	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
 
@@ -1374,7 +1522,16 @@ void Game::pausedUpdatePlayer(float dt, int pNum)
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], killTheGPUWithLights);
+				if (killTheGPUWithLights)
+				{
+					for (unsigned int k = 0; k < theMap->grid[j][i]->getChildren().size(); k++)
+					{
+						Transform* TC = theMap->grid[j][i]->getChildren().at(k);
+						TC->setLocalPos(vec3(TC->getLocalPos().x, 0.1f + pow(sin(TotalGameTime), 2), TC->getLocalPos().z));
+						TC->update(0);
+					}
+				}
 				int sectObj = theMap->fieldObjects[j][i].size();
 				for (int k = 0; k < sectObj; k++)
 				{
@@ -1413,6 +1570,7 @@ void Game::pausedUpdatePlayer(float dt, int pNum)
 void Game::endedUpdatePlayer(float dt, int pNum)
 {
 	SUNS[pNum]->setLocalPos(players[pNum]->getLocalPos());
+	SUNS[pNum]->setLocalRotX(90.f + max((2.f * (60.f * minutes + seconds) - maxGameTimer) / maxGameTimer * 60.f, -60.f));
 	SUNS[pNum]->update(deltaTime);
 	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
 
@@ -1426,7 +1584,16 @@ void Game::endedUpdatePlayer(float dt, int pNum)
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], killTheGPUWithLights);
+				if (killTheGPUWithLights)
+				{
+					for (unsigned int k = 0; k < theMap->grid[j][i]->getChildren().size(); k++)
+					{
+						Transform* TC = theMap->grid[j][i]->getChildren().at(k);
+						TC->setLocalPos(vec3(TC->getLocalPos().x, 0.1f + pow(sin(TotalGameTime), 2), TC->getLocalPos().z));
+						TC->update(0);
+					}
+				}
 				int sectObj = theMap->fieldObjects[j][i].size();
 				for (int k = 0; k < sectObj; k++)
 				{
@@ -1473,6 +1640,7 @@ void Game::endedUpdatePlayer(float dt, int pNum)
 void Game::exitingUpdatePlayer(float dt, int pNum)
 {
 	SUNS[pNum]->setLocalPos(players[pNum]->getLocalPos());
+	SUNS[pNum]->setLocalRotX(90.f + max((2.f * (60.f * minutes + seconds) - maxGameTimer) / maxGameTimer * 60.f, -60.f));
 	SUNS[pNum]->update(deltaTime);
 	protectedEntityShip(&lightShips[pNum], SUNS[pNum]);
 
@@ -1484,7 +1652,16 @@ void Game::exitingUpdatePlayer(float dt, int pNum)
 		{
 			if (i >= 0 && i < 100 && j >= 0 && j < 100)
 			{
-				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], true);
+				drawChildren(&renderShips[pNum], &lightShips[pNum], theMap->grid[j][i], killTheGPUWithLights);
+				if (killTheGPUWithLights)
+				{
+					for (unsigned int k = 0; k < theMap->grid[j][i]->getChildren().size(); k++)
+					{
+						Transform* TC = theMap->grid[j][i]->getChildren().at(k);
+						TC->setLocalPos(vec3(TC->getLocalPos().x, 0.1f + pow(sin(TotalGameTime), 2), TC->getLocalPos().z));
+						TC->update(0);
+					}
+				}
 				int sectObj = theMap->fieldObjects[j][i].size();
 				for (int k = 0; k < sectObj; k++)
 				{
@@ -2087,6 +2264,7 @@ void Game::staticCollisions()
 			dynamicCollisionShip[i]->doCollision(staticCollisionShip[j]);
 			if (!desting && staticCollisionShip[j]->destroying)
 			{
+				//rm::getSound("DRUMZ_ONCE")->Play(Transform::toFV(staticCollisionShip[j]->getWorldPos()));
 				if (staticCollisionShip[j]->destrPoints > rand() % 200)
 				{
 					Powerup* _PUP = rm::getCloneOfPowerup("POWERUP");
@@ -2318,6 +2496,12 @@ void Game::generateATTACK(Player * P)
 			protectedWeaponShip(W2);
 			protectedWeaponShip(W3);
 
+			Sound* NUM = rm::getSound("AXE_USE");
+			P->sound = NUM->Play(Transform::toFV(P->getWorldPos()));
+			P->sound->setVolume(4.f);
+			P->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+
+
 			P->AttacksLeft -= 3;
 		}
 		if (P->AttacksLeft <= 0)
@@ -2338,6 +2522,20 @@ void Game::updateAttacks(float dt)
 		{
 			attackHIT(i);
 			weaponShip[i]->flingHitbox = 0;
+			if (weaponShip[i]->TT == Transform::TransformType::TYPE_Mine)
+			{
+				Sound* SUND = rm::getSound("MINE_USE");
+				weaponShip[i]->sound = SUND->Play(Transform::toFV(weaponShip[i]->getLocalToWorld().translation()));
+				weaponShip[i]->sound->setVolume(6.f);
+				weaponShip[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
+			else if (weaponShip[i]->TT == Transform::TransformType::TYPE_Hammer)
+			{
+				Sound* SUND = rm::getSound("HAMMER_USE");
+				weaponShip[i]->sound = SUND->Play(Transform::toFV(weaponShip[i]->getLocalToWorld().translation()));
+				weaponShip[i]->sound->setVolume(1.6f);
+				weaponShip[i]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+			}
 		}
 		if (weaponShip[i]->timeToDie)
 		{
@@ -2364,6 +2562,14 @@ void Game::attackHIT(unsigned int index)
 	int pWX = (int)pW.x;
 	int pWY = (int)pW.y;
 
+	bool throwMetalDeath = false;
+	
+	bool throwWoodDeath = false;
+	
+	bool throwGrass = false;
+
+	bool throwConcreteDeath = false;
+
 	for (int i = pWX - IS; i <= pWX + IS; ++i)
 	{
 		for (int j = pWY - IS; j <= pWY + IS; ++j)
@@ -2379,6 +2585,26 @@ void Game::attackHIT(unsigned int index)
 						vec3 curPos = _GO->getLocalPos();
 						if (weaponShip[index]->tailoredCollision(_GO))
 						{
+							if (_GO->getName() == "PINE TREE 1" || _GO->getName() == "PINE TREE 2" || _GO->getName() == "DEAD_TREE")
+							{
+								throwWoodDeath = true;
+							}
+							else if (_GO->getName() == "APARTMENT" || _GO->getName() == "BUILDING 1" || _GO->getName() == "BUILDING 2"
+								|| _GO->getName() == "CAR_WASH" || _GO->getName() == "GAS_STATION_STORE" || _GO->getName() == "HOUSE 1"
+								|| _GO->getName() == "HOUSE 2")
+							{
+								throwConcreteDeath = true;
+							}
+							else if (_GO->getName() == "GRASS_SPROUT")
+							{
+								throwGrass = true;
+							}
+							else if (_GO->getName() == "BENCH" || _GO->getName() == "STREET_LAMP" || _GO->getName() == "STREETLIGHT"
+								|| _GO->getName() == "STRRETLIGHT_FLIPPED" || _GO->getName() == "TRAILER")
+							{
+								throwMetalDeath = true;
+							}
+
 							if (_GO->TT == Transform::TransformType::TYPE_Player)
 							{
 								Player* _P = dynamic_cast<Player*>(_GO);
@@ -2387,6 +2613,12 @@ void Game::attackHIT(unsigned int index)
 									_P->playerHP -= weaponShip[index]->getDMG();
 									if (_P->playerHP <= 0)
 									{
+										Sound* NUM = rm::getSound("MINE_USE");
+										_P->sound = NUM->Play(Transform::toFV(_P->getWorldPos()));
+										_P->sound->setVolume(13.f);
+										_P->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+
+
 										_P->playerHP = 0;
 										_P->respawnPoint = rand() % spawnPoints.size();
 										_P->HIDE = true;
@@ -2432,6 +2664,34 @@ void Game::attackHIT(unsigned int index)
 			}
 		}
 	}
+
+	Sound* NUM = nullptr;
+	if (throwWoodDeath)
+	{
+		NUM = rm::getSound("WOOD_DESTROY");
+		weaponShip[index]->sound = NUM->Play(Transform::toFV(weaponShip[index]->getLocalToWorld().translation()));
+		weaponShip[index]->sound->setVolume(0.5f);
+		weaponShip[index]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+	}
+	else if (throwConcreteDeath)
+	{
+		NUM = rm::getSound("BUILDING_DESTROY");
+		weaponShip[index]->sound = NUM->Play(Transform::toFV(weaponShip[index]->getLocalToWorld().translation()));
+		weaponShip[index]->sound->setVolume(3.f);
+		weaponShip[index]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+	}
+	else if (throwGrass)
+	{
+		NUM = rm::getSound("GRASS_RUN");
+		weaponShip[index]->sound = NUM->Play(Transform::toFV(weaponShip[index]->getLocalToWorld().translation()));
+		weaponShip[index]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+	}
+	else if (throwMetalDeath)
+	{
+		NUM = rm::getSound("POLE_DESTROY");
+		weaponShip[index]->sound = NUM->Play(Transform::toFV(weaponShip[index]->getLocalToWorld().translation()));
+		weaponShip[index]->sound->setFrequency(((float)(rand() % 11)) * 0.1f + 0.5f);
+	}
 }
 
 void Game::allSetup()
@@ -2459,7 +2719,7 @@ void Game::setBaseAndBoundaries()
 		SUNS[i] = nullptr;
 		if (EPD::playerActive[i])
 		{
-			SUNS[i] = rm::getCloneOfLight("SUNLIGHT_INGAME");
+			SUNS[i] = rm::getCloneOfLight("SUNNIER_LIGHT_INGAME");
 		}
 	}
 
@@ -2516,7 +2776,7 @@ void Game::setCamerasAndPlayers()
 			//shadowCams[i]->setLocalRotZ(180.f);
 			//shadowCams[i]->setScale(vec3(1.f, 1.f, -1.f));
 			SUNS[i]->addChild(shadowCams[i]);
-			SUNS[i]->setLocalRot(vec3(60.f, 45.f, 0));
+			SUNS[i]->setLocalRot(vec3(30.f, 20.f, 15.f));
 			SUNS[i]->update(0);
 		}
 	}
@@ -2795,6 +3055,7 @@ void Game::generateMap()
 	//		std::cout << P_WEAP[i]->getLocalToWorld() << std::endl;
 	//	}
 	//}
+
 }
 
 void Game::performUpdates(float dt)
@@ -2911,6 +3172,19 @@ void Game::uniqueKeyPresses()
 	{
 		cancelShadows = !cancelShadows;
 	}
+	if (keysDown['0'] && !backCheckKeysDown['0'])
+	{
+		killTheGPUWithLights = !killTheGPUWithLights;
+	}
+	if (keysDown['8'] && !backCheckKeysDown['8'])
+	{
+		sunRiseAndSet = !sunRiseAndSet;
+	}
+	if (keysDown['7'] && !backCheckKeysDown['7'])
+	{
+		colorSplitShadows = !colorSplitShadows;
+	}
+	
 
 	if (keysDown['/'] && !backCheckKeysDown['/'])
 	{

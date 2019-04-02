@@ -54,6 +54,7 @@ private:
 	Timer *updateTimer = nullptr;
 
 	Camera* victoryCam = nullptr;
+	GameObject* EMPTY = nullptr;
 
 	RecolorObject* backdrop = nullptr;
 

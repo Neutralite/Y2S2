@@ -11,6 +11,7 @@ enum TextureMaterialPBR
 	pbrRoughness = 2,
 	pbrMetallic = 3,
 	pbrNormal = 4,
+	pbrShadowSplit = 5,
 };
 
 class Material
@@ -67,6 +68,7 @@ public:
 	static Texture* blackTex;
 	static Texture* whiteTex;
 	static Texture* normalTex;
+	static Texture* defaultGrey;
 
 	std::string getName();
 	void setName(std::string _NAME);

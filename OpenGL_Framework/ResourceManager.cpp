@@ -5,9 +5,11 @@ std::vector<Transform*> ResourceManager::Transforms;
 std::vector<ShaderProgram*> ResourceManager::Shaders;
 std::vector<Camera*> ResourceManager::Cameras;
 std::vector<Material*> ResourceManager::Materials;
+std::vector<Sound*> ResourceManager::allSounds;
 std::vector<Text*> ResourceManager::Fonts;
 
 std::vector<Texture*> ResourceManager::allTextures;
+std::vector<Texture*> ResourceManager::allLUTS;
 std::vector<Mesh*> ResourceManager::allMeshes;
 std::vector<GameObject*> ResourceManager::allGameObjects;
 std::vector<RecolorObject*> ResourceManager::allRecolorObjects;
@@ -113,6 +115,15 @@ void ResourceManager::addTexture(Texture * TEX)
 		sortAdd(0, allTextures.size() - 1, TEX, &allTextures);
 }
 
+void ResourceManager::addLUT(Texture * LUT)
+{
+	//allTextures.push_back(TEX);
+	if (allLUTS.size() == 0)
+		allLUTS.push_back(LUT);
+	else
+		sortAdd(0, allLUTS.size() - 1, LUT, &allLUTS);
+}
+
 void ResourceManager::addMesh(Mesh * MESH)
 {
 	//allMeshes.push_back(MESH);
@@ -147,6 +158,14 @@ void ResourceManager::addMaterial(Material * _M)
 		Materials.push_back(_M);
 	else
 		sortAdd(0, Materials.size() - 1, _M, &Materials);
+}
+
+void ResourceManager::addSound(Sound * _SOUND)
+{
+	if (allSounds.size() == 0)
+		allSounds.push_back(_SOUND);
+	else
+		sortAdd(0, allSounds.size() - 1, _SOUND, &allSounds);
 }
 
 void ResourceManager::addEntityINGAME(Transform * entity)
@@ -216,6 +235,14 @@ Texture * ResourceManager::searchForTexture(std::string _NAME)
 		return nullptr;
 	else
 		return find(0, allTextures.size() - 1, _NAME, &allTextures);
+}
+
+Texture * ResourceManager::searchForLUT(std::string _NAME)
+{
+	if (allLUTS.size() == 0)
+		return nullptr;
+	else
+		return find(0, allLUTS.size() - 1, _NAME, &allLUTS);
 }
 
 Mesh * ResourceManager::searchForMesh(std::string _NAME)
@@ -320,6 +347,14 @@ Powerup * ResourceManager::searchForPowerup(std::string _NAME)
 		return nullptr;
 	else
 		return find(0, allPowerups.size() - 1, _NAME, &allPowerups);
+}
+
+Sound * ResourceManager::searchForSounds(std::string _NAME)
+{
+	if (allSounds.size() == 0)
+		return nullptr;
+	else
+		return find(0, allSounds.size() - 1, _NAME, &allSounds);
 }
 
 void ResourceManager::destroyObjectINGAME(Transform * _OBJ)
@@ -503,6 +538,14 @@ Texture * ResourceManager::getTexture(std::string _NAME)
 	return SUB;
 }
 
+Texture * ResourceManager::getLUT(std::string _NAME)
+{
+	Texture* SUB = ResourceManager::searchForLUT(_NAME);
+	if (!SUB)
+		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
+	return SUB;
+}
+
 Camera * ResourceManager::getCamera(std::string _NAME)
 {
 	Camera* SUB = ResourceManager::searchForCamera(_NAME);
@@ -562,6 +605,14 @@ Weapon * ResourceManager::getWeapon(std::string _NAME)
 Material * ResourceManager::getMaterial(std::string _NAME)
 {
 	Material* SUB = ResourceManager::searchForMaterial(_NAME);
+	if (!SUB)
+		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
+	return SUB;
+}
+
+Sound * ResourceManager::getSound(std::string _NAME)
+{
+	Sound* SUB = ResourceManager::searchForSounds(_NAME);
 	if (!SUB)
 		SAT_DEBUG_LOG("%s MISSING!", _NAME.c_str());
 	return SUB;

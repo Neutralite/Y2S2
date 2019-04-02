@@ -89,6 +89,12 @@ mat4* Camera::getViewProjectionPtr()
 void Camera::update(float dt)
 {
 	Transform::update(dt); // original inherited update function
+	if (PLAYER)
+	{
+		PLAYER->pos = toFV(getWorldPos());
+		PLAYER->forward = toFV(getLocalToWorld().forward());
+		PLAYER->up = toFV(getLocalToWorld().up());
+	}
 	m_pViewMatrix = inverse(m_pLocalToWorld);
 	sendUBO();
 	

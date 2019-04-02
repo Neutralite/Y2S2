@@ -160,6 +160,9 @@
     <ClCompile Include="RulesScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FModWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -357,6 +360,9 @@
     <ClInclude Include="RulesScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FModWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\gmtk\LICENSE.md">
@@ -480,6 +486,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\assets\shaders\PerPlayerTransition.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\ApplyLUT.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

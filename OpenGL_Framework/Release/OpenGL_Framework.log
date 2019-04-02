@@ -1,37 +1,25 @@
-﻿  BasePlate.cpp
-  Boundary.cpp
-  Camera.cpp
-  Destructable.cpp
+﻿  Camera.cpp
+  ExternalPlayerData.cpp
+  FModWrapper.cpp
   Field.cpp
-  Framebuffer.cpp
   Game.cpp
-  GameObject.cpp
-  HITBOX2D.cpp
-  IO.cpp
-  Light.cpp
-  main.cpp
   Material.cpp
-  Mesh.cpp
-  PhysicsBody.cpp
-  Player.cpp
-  PostProcessBuffer.cpp
+  Powerup.cpp
   ResourceManager.cpp
-  ShaderProgram.cpp
+  RulesScene.cpp
+  Scene.cpp
+  SceneHandler.cpp
   Text.cpp
-  Compiling...
-  Texture.cpp
-  TextureCube.cpp
-  Transform.cpp
-  UI.cpp
-  UniformBuffer.cpp
-  VertexBufferObject.cpp
-  Weapon.cpp
+  Title.cpp
+  VehicleSelection.cpp
+  VictoryScene.cpp
+  WEAPON_Axe.cpp
   WEAPON_Hammer.cpp
   WEAPON_Mine.cpp
-  XinputManager.cpp
+  main.cpp
   Generating code
-  2003 of 4787 functions (41.8%) were compiled, the rest were copied from previous compilation.
-    1297 functions were new in current compilation
-    406 functions had inline decision re-evaluated but remain unchanged
+  6209 of 6211 functions (100.0%) were compiled, the rest were copied from previous compilation.
+    1504 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  OpenGL_Framework.vcxproj -> C:\Users\100657516\Documents\Y2S2 loaner\Intermediate CG\Potential Candidate For Framework\INFR 2350\Release\OpenGL_Framework.exe
+  OpenGL_Framework.vcxproj -> C:\Users\100657516\Documents\_LOANER_FILES\100657516\Documents\Y2S2 loaner\Intermediate CG\Potential Candidate For Framework\INFR 2350\Release\OpenGL_Framework.exe

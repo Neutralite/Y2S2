@@ -82,3 +82,6 @@ RECOLOR_RENDER.frag
 PER_PLAYER_TRANS
 GenericPost.vert
 PerPlayerTransition.frag
+LUT
+GenericPost.vert
+ApplyLUT.frag

@@ -93,7 +93,7 @@ void main()
 	if (NdotL > 0)
 	{
 		float NdotHV = max(dot(N, normalize(Ldir + normalize(-pos))), 0.0f);
-
+		
 		diffuseLight.rgb += NdotL * ATT * uLightColor.rgb * intensity;// * shadowMult;
 		specularLight.rgb += pow(NdotHV, specularExp) * ATT * intensity;// * shadowMult;
 	}

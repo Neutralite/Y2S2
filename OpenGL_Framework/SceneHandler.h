@@ -53,6 +53,7 @@ private:
 	static void protectedBinarySearchAndAddScene(Scene* _S, unsigned int front, unsigned int back);
 
 	static void loadAllTextures(std::string &fileName);
+	static void loadAllLUTS(std::string &fileName);
 	static void loadAllMeshes(std::string &fileName);
 	static void loadAllObjects(std::string &fileName);
 	static void loadAllUIElements(std::string &fileName);
@@ -65,6 +66,7 @@ private:
 	static void loadAllCameras(std::string &fileName);
 	static void loadAllMaterials(std::string &fileName);
 	static void loadAllFonts(std::string &fileName);
+	static void loadAllSounds(std::string &fileName);
 	 
 	static void createChild(std::string &fileName, Transform* parent);
 

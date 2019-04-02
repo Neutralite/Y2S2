@@ -78,6 +78,8 @@ public:
 	static float frameTimeSamples[frameTimeNumSamples];
 
 	std::string nextScene;
+
+	static bool killTheGPUWithLights;
 protected:
 	static bool keysDown[256];
 	static bool backCheckKeysDown[256];
@@ -118,6 +120,7 @@ protected:
 	static ShaderProgram* TEXT_UI;
 	static ShaderProgram* DOUTPUT;
 	static ShaderProgram* BLACKOUT;
+	static ShaderProgram* LUT;
 
 	static Framebuffer* sceneCapture;
 	static Framebuffer* collect;
@@ -131,6 +134,10 @@ protected:
 	static Texture* tDiffuse;
 	static Texture* difOver;
 	static Texture* transOver;
+	static Texture* BoringRamp;
+	static Texture* SteepRamp;
+	static Texture* SuddenRamp;
+	static Texture* TwoStopRamp;
 };
 
 template<class T>

@@ -1,0 +1,112 @@
+DRUMZ
+drumloop
+true
+true
+DRUMZ_ONCE
+drumloop
+false
+true
+VICTORY_1
+Come on guys
+false
+true
+VICTORY_2
+Come on guys2
+false
+true
+VICTORY_3
+Don't look at me
+false
+true
+VICTORY_4
+Don't look at me2
+false
+true
+VICTORY_5
+Look at me go
+false
+true
+VICTORY_6
+Now let's go see
+false
+true
+VICTORY_7
+Now let's go see2
+false
+true
+VICTORY_8
+Ok so who'se gonna
+false
+true
+VICTORY_9
+Ok so who'se gonna2
+false
+true
+VICTORY_10
+Why are we attacking
+false
+true
+VICTORY_11
+Why are we attacking2
+false
+true
+VICTORY_12
+Yes Ok Fine
+false
+true
+VICTORY_13
+YesOkFine2
+false
+true
+VICTORY_14
+You know what
+false
+true
+VICTORY_15
+You know what2
+false
+true
+BUILDING_HIT
+Concrete Collision
+false
+true
+BUILDING_DESTROY
+Concrete Destroy
+false
+true
+TIME_BLOW
+End Whistle Or Horn
+false
+false
+GRASS_RUN
+Grass Drive-On and Destroy
+false
+true
+HAMMER_USE
+Hammer
+false
+true
+POLE_HIT
+Metal Collision
+false
+true
+POLE_DESTROY
+Metal Destroy
+false
+true
+MINE_USE
+Mine Explosion
+false
+true
+AXE_USE
+Throw Axe
+false
+true
+WOOD_HIT
+Wood Collision
+false
+true
+WOOD_DESTROY
+Wood Destroy
+false
+true

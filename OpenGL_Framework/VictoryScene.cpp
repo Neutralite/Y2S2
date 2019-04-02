@@ -336,6 +336,31 @@ void VictoryScene::beginningUpdate(float dt)
 		{
 			justBecauseItFeelsNice = 1.f;
 			_GS = GS_STARTING;
+
+			if (EPD::numActive > 1)
+			{
+				float MAX_SCORE = 0.f;
+				for (int i = 0; i < 4; i++)
+				{
+					if (EPD::playerActive[i])
+						MAX_SCORE = max(MAX_SCORE, EPD::playerScores[i]);
+				}
+
+				int numOfMax = 0;
+				for (int i = 0; i < 4; i++)
+				{
+					if (EPD::playerActive[i])
+						if (EPD::playerScores[i] == MAX_SCORE)
+							numOfMax++;
+				}
+
+				if (numOfMax == 1)
+				{
+					int i = rand() % 15;
+					Sound* SUND = rm::getSound("VICTORY_" + std::to_string(i + 1));
+					EMPTY->sound = SUND->Play(Transform::toFV(EMPTY->getWorldPos()));
+				}
+			}
 		}
 		tTime = 0.f;
 	}
@@ -1048,7 +1073,13 @@ void VictoryScene::setUpVictory()
 	victoryCam = rm::getCloneOfCamera("VICTORY_CAM");
 	victoryCam->giveNewOrthoRatio(aspect);
 	victoryCam->setLocalRotX(-30.f);
+	victoryCam->PLAYER = &Sound::engine.listener[0];
+	victoryCam->PLAYER->pos = Transform::toFV(victoryCam->getLocalPos());
 	victoryCam->update(0);
+
+	EMPTY = rm::getCloneOfObject("EMPTY_OBJECT");
+	EMPTY->setLocalPos(vec3(0, 0, -5));
+	victoryCam->addChild(EMPTY);
 
 	backdrop = rm::getCloneOfRecolorObject("SCENE_VICTORY");
 	backdrop->objectColor = vec3(0.3f, 0.3f, 0.3f);

@@ -2,6 +2,11 @@
 #include <gmtk/gmtk.h>
 #include "SOIL/SOIL.h"
 #include "IO.h"
+#include <vector>
+#include <fstream>
+#include <iostream>
+
+#define _CRT_SECURE_NO_WARNINGS
 
 std::string Texture::_TextureDirectory = "../assets/textures/";
 std::string Texture::_TextureCubeDirectory = _TextureDirectory + "cubemap/";
@@ -69,6 +74,92 @@ bool Texture::load(const std::string & file, bool mipmap)
 
 	this->unbind();
 	SOIL_free_image_data(textureData);
+	return true;
+}
+
+bool Texture::load3D(const std::string & file, bool mipmap)
+{
+	this->filename = "../assets/LUTs/" + file;
+
+	//unsigned char* textureData = SOIL_load_image((this->filename).c_str(),
+	//	&this->sizeX, &this->sizeY, &this->channels, SOIL_LOAD_RGBA);
+	std::vector<unsigned char> textureData;
+
+	std::ifstream CUBE_FILE;
+	CUBE_FILE.open("../assets/LUTs/" + file);
+	std::string parseString;
+	int iter = 0;
+	int cubeSize = 0;
+	while (std::getline(CUBE_FILE, parseString))
+	{
+		float r = 0;
+		float g = 0;
+		float b = 0;
+		//std::cout << parseString << std::endl;
+		if (iter == 5)
+		{
+			sscanf_s(parseString.c_str(), "LUT_3D_SIZE %f", &r);
+			cubeSize = (int)r;
+			//std::cout << r << std::endl;
+		}
+		else if (iter > 7)
+		{
+			sscanf_s(parseString.c_str(), "%f %f %f", &r, &g, &b);
+			textureData.push_back((unsigned char)(r * 255.f));
+			textureData.push_back((unsigned char)(g * 255.f));
+			textureData.push_back((unsigned char)(b * 255.f));
+			//std::cout << (int)textureData[(iter - 8) * 3] << ", " <<
+			//	(int)textureData[(iter - 8) * 3 + 1] << ", " <<
+			//	(int)textureData[(iter - 8) * 3 + 2] << ", " << std::endl;
+		}
+		++iter;
+	}
+
+	this->sizeX = cubeSize;
+	this->sizeY = cubeSize;
+	this->sizeZ = cubeSize;
+	this->channels = 3;
+
+	if (this->sizeX == 0 || this->sizeY == 0 || this->sizeZ == 0 || this->channels == 0)
+	{
+		SAT_DEBUG_LOG_ERROR("TEXTURE BROKE: %s", this->filename.c_str());
+		return false;
+	}
+
+	// If the texture is 2D, set it to be a 2D texture;
+	_Target = GL_TEXTURE_3D;
+	_InternalFormat = GL_RGB8;
+
+	int levels = countMipMapLevels(mipmap);
+
+	glGenTextures(1, &this->_Handle);
+	this->bind();
+	glTextureStorage3D(this->_Handle, levels, this->_InternalFormat, this->sizeX, this->sizeY, this->sizeZ);
+	glTextureSubImage3D(this->_Handle, 0, 0, // We are editing the first layer in memory (Regardless of mipmaps)
+		0, 0, // No offset
+		this->sizeX, this->sizeY, this->sizeZ, // the dimensions of our image loaded
+		GL_RGB, GL_UNSIGNED_BYTE, // Data format and type
+		&textureData[0]); // Pointer to the texture data
+
+	if (mipmap)
+	{
+		generateMipMaps();
+	}
+
+	setWrapParameters(GL_CLAMP_TO_EDGE);
+
+	_Wrap.x = GL_CLAMP_TO_EDGE;
+	_Wrap.y = GL_CLAMP_TO_EDGE;
+	_Wrap.z = GL_CLAMP_TO_EDGE;
+
+	glTextureParameteri(this->_Handle, GL_TEXTURE_MIN_FILTER, this->_Filter.min);
+	glTextureParameteri(this->_Handle, GL_TEXTURE_MAG_FILTER, this->_Filter.mag);
+	glTextureParameteri(this->_Handle, GL_TEXTURE_WRAP_S, this->_Wrap.x);
+	glTextureParameteri(this->_Handle, GL_TEXTURE_WRAP_T, this->_Wrap.y);
+	glTextureParameteri(this->_Handle, GL_TEXTURE_WRAP_R, this->_Wrap.z);
+
+	this->unbind();
+	//SOIL_free_image_data(textureData);
 	return true;
 }
 

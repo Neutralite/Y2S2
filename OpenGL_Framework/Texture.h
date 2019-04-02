@@ -86,6 +86,7 @@ public:
 
 	// Loads the texture
 	bool load(const std::string &file, bool mipmap = true);
+	bool load3D(const std::string &file, bool mipmap = true);
 	// Unloads the texture
 	bool unload();
 
@@ -129,6 +130,7 @@ protected:
 		
 	int sizeX;
 	int sizeY;
+	int sizeZ;
 	int channels;
 
 	static std::string _TextureDirectory;

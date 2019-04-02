@@ -71,6 +71,8 @@ public:
 
 	void giveNewOrthoRatio(float _ASPECT);
 	void giveNewPersRatio(float _ASPECT);
+
+	Listener* PLAYER = nullptr;
 private:
 	mat4 m_pProjection;
 	mat4 m_pViewMatrix;

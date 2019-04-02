@@ -41,6 +41,7 @@ Game Toon Ramp
 defaultBlack
 defaultWhite
 defaultNormal
+defaultGrey
 Diffuse Toon
 Diffuse Overlay
 Text
@@ -71,3 +72,8 @@ SCENE_VICTORY_END
 SCENE_GAME_END
 GAME_RULES
 SCENE_RULES_TRANS
+BoringRamp
+SteepRamp
+SuddenDrop
+TwoStopRamp
+SPLIT

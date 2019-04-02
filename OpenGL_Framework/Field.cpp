@@ -69,30 +69,21 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 
 		BASE->setLocalPos(vec3(sectWidth * gridSpotX, 0.f, sectHeight * gridSpotY));
 		BASE->setLocalRot(vec3(0, (float)(tileRot * 90), 0));
+
+		Light* VECT_LIT;// = rm::getCloneOfLight("THE_1000_LIGHTS");
+		for (int i = 0; i < 5; i++)
+		{
+			VECT_LIT = rm::getCloneOfLight("THE_1000_LIGHTS");
+			VECT_LIT->setLocalPos(vec3((rand() % 51 - 25) / 10.f, 0.01f, (rand() % 51 - 25) / 10.f));
+			BASE->addChild(VECT_LIT);
+		}
+
 		grid[gridSpotX][gridSpotY] = BASE;
 
 		while (std::getline(theFile, temp))
 		{
 			if (temp == "PLACEHOLDER_PLAYER")
 			{
-				//if (EPD::playerVehicleChoice[0] == 0)
-				//{ 
-				//	temp = "PLAYER_TRUCK";
-				//}
-				//else if (EPD::playerVehicleChoice[0] == 1)
-				//{
-				//	temp = "PLAYER_TANK";
-				//}
-				//else if (EPD::playerVehicleChoice[0] == 2)
-				//{
-				//	temp = "PLAYER_BULLDOZER";
-				//}
-				//else if (EPD::playerVehicleChoice[0] == 3)
-				//{
-				//	temp = "PLAYER_WRECKINGBALL";
-				//}
-
-				//Player* PL = ResourceManager::getCloneOfPlayer(temp);
 				std::getline(theFile, temp);
 				float xLoc = stof(temp);
 				std::getline(theFile, temp);
@@ -100,22 +91,6 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 				std::getline(theFile, temp);
 				int rot = stoi(temp);
 				std::getline(theFile, temp);
-				//float scale = stof(temp);
-
-				//PL->setLocalPos(vec3(xLoc, 0.f, yLoc));
-				//PL->setLocalRot(vec3(0, (float)rot, 0));
-				//PL->setScale(scale);
-				//
-				//players.push_back(PL);
-				//fieldObjects[gridSpotX][gridSpotY].push_back(PL);
-				//PL->setBob(((float)(rand() % 629)) * 0.01f + 6.28f);
-				//
-				//PL->mapX = gridSpotX;
-				//PL->mapY = gridSpotY;
-				//
-				//PL->setInitials(vec3(xLoc, 0.f, yLoc), vec3(0, (float)rot, 0), vec3(scale));
-				//
-				//PL->hasInitial = true;
 
 				spawnPoints.push_back(vec3(xLoc, 0, yLoc));
 				gridPoints.push_back(vec3((float)gridSpotX, (float)gridSpotY, (float)rot));
@@ -123,11 +98,6 @@ void Field::loadFromFile(std::string & fileName, std::string &dir)
 			else
 			{
 				Destructable* DESTR = ResourceManager::getCloneOfDestructable(temp);
-
-				//if (temp == "GRASS_SPROUT")
-				//{
-				//	objCont->setBezTimeLimit(1.f);
-				//}
 
 				std::getline(theFile, temp);
 				float xLoc = stof(temp);

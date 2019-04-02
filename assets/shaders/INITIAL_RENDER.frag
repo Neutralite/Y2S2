@@ -5,12 +5,14 @@ layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec3 outEmissive;
 layout (location = 3) out vec3 outRoughness;
 layout (location = 4) out vec3 outMetallic;
+layout (location = 5) out vec3 shadowSpread;
 
 layout(binding = 0) uniform sampler2D uTexAlbedo;
 layout(binding = 1) uniform sampler2D uTexEmissive;
 layout(binding = 2) uniform sampler2D uTexRoughness;
 layout(binding = 3) uniform sampler2D uTexMetallic;
 layout(binding = 4) uniform sampler2D uTexNormal;
+layout(binding = 5) uniform sampler2D uTexSpread;
 
 uniform float uRoughness = 1.f;
 uniform float uMetallic = 1.f;
@@ -50,4 +52,5 @@ void main()
 	outEmissive = texture(uTexEmissive, texOffset).rgb;
 	outRoughness = texture(uTexRoughness, texOffset).rgb * (uRoughness);
 	outMetallic = texture(uTexMetallic, texOffset).rgb * (uMetallic);
+	shadowSpread = texture(uTexSpread, texOffset).rgb;
 }

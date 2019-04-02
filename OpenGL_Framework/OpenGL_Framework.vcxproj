@@ -121,6 +121,7 @@
     <ClCompile Include="Destructable.cpp" />
     <ClCompile Include="ExternalPlayerData.cpp" />
     <ClCompile Include="Field.cpp" />
+    <ClCompile Include="FModWrapper.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="Destructable.h" />
     <ClInclude Include="ExternalPlayerData.h" />
     <ClInclude Include="Field.h" />
+    <ClInclude Include="FModWrapper.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
@@ -229,6 +231,7 @@
     <ClInclude Include="XinputManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\assets\shaders\ApplyLUT.frag" />
     <None Include="..\assets\shaders\BASIC.frag" />
     <None Include="..\assets\shaders\Blur Horizontal.frag" />
     <None Include="..\assets\shaders\Blur Vertical.frag" />

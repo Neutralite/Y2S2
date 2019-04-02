@@ -46,6 +46,12 @@ void Title::initializeGame()
 		setKeysDown(false, (unsigned char)i);
 	}
 
+	for (int i = 0; i < 4; i++)
+	{
+		Sound::engine.listener[i].listening = false;
+	}
+	Sound::engine.listener[0].listening = true;
+
 	_GS = GS_BEGINNING;
 }
 
@@ -925,6 +931,8 @@ void Title::setUpTitle()
 
 	titleCam->setLocalPos(vec3(0.25, 2, 5));
 	titleCam->giveNewPersRatio(aspect);
+	titleCam->PLAYER = &Sound::engine.listener[0];
+	titleCam->PLAYER->pos = Transform::toFV(titleCam->getLocalPos());
 	titleCam->update(0);
 
 	START->setLocalPos(vec3(-2.2f, 3.5f, 0));
@@ -950,6 +958,9 @@ void Title::setUpTitle()
 	ARROW->setLocalRotZ(0.f);
 	ARROW->objectColor = START->objectColor;
 	ARROW->update(0);
+
+	//Sound* SUND = rm::getSound("drumloop");
+	//ARROW->sound = SUND->Play(Transform::toFV(ARROW->getLocalPos()));
 
 	building1->setLocalPos(vec3(3.2f, 0, -8.f));
 	building1->setLocalRotY(30.f);

@@ -10,7 +10,7 @@ Transform::Transform()
 
 Transform::~Transform()
 {
-
+	Sound::Stop(sound);
 }
 
 void Transform::addChild(Transform * newChild)
@@ -197,6 +197,15 @@ void Transform::update(float dt)
 	// Update children
 	for (unsigned int i = 0; i < m_pChildren.size(); i++)
 		m_pChildren[i]->update(dt);
+
+	if (sound)
+		Sound::SetPosition(sound, toFV(getWorldPos()));
+}
+
+FMOD_VECTOR Transform::toFV(vec3 _V)
+{
+	FMOD_VECTOR FV = { _V.x, _V.y, _V.z };
+	return FV;
 }
 
 void Transform::draw()

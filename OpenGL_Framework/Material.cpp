@@ -7,6 +7,7 @@
 Texture* Material::blackTex;
 Texture* Material::whiteTex;
 Texture* Material::normalTex;
+Texture* Material::defaultGrey;
 
 Material::Material(const std::string & filename)
 {
@@ -39,14 +40,15 @@ Material::Material(const std::string & filename)
 		}
 		else if (!strncmp(line, "PBR", 3))
 		{
-			textures.resize(5);
-			texturesBindLocation.resize(5);
+			textures.resize(6);
+			texturesBindLocation.resize(6);
 			textures[0] = rm::getTexture(filename);
 			textures[1] = blackTex;
 			textures[2] = whiteTex;
 			textures[3] = whiteTex;
 			textures[4] = normalTex;
-			for (unsigned int k = 0; k < 5; ++k)
+			textures[5] = rm::getTexture("SPLIT");
+			for (unsigned int k = 0; k < 6; ++k)
 				texturesBindLocation[k] = k;
 
 			floatUniforms["uRoughness"] = 1.0f;
@@ -89,6 +91,10 @@ Material::Material(const std::string & filename)
 		{
 			addTexture(rm::getTexture(lineChar), pbrNormal);
 		}
+		else if (std::sscanf(line, "textureShadowSplit: %s", lineChar) == 1)
+		{
+			addTexture(rm::getTexture(lineChar), pbrShadowSplit);
+		}
 		else if (std::sscanf(line, "shader: %s", lineChar) == 1)
 		{
 			shader = rm::getShader(lineChar);
@@ -130,6 +136,7 @@ void Material::initDefaultTextures()
 	blackTex  = rm::getTexture("defaultBlack");
 	whiteTex  = rm::getTexture("defaultWhite");
 	normalTex = rm::getTexture("defaultNormal");
+	defaultGrey = rm::getTexture("defaultGrey");
 }
 
 std::string Material::getName()

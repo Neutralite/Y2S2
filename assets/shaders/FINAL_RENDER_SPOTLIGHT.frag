@@ -93,21 +93,10 @@ void main()
 
 	//NdotL = 0.5f * NdotL + 0.5f;
 
-	//float shadowMult = 1.f;
-	//if (DO_SHADOWS == 1)
-	//{
-	//	vec4 shadowCoord = uShadowView * Pos;
-	//	float shadowDepth = texture(uTexShadowDepth, (shadowCoord).xy).r;
-	//	if (shadowDepth < shadowCoord.z - tan(acos(dot(N, Ldir))) * 0.0001f)
-	//	{
-	//		shadowMult = 0.f;
-	//	}
-	//}
-
 	if (NdotL > 0 && isInside > cos(uLightMaxAngle))
 	{
 		float NdotHV = max(dot(N, normalize(Ldir + normalize(-pos))), 0.0f);
-
+		
 		diffuseLight.rgb += NdotL * ATT * uLightColor.rgb * intensity;// * shadowMult;
 		specularLight.rgb += pow(NdotHV, specularExp) * ATT * intensity;// * shadowMult;
 	}

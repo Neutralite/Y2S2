@@ -129,6 +129,19 @@ float Player::getBob()
 
 void Player::update(float dt)
 {
+	strikePlayer = false;
+
+	throwMetal = false;
+	throwMetalDeath = false;
+
+	throwWood = false;
+	throwWoodDeath = false;
+
+	throwGrass = false;
+
+	throwConcrete = false;
+	throwConcreteDeath = false;
+
 	if (Engine)
 		updatePhysics(dt);
 	Transform::update(dt);
@@ -320,6 +333,7 @@ void Player::doCollision(GameObject* _GO)
 
 					needsUpdate = true;
 					//
+					strikePlayer = true;
 				}
 			}
 			else if (_GO->TT == TYPE_Powerup)
@@ -341,6 +355,8 @@ void Player::doCollision(GameObject* _GO)
 						vec3 BP1 = -outward * length(getVelocity()) * getPhysicsBody()->getMass() * 0.15f;
 						vec3 BP2 = -outward * length(getVelocity()) * getPhysicsBody()->getMass() * 0.15f;
 						_GO->applySwing(BP1, BP2, 0.7f);
+
+						throwGrass = true;
 					}
 
 					_GO->needsUpdate = true;
@@ -356,6 +372,20 @@ void Player::doCollision(GameObject* _GO)
 					{
 						_GO->initiateDestruction(0, normalize(getPhysicsBody()->getHB()->outDir), 0.5f, playerNumber);
 						
+						if (_GO->getName() == "PINE TREE 1" || _GO->getName() == "PINE TREE 2" || _GO->getName() == "DEAD_TREE")
+						{
+							throwWoodDeath = true;
+						}
+						else if (_GO->getName() == "APARTMENT" || _GO->getName() == "BUILDING 1" || _GO->getName() == "BUILDING 2"
+							|| _GO->getName() == "CAR_WASH" || _GO->getName() == "GAS_STATION_STORE" || _GO->getName() == "HOUSE 1"
+							|| _GO->getName() == "HOUSE 2")
+						{
+							throwConcreteDeath = true;
+						}
+						else
+						{
+							throwMetalDeath = true;
+						}
 					}
 					else
 					{
@@ -378,6 +408,21 @@ void Player::doCollision(GameObject* _GO)
 							{
 								_GO->applySwing(BP1, BP2, 1.f);
 								//std::cout << "HELLO" << std::endl;
+
+								if (_GO->getName() == "PINE TREE 1" || _GO->getName() == "PINE TREE 2" || _GO->getName() == "DEAD_TREE")
+								{
+									throwWood = true;
+								}
+								else if (_GO->getName() == "APARTMENT" || _GO->getName() == "BUILDING 1" || _GO->getName() == "BUILDING 2"
+									|| _GO->getName() == "CAR_WASH" || _GO->getName() == "GAS_STATION_STORE" || _GO->getName() == "HOUSE 1"
+									|| _GO->getName() == "HOUSE 2")
+								{
+									throwConcrete = true;
+								}
+								else
+								{
+									throwMetal = true;
+								}
 							}
 
 							_GO->needsUpdate = true;
