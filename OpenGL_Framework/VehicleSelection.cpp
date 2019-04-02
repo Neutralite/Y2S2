@@ -331,8 +331,6 @@ void VehicleSelection::startingUpdate(float dt)
 		playerView[i]->removeChild((unsigned int)0);
 		if (controllers[i])
 			playerView[i]->addChild(playerStillModel[playerSelect[i]][i]);
-		else if (i == 0)
-			playerView[i]->addChild(playerStillModel[playerSelect[i]][i]);
 		protectedEntityShip(&updateShip, playerView[i]);
 
 		drawChildren(&renderShip, &lightShip, playerView[i], false);
@@ -376,39 +374,10 @@ void VehicleSelection::runningUpdate(float dt)
 		}
 	}
 
-	if (keysDown['a'] && !backCheckKeysDown['a'] && !playerReady[0])
-	{
-		playerSelect[0] = (playerSelect[0] - 1) % 4;
-		while (playerSelect[0] < 0)
-			playerSelect[0] += 4;
-		sceneButtons[0]->setScale(1.6f);
-	}
-	if (keysDown['d'] && !backCheckKeysDown['d'] && !playerReady[0])
-	{
-		playerSelect[0] = (playerSelect[0] + 1) % 4;
-		while (playerSelect[0] > 3)
-			playerSelect[0] -= 4;
-		sceneButtons[1]->setScale(1.6f);
-	}
-	if (keysDown[' '] && !backCheckKeysDown[' '] && !playerReady[0])
-	{
-		playerReady[0] = true;
-		READY[0]->setScale(0.35f);
-	}
-	if (keysDown['q'] && !backCheckKeysDown['q'])
-	{
-		playerReady[0] = false;
-		READY[0]->setScale(0.2f);
-	}
-
 	bool goingBack = false;
-	if (keysDown['b'])
-	{
-		goingBack = true;
-	}
 
 	bool controllerConnected = false;
-	controllerConnected = true;
+
 	if (READY_TIME[0] < 1.f)
 	{
 		checkToSwap = false;
@@ -481,8 +450,6 @@ void VehicleSelection::runningUpdate(float dt)
 		playerView[i]->removeChild((unsigned int)0);
 		if (controllers[i])
 			playerView[i]->addChild(playerStillModel[playerSelect[i]][i]);
-		else if (i == 0)
-			playerView[i]->addChild(playerStillModel[playerSelect[i]][i]);
 		protectedEntityShip(&updateShip, playerView[i]);
 
 		sceneButtons[2 * i]->setScale(max(sceneButtons[2 * i]->getLocalScale() * pow(0.88f, 60.f * deltaTime), 0.7f));
@@ -522,19 +489,12 @@ void VehicleSelection::runningUpdate(float dt)
 				EPD::playerVehicleChoice[i] = playerSelect[i];
 				playerIter++;
 			}
-			//else if (i == 0)
-			//{
-			//	EPD::playerNumbers[i] = playerIter;
-			//	EPD::playerActive[i] = true;
-			//	EPD::playerVehicleChoice[i] = playerSelect[i];
-			//	playerIter++;
-			//}
 		}
 
 		tSwitch = rm::getTexture("SCENE_VEHICLE_EXIT");
 		tFade = rm::getTexture("defaultBlack");
 	}
-	if (goingBack)
+	if (goingBack && controllerConnected)
 	{
 		backTimer += deltaTime * 0.5f;
 		if (backTimer > 1.f)
@@ -585,8 +545,6 @@ void VehicleSelection::endedUpdate(float dt)
 		playerView[i]->setLocalRotY(playerView[i]->getLocalEuler().y + 30.f * deltaTime);
 		playerView[i]->removeChild((unsigned int)0);
 		if (controllers[i])
-			playerView[i]->addChild(playerStillModel[playerSelect[i]][i]);
-		else if (i == 0)
 			playerView[i]->addChild(playerStillModel[playerSelect[i]][i]);
 		protectedEntityShip(&updateShip, playerView[i]);
 

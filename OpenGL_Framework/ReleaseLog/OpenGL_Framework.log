@@ -1,7 +1,7 @@
-﻿  Game.cpp
+﻿  VehicleSelection.cpp
   Generating code
   2 of 6427 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    9 functions had inline decision re-evaluated but remain unchanged
+    3 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   OpenGL_Framework.vcxproj -> C:\Users\100657516\Documents\_LOANER_FILES\100657516\Documents\Y2S2 loaner\Intermediate CG\Potential Candidate For Framework\INFR 2350\ReleaseLog\OpenGL_Framework.exe
