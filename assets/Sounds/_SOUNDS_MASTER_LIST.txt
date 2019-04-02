@@ -1,7 +1,7 @@
 DRUMZ
 drumloop
 true
-true
+false
 DRUMZ_ONCE
 drumloop
 false
@@ -110,3 +110,11 @@ WOOD_DESTROY
 Wood Destroy
 false
 true
+TITLE_MUSIC
+Get Crackin
+true
+false
+VEHICLE_MUSIC
+Patiently Waiting
+true
+false

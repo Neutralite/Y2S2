@@ -138,6 +138,9 @@ protected:
 	static Texture* SteepRamp;
 	static Texture* SuddenRamp;
 	static Texture* TwoStopRamp;
+
+	static Sound* backgroundMusic;
+	static FMOD::Channel* backgroundChannel;
 };
 
 template<class T>

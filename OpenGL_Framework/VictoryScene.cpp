@@ -95,6 +95,11 @@ void VictoryScene::initializeGame()
 	}
 
 	_GS = GS_BEGINNING;
+
+	backgroundMusic->Stop(backgroundChannel);
+	backgroundMusic = rm::getSound("DRUMZ");
+	backgroundChannel = backgroundMusic->Play();
+	backgroundChannel->setVolume(0.2f);
 }
 
 void VictoryScene::update()

@@ -53,6 +53,11 @@ void Title::initializeGame()
 	Sound::engine.listener[0].listening = true;
 
 	_GS = GS_BEGINNING;
+
+	backgroundMusic->Stop(backgroundChannel);
+	backgroundMusic = rm::getSound("TITLE_MUSIC");
+	backgroundChannel = backgroundMusic->Play();
+	backgroundChannel->setVolume(1.f);
 }
 
 void Title::update()

@@ -63,6 +63,11 @@ void VehicleSelection::initializeGame()
 	}
 
 	_GS = GS_BEGINNING;
+
+	backgroundMusic->Stop(backgroundChannel);
+	backgroundMusic = rm::getSound("VEHICLE_MUSIC");
+	backgroundChannel = backgroundMusic->Play();
+	backgroundChannel->setVolume(1.f);
 }
 
 void VehicleSelection::update()

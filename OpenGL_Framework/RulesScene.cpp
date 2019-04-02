@@ -28,6 +28,11 @@ void Rules::initializeGame()
 	backFloat = 0.f;
 
 	_GS = GS_BEGINNING;
+
+	backgroundMusic->Stop(backgroundChannel);
+	backgroundMusic = rm::getSound("DRUMZ");
+	backgroundChannel = backgroundMusic->Play();
+	backgroundChannel->setVolume(0.2f);
 }
 
 void Rules::update()

@@ -71,6 +71,9 @@ Texture* Scene::SteepRamp;
 Texture* Scene::SuddenRamp;
 Texture* Scene::TwoStopRamp;
 
+Sound* Scene::backgroundMusic;
+FMOD::Channel* Scene::backgroundChannel;
+
 Scene::Scene()
 {
 }
@@ -140,6 +143,9 @@ void Scene::setDefaults()
 	transOver = rm::getTexture("defaultBlack");
 
 	killTheGPUWithLights = false;
+
+	backgroundMusic = nullptr;
+	backgroundChannel = nullptr;
 }
 
 void Scene::setName(std::string _NAME)

@@ -167,6 +167,11 @@ void Game::initializeGame()
 	sunRiseAndSet = true;
 
 	_GS = GS_BEGINNING;
+
+	backgroundMusic->Stop(backgroundChannel);
+	backgroundMusic = rm::getSound("DRUMZ");
+	backgroundChannel = backgroundMusic->Play();
+	backgroundChannel->setVolume(0.6f);
 }
 
 void Game::update()
